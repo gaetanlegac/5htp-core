@@ -1,0 +1,100 @@
+.card {
+   
+    position: relative; // For .overlay
+    padding: @spacing;
+    background-color: var(--cBg);
+    color: var(--cTxtBase);  
+    border-radius: @radius;
+
+    &.clickable {
+        cursor: pointer;
+
+        &:hover {
+            > * {
+                --cTxtImportant: @c1;
+            }
+        }
+    }
+
+    &.selected {
+
+        box-shadow: 0 0 0 3px @c1;
+
+        > * {
+            --cTxtImportant: @c1;
+        }
+    }
+
+    &.minimal {
+        background:transparent;
+        box-shadow: none;
+        border: solid 1px var(--cLine);
+    }
+
+    /*----------------------------------
+    - VARIANTS
+    ----------------------------------*/
+
+    &.menu {
+        padding: @spacing * 2;
+    }
+
+    /*----------------------------------
+    - CHILDRENS
+    ----------------------------------*/
+
+    // NOTE: use the .bg class instead
+    /*> header:first-child {
+        // Apply theme
+        background: var(--cBg);
+        color: var(--cTxtDesc);
+    }*/
+
+    > .cov-t {
+
+        margin-top: calc( -1 * @spacingComponent );
+    }
+
+    > .cover,
+    > .table {
+
+        margin-left: calc( -1 * @spacingComponent );
+        margin-right: calc( -1 * @spacingComponent );
+
+        &:first-child {
+            border-top-left-radius: @radius;
+            border-top-right-radius: @radius;
+            margin-top: calc( -1 * @spacingComponent );
+        }
+
+        &:last-child {
+            border-bottom-left-radius: @radius;
+            border-bottom-right-radius: @radius;
+            margin-bottom: calc( -1 * @spacingComponent );
+        }
+    }
+
+    > iframe.cover {
+        margin: 0px !important;
+        height: 100%;
+        width: 100%;
+    }
+}
+
+iframe {
+    border: none;
+}
+
+header.card {
+    > i {
+        font-size: 3em;
+        line-height: 1em;
+    }
+}
+
+.dropArea {
+    padding: @spacing;
+    border-radius: @radius;
+    cursor: pointer;
+    border: dashed 4px var(--cLine);
+}

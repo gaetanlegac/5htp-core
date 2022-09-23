@@ -1,0 +1,129 @@
+// Défaut
+@keyframes spin {
+    from {
+        transform:rotate(0deg);
+    }
+    to {
+        transform:rotate(360deg);
+    }
+}
+
+i {
+    font-size: @sIcon;
+    line-height: 1em;
+    vertical-align: -0.2em;
+    text-align: center;
+    font-style: normal;
+
+    &.spin {
+        animation-name: spin;
+        animation-iteration-count: infinite;
+        animation-timing-function: linear;
+        animation-duration: 500ms;
+
+        &.slow {
+            animation-duration: 2000ms;
+        }
+
+        /*display: block;
+        margin: 0.80rem auto;*/
+
+        
+    }
+
+    &.solid {
+        color: var(--c2);
+
+        width: @sizeComponent;
+        flex: 0 0 @sizeComponent;
+        height: @sizeComponent;
+        line-height: @sizeComponent;
+        //font-size: 0.9em;
+    }
+
+    &.unit {
+        font-size: 0.6em; // Integrate with the text
+    }
+
+    /*----------------------------------
+    - SPACING
+    ----------------------------------*/
+    h2 & {
+        margin-right: @spacing / 2;
+    }
+}
+
+img.icon {
+
+    width: 1.5em;
+    height: 1.5em;
+    flex: 0 0 1.5em;
+
+    vertical-align: middle;
+    object-fit: contain;
+    object-position: center;
+}
+
+i.logo {
+    /*width: 3.2em;
+    height: 3.2em;
+    line-height: 3.2em;
+    flex: 0 0 3.2em;*/
+
+    width: 2em;
+    height: 2em;
+    line-height: 2em;
+    flex: 0 0 2em;
+
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: cover;
+    background-color: var(--cBg2);
+    border-radius: 50%;
+
+    &.contain {
+        background-color: transparent;
+        background-size: contain;
+        border-radius: 0;
+    }
+
+    display: inline-block;
+    vertical-align: middle;
+
+    position: relative;
+
+    // badge level
+    .badge {
+        position: absolute;
+        right: -0.5rem;
+        bottom: -0.5rem;
+
+        padding: 0 0.5rem;
+        height: 1.65rem;
+        line-height: 1.65rem;
+
+        border-radius: 10px;
+
+        color: var(--cTxtBase)
+
+    }
+
+    .row.logos > & {
+        box-shadow: 0 0 0 0.2em var(--cBg);
+        position: relative;
+        z-index: 1;
+
+        > .badge { opacity: 0; }
+
+        + i.logo {
+            margin-left: -2rem;
+        }
+
+        &:hover {
+            z-index: 2;
+
+            > .badge { opacity: 1; }
+        }
+    }
+}
+

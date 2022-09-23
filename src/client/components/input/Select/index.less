@@ -1,0 +1,60 @@
+
+//@plugin "~@client/components/_base/plugin-less.js";
+
+ul.tags {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+
+    &:not(.minimal) {
+        padding: 5px;
+    }
+
+    > li {
+        margin: 2px;
+
+        &.tag {
+            font-size: 1rem;
+            font-weight: 400;
+            padding: 0 0.80rem;
+
+            height: 2em;
+            line-height: 2em;
+
+            > i {
+                margin-right: 5px;
+            }
+
+            > .bouton.retirer {
+                margin-right: -0.80rem;
+
+                i {
+                    font-size: 0.80rem;
+                }
+            }
+        }
+
+        > input {
+            
+        }
+    }
+}
+
+.contChamp.select {
+    > .contPopover {
+        display: block;
+
+        > .bouton {
+            width: 100%;
+
+            form & {
+                // Forme similaire aux autres champs
+                padding: var(--espacement);
+            }
+
+            > .label {
+                flex: 1;
+            }
+        }
+    }
+}

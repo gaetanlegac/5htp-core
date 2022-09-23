@@ -1,0 +1,301 @@
+/*----------------------------------
+- ELEMENTS BASIQUES
+----------------------------------*/
+a {
+    color: inherit;
+    cursor: pointer;
+    text-decoration: underline;
+
+    &:not([disabled]):hover, 
+    &.active {
+        color: var(--cTxtImportant);
+    }
+
+    &.super {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        z-index: 5;
+
+        ~ a, ~ * a, ~ button, ~ * button {
+            z-index: 6;
+        }
+    }
+}
+
+[contenteditable]:focus {
+    outline: 0px solid transparent;
+}
+
+p, .p {
+    text-align: center;
+    line-height: 1.8em;
+    margin: 0; // Overwrite browser defaults
+}
+
+.desc {
+    font-size: 0.8rem;
+    color: var(--cTxtDesc);
+
+    i {
+        height: 1.16rem;
+    }
+}
+
+// Gestion des dépassements
+//.bouton, // Empêche le label d'être affiché en mode icone only
+.bouton > .label /* <Select /> */ {
+	white-space: nowrap;
+	overflow: hidden;
+  	text-overflow: ellipsis;
+}
+
+/*----------------------------------
+- COULEURS
+----------------------------------*/
+.txtSuccess {
+    color: var(--cSuccess) !important;
+}
+.txtError {
+    color: var(--cError) !important;
+}
+.txt-gold {
+    /*color: #cef57a;
+    text-shadow: 0 0 0.80rem fade(#cef57a, 80%);*/
+    color: #c80;
+}
+.txtWarn {
+    color: var(--orange) !important;
+}
+
+.txt-blanc { color: #fff !important; }
+
+.txtPrimary, .txtC1 {
+    color: var(--c1);
+}
+
+.txtC2 { color: var(--c2); }
+
+/*----------------------------------
+- TAILLE
+----------------------------------*/
+
+.txt-xs { font-size: 0.80rem !important; }
+.txt-s { font-size: 1rem !important; }
+.txt-m { font-size: 1.16rem !important; }
+.txt-l { font-size: 1.35rem !important; }
+.txt-xl { font-size: 18px !important; line-height: 34px; }
+.txt-xxl { font-size: 22px !important; line-height: 40px; }
+
+.txt-gros { font-size: 18px; }
+.txt-chiffre {
+    font-size: 1.16rem;
+}
+
+/*----------------------------------
+- CLASSES
+----------------------------------*/
+.txt-center { text-align: center !important; }
+.txt-left { text-align: left !important; }
+.txt-right { text-align: right !important; }
+.txt-justify { text-align: justify !important; }
+
+// Couleurs
+.txt-discret { color: var(--cTxtDiscret); }
+.txt-desc { color: var(--cTxtDesc); }
+.txt-base { color: var(--cTxtBase); }
+.txt-contenu { color: var(--cTxtPost); }
+
+strong, 
+.active,
+.txtImportant {
+    color: var(--cTxtImportant);
+}
+
+strong {
+    font-weight: 600;
+
+    &.titre {
+        padding: 0 0.80rem;
+        color: var(--cTxtDesc);
+        display: block;
+        text-align: left;
+        font-size: 0.80rem;
+        line-height: 0.80rem;
+    }
+}
+
+strong.number,
+header > strong {
+    //font-family: 'Montserrat';
+    font-size: 1.3em;
+    line-height: 1em;
+}
+
+em {
+    font-style: normal;
+    position: relative;
+    display: inline-block;
+    color: inherit;
+    z-index: 2; // Sinon, ::after sera en dessous de l'élement parent
+    
+    &::after {
+        content: ' ';
+        display: block;
+        height: 0.5em;
+        background: var(--c2);
+
+        position: absolute;
+        z-index: -1;
+        bottom: 0.15em;
+        left: -0.1em;
+        right: -0.1em;
+    }
+}
+
+pre {
+    font-family: "Fira Mono", monospace;
+    text-align: left;
+}
+
+// For URLS ans other potentially long texts
+.long-txt {
+    word-break: break-all;
+    word-wrap: break-word;
+}
+
+
+
+@readingMargin: 2.4rem;
+.reading {
+
+    .card > & {
+
+        padding: 3vh 0 !important;
+    }
+
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+    
+    p,
+    figcaption,
+    h2,
+    h3,
+    > ul {
+        max-width: var(--focusWidth);
+        margin: 0 auto;
+        width: 100%;
+        padding: 0 @readingMargin;
+    }
+
+    &,
+    p {
+        font-family: 'Lato', sans-serif;
+        font-size: 1.1rem;
+        line-height: 1.8em;
+        color: var(--cTxtBase);
+        text-align: justify;
+    }
+
+    h2, h3, h4 {
+        text-align: left;
+    }
+
+    h2 {
+        font-size: 2rem;
+        //margin: 60px 0 !important;
+        font-weight: 700;
+    }
+
+    h3 {
+        font-size: 1.35rem;
+        font-weight: 700;
+    }
+
+    h4 {
+        font-size: 1.16rem;
+        font-weight: 700;
+    }
+
+    code {
+        background: @c3;
+        border-top: solid 1px @c3 - #111;
+        border-bottom: solid 1px @c3 - #111;
+        padding: @spacing @readingMargin;
+        color: @c3 + #888;
+        text-align: left;
+        font-size: 1rem;
+        line-height: 2em;
+    }
+
+    figure {
+        position: relative;
+        .btn {
+            position: absolute;
+            top: @spacing;
+            right: @spacing;
+        }
+
+        img {
+            max-width: 100%;
+            max-height: 80vh;
+            cursor: default;
+            display: block;
+            margin: 0 auto;
+        }
+
+        figcaption {
+            margin-top: @spacing;
+            font-style: italic;
+            text-align: center;
+        }
+    }
+
+    blockquote {
+        font-size: 1.35rem;
+        cursor: pointer;
+        text-align: justify;
+
+        border: solid 1px var(--cLine);
+        border-radius: @radius;
+        padding: @spacing;
+
+        &, * {
+            color: var(--cTxtDesc);
+        }
+
+        .tweeter {
+
+            text-align: right;
+            margin-top: 1.25rem;
+
+            color: var(--cTxtBase);
+            font-size: 1.16rem;
+            line-height: 1.16rem;
+            font-weight: 600;
+
+            > i {
+                color: #55acee;
+                margin-left: 0.80rem;
+                font-size: 18px;
+            }
+
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        &:hover .tweeter {
+            color: var(--cTxtImportant);
+        }
+    }
+
+    table {
+        font-size: 0.8em;
+        line-height: 1.8em;
+
+        td {
+            vertical-align: top;
+        }
+    }
+}

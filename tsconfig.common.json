@@ -1,0 +1,42 @@
+/*
+    Condiguration de base pour l'app ET le framework
+*/
+{
+    "compilerOptions": {
+
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "allowJs": true,
+        "strict": false,
+        "downlevelIteration": true,
+
+        // Equivalent webpack: resolve.symblinks = false
+        "preserveSymlinks": true,
+        // Décorateurs
+        "experimentalDecorators": true,
+
+        // React
+        "jsx": "react-jsx",
+        "jsxImportSource": "preact",
+
+        "strictPropertyInitialization": true,
+        "strictNullChecks": true,
+        
+        "rootDir": "./src",
+        "baseUrl": "./src",
+        "paths": {
+            "@client/*": ["./client/*"],
+            "@common/*": ["./common/*"],
+            "@server/*": ["./server/*"],
+            "@root/*": ["./*"],
+
+            "@errors": ["./common/errors"],
+            "@models": ["./common/models"],
+
+            "react": ["../node_modules/preact/compat"],
+            "react-dom": ["../node_modules/preact/compat"],
+            "react/jsx-runtime": ["../node_modules/preact/jsx-runtime"]
+        },
+    },
+    "include": ["src"]
+}

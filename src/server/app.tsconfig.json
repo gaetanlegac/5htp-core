@@ -1,0 +1,34 @@
+{
+    "extends": "../../node_modules/@dopamyn/framework/tsconfig.common.json",
+    "compilerOptions": {
+        "rootDir": "..",
+        "baseUrl": "..",
+        "paths": {
+
+            // RAPPEL: Mettre à jour webpack externals
+
+            "@client/*": ["../node_modules/@dopamyn/framework/src/client/*"],
+            "@common/*": ["../node_modules/@dopamyn/framework/src/common/*"],
+            "@server/*": ["../node_modules/@dopamyn/framework/src/server/*"],
+
+            "@validator": ["../node_modules/@dopamyn/framework/src/server/data/input"],
+            "@router": ["../node_modules/@dopamyn/framework/src/server/services/router"],
+            "@errors": ["../node_modules/@dopamyn/framework/src/common/errors"],
+
+            "@models": ["../server/models"],
+
+            "@/*": ["./*"],
+
+            // ATTENTION: Les références à preact doivent toujours pointer vers la même instance
+            "react": ["../node_modules/@dopamyn/framework/node_modules/preact/compat"],
+            "react-dom/test-utils": ["../node_modules/@dopamyn/framework/node_modules/preact/test-utils"],
+            "react-dom": ["../node_modules/@dopamyn/framework/node_modules/preact/compat"], // Must be below test-utils
+            "react/jsx-runtime": ["../node_modules/@dopamyn/framework/node_modules/preact/jsx-runtime"]
+        }
+    },
+    
+    "include": [
+        ".",
+        "../../node_modules/@dopamyn/framework/src/types/global"
+    ]
+}

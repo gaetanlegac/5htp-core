@@ -1,0 +1,36 @@
+.champ.slider {
+    @hSlider: 2.5rem;
+    @hTrack: 0.5rem;
+
+    height: @hSlider !important;
+    margin: 0.80rem 1.25rem !important;
+
+    .track,
+    .thumb {
+        cursor: pointer;
+    }
+
+    .track {
+        top: @hSlider / 2 - @hTrack / 2;
+        height: @hTrack;
+
+        &-0 {
+            background: var(--c1);
+            border-radius: @hTrack / 2 0 0 @hTrack / 2;
+        }
+
+        &-1 {
+            background: var(--cLine2);
+            border-radius: 0 @hTrack / 2 @hTrack / 2 0;
+        }
+    }
+
+    .thumb {
+        width: @hSlider;
+        height: @hSlider;
+        border-radius: 50%;
+        background: var(--cBgControl);
+        box-shadow: 0 0 50px fade(#000, 40%);
+        border: solid 1px fade(#000, 20%);
+    }
+}

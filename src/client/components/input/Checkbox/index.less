@@ -1,0 +1,155 @@
+.checkbox {
+    input[type="checkbox"] {
+        display: none;
+    }
+}
+
+.checkbox.classique {
+
+    @tCheckbox: 28px;
+
+    position: relative;
+    padding-left: @tCheckbox + 0.80rem;
+    text-align: left;
+
+    min-height: @tCheckbox;
+    min-width: @tCheckbox;
+
+    input[type="checkbox"] {
+        display: none;
+        
+        + label {
+
+            // Aligne le label verticallement avec le switch
+            padding-top: 0.7em; 
+
+            &::before, &::after {
+                content: ' ';
+                display: block;
+
+                position: absolute;
+                top: 0;
+                left: 0;
+
+                width: @tCheckbox;
+                height: @tCheckbox;
+                line-height: @tCheckbox;
+                text-align: center;
+
+                cursor: pointer; cursor: hand;
+            }
+
+            &::before {
+
+                border-radius: 5px;
+                background: var(--cBgControl);
+            }
+
+            /*&:hover {
+                &::before {
+                    background: var(--cBgControlActif);
+                }
+            }*/
+
+            // Checkmark
+            &::after {
+                content: '✓';
+                font-size: 1.65rem;
+                color: transparent;
+            }
+
+            &:hover {
+                &::after {
+                    color: var(--cPrincipale);
+                }
+            }
+        }
+
+        &:checked + label {
+            &::before {
+                background: var(--cPrincipale);
+            }
+
+            &::after {
+                color: #fff,
+            }
+        }
+    }
+}
+
+.checkbox.switch {
+
+    position: relative;
+    display: inline-block;
+    vertical-align: middle;
+
+    @hSwitch: 2rem;
+    @wSwitch: @hSwitch * 2;
+
+    @paddingSwitch: 2px;
+    @tBtnSwitch: @hSwitch - @paddingSwitch * 2;
+
+    min-height: @hSwitch;
+
+    // Si label texte présent, on affiche sur une ligne entière
+    &.avecLabel {
+        display: flex;
+
+        &.ibloc {
+            display: inline-flex;
+        }
+
+        > input + label {
+            margin-right: 0.80rem;
+        }
+
+        // Label texte
+        > label:last-child {
+            flex: 1;
+        }
+
+        .contLabel {
+            display: block;
+            // Aligne le label verticallement avec le switch
+            padding-top: 0.7em; 
+        }
+    }
+
+    // Bien cibler le premier label (switch)
+    // Le second étant dédié au label texte
+    > input + label {
+        &, &::before {
+            transition: .4s;
+        }
+
+        flex: @wSwitch 0 0;
+        width: @wSwitch;
+        height: @hSwitch;
+        background: var(--cBgControl);
+        left: 0; right: 0; top: 0; bottom: 0;
+        border-radius: @hSwitch / 2;
+        cursor: pointer;
+
+        &::before {
+            content: ' ';
+            position: absolute;
+            display: block;
+            height: @tBtnSwitch;
+            width: @tBtnSwitch;
+            border-radius: @tBtnSwitch / 2;
+            background: #fff;
+
+            top: @paddingSwitch;
+            left: @paddingSwitch;
+        }
+    }
+
+    > input:checked + label {
+        background: var(--cBgControlActif);
+
+        &::before {
+            transform: translateX(@wSwitch - (@paddingSwitch * 2) - @tBtnSwitch);
+        }
+    }
+
+}

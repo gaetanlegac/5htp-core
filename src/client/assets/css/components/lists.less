@@ -1,0 +1,152 @@
+ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    // Casse le breadcrumb
+    /*> li > a:first-child:last-child {
+        display: block;
+    }*/
+}
+
+/*----------------------------------
+- Liste classique
+----------------------------------*/
+ul.liste, 
+ol.liste {
+    // Doit hériter des parents
+    //line-height: 1.5em;
+    text-align: left;
+
+    > li {
+        position: relative;
+
+        &:before {
+            position: absolute;
+            left: 0; top: 0;
+            line-height: inherit;
+        }
+    }
+}
+
+ul.liste {
+    &:not(.h) > li {
+        
+        padding-left: 2.4em;
+        text-align: left;
+
+        &.row { justify-content: flex-start; }
+
+        &:before {
+            content: '➜';
+            font-size: 1.4em;
+            color: var(--c2);
+        }
+    }
+
+    &.h {
+        display: flex;
+        align-items: center;
+
+        > li > a {
+            padding: 0 1.65rem;
+        }
+
+        &.avecSeparateur {
+
+            > li {
+                > a {
+                    padding: 0;
+                }
+
+                &:not(:last-child)::after {
+                    content: '\00B7';
+                    display: inline-block;
+                    margin: 0 0.80rem;
+                    font-size: 1.35rem;
+                }
+            }
+        }
+    }
+}
+
+@sizeStep: 3rem;
+ol.steps {
+
+    counter-reset: step-counter;
+
+    > li {
+        counter-increment: step-counter;
+
+        &:before {
+            content: counter(step-counter);
+        }
+
+        li.row {
+    
+            padding-left: 30px;
+            margin: 5px 0;
+    
+            &:before {
+                
+            }
+        }
+    
+        li.col {
+    
+            /*padding-left: 30px;
+            margin: 5px 0;*/
+    
+            &:before {
+                
+            }
+        }
+    }
+}
+
+ol.steps > li:before,
+strong.step {
+    color: var(--c1);
+    font-weight: 700;
+    background: @c1SuperLight;
+
+    text-align: center;
+    width: @sizeStep;
+    height: @sizeStep;
+    line-height: @sizeStep;
+    border-radius: 50%;
+}
+
+/*----------------------------------
+- STATS
+----------------------------------*/
+
+ul.liens {
+    li {
+        display: inline;
+
+        + li {
+            &::before {
+                content: " · ";
+            }
+        }
+    }
+}
+
+dl {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+
+    dt, dd {
+        
+    }
+
+    dt {
+        text-align: left;
+    }
+
+    dd {
+        text-align: right;
+    }
+}

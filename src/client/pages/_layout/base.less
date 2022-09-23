@@ -1,0 +1,13 @@
+#page {
+    transition: opacity 5s cubic-bezier(0,.3,0,.99);
+    animation: showMain 1s ease-out;
+    @keyframes showMain { 
+        0% {    opacity: 0.3; }
+        100% {   opacity: 1; }
+    }
+
+    body.loading & {
+        cursor: wait;
+        opacity: 0.1;
+    }
+}

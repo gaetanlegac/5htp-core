@@ -1,0 +1,79 @@
+@import (reference) '~@/client/assets/theme.less';
+
+@hInput: @sizeComponent * 1.2;
+
+// TODO: Adapter textarea à input/basev2
+.contChamp textarea {
+    &.bloc { width: 100%; }
+    
+    resize: none;
+    min-height: @hInput;
+    padding-top: @spacing * 2 !important;
+}
+
+.input.text {
+    
+    display: flex;
+    align-items: center;
+    padding: @spacing;
+    gap: @spacing;
+
+    // Inputs don't have to have the same height as the buttons,
+    // Since they are not supposed to be on the same row (mobile first design)
+    height: @hInput;
+    border-radius: @radius;
+
+    --cBg2: #eee;
+    background: fade(#000, 5%);
+    //box-shadow: 1px 3px 0 fade(#000,4%), 0 1px 2px 0 fade(#000,2%);
+
+    > i {
+        margin-left: 0.5em;
+    }
+
+    .contValue {
+        position: relative;
+        flex: 1;
+        &, * {
+            cursor: text;
+        }
+    }
+
+    @gapAround: (@hInput - @labelH) / 2;
+    > .btn:first-child { margin-left: 0 - @gapAround / 2; }
+
+    @labelH: 1.2em;
+    label {
+        position: absolute;
+        left: 0; width: 100%;
+        top: 0;
+        display: flex;
+        align-items: center;
+
+        height: @labelH;
+        color: var(--cTxtDesc);
+        transition: all .1s ease-out;
+    }
+
+    &.empty:not(.focus)  {
+        label {
+            height: 100%;
+            font-size: 1em;
+            color: var(--cTxtImportant);
+        }
+    }
+
+    input, 
+    textarea {
+        background: transparent;
+        border: none;
+        font-family: inherit;
+        width: 100%;
+        padding: @labelH 0 0 0;
+        height: 2.5em;
+    }
+
+    textarea {
+        padding: @labelH + @spacing 0 @spacing 0;
+    }
+}

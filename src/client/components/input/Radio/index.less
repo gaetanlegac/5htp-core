@@ -1,0 +1,40 @@
+@import '~@/general/client/assets/css/vars.less';
+
+@hRadio: 40px;
+@margeRadio: 5px;
+
+.radio .champ {
+    border-radius: @hRadio / 2;
+    padding: @margeRadio;
+
+    display: inline-flex;
+    flex-wrap: wrap;
+    width: auto;
+
+    border: solid 2px var(--cLigne1);
+
+    > input {
+        display: none;
+
+        + label {
+
+            height: @hRadio - @margeRadio;
+            line-height: @hRadio - @margeRadio;
+            border-radius: (@hRadio - @margeRadio) / 2;
+            padding: 0 25px;
+
+            cursor: pointer;
+
+            &:hover {
+                color: #000;
+            }
+        }
+
+        &:checked + label {
+            //.degrade_violet();
+            background: var(--cPrincipale);
+
+            color: #fff;
+        }
+    }
+}

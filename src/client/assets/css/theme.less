@@ -1,0 +1,67 @@
+@bgDelta: #111;
+@fgDelta: #999;
+
+.build-theme( 
+    @bg, 
+    @fg: if( lightness(@bg) >= 80%, @bg - @fgDelta, @bg + @fgDelta),
+    @apply: true,
+
+    @bgChild: @bg + @bgDelta,
+    @fgChild: if( lightness(@bgChild) >= 80%, @bgChild - @fgDelta, @bgChild + @fgDelta)
+) {
+
+    @isLight: boolean( lightness(@bg) >= 80% );
+
+    // Background
+    @bgDark: darken(@bg, 5%);
+    @bgDarkPlus: darken(@bg, 10%);
+    --cBg: @bg; 
+    --cBgAccent: @bgDark;
+    --cBgAccentPlus: @bgDarkPlus;
+    --cBgControl: if( @bg = #fff, @cBgPage, #fff );
+
+    // Other
+    @cLine: if( @isLight, @bg - #151515, @bg + #151515);
+    @cLine2: if( @isLight, @bg - #191919, @bg + #050505);
+    --cLine: @cLine;
+    --cLine2: @cLine2;
+
+    > * {
+        --c1: if( @isLight, @c1, #ffffff );
+    }
+
+    // Text
+    .build-theme-txt(@fg, @bg, @apply);
+
+    // Childrens
+    & when (@apply = true) {
+        background: var(--cBg);
+        .input {
+            border: if(@bg = #ffffff, solid 2px var(--cLine), none);
+        }
+    }
+
+    .overlay {
+        background: fade(@bg, 50%);
+    }
+}
+
+.build-theme-txt( @cTxtBase, @bg, @apply: true ) {
+
+    @isLight: boolean( lightness(@bg) >= 70% );
+    
+
+    // Text
+    @cTxtDiscret: if( @isLight, @bg - #444, @bg + #444);
+    @cTxtDesc: if( @isLight, @cTxtBase + #222, @cTxtBase - #222);
+    @cTxtImportant: if( @isLight, @cDark, #fff);
+
+    --cTxtDiscret: @cTxtDiscret;
+    --cTxtDesc: @cTxtDesc;
+    --cTxtBase: @cTxtBase;
+    --cTxtImportant: @cTxtImportant;
+
+    /*& when (lightness(@bg) < 90%) {
+        --c1: @cTxtImportant;
+    }*/
+}

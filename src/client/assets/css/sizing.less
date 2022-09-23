@@ -1,0 +1,101 @@
+.xs { font-size: 0.6em !important; line-height: 1em; }
+.s { font-size: 0.8em !important; line-height: 1em; }
+.m { font-size: 1em !important; line-height: 1em; }
+.l { font-size: 1.3em !important; line-height: 1em; }
+.xl { font-size: 2em !important; line-height: 1em; }
+.xxl { font-size: 2.5em !important; line-height: 1em; }
+
+/*----------------------------------
+- FONCTIONS
+----------------------------------*/
+.for(@list, @code) {
+    & {
+        .loop(@i:1) when (@i =< length(@list)) {
+            @value: extract(@list, @i);
+
+            @code();
+
+            .loop(@i + 1);
+        }
+
+        .loop();
+    }
+}
+
+/*----------------------------------
+- DIMENSIONS LIMITES
+----------------------------------*/
+.centrer {
+    margin-left: auto;
+    margin-right: auto;
+    max-width: @pageWidth;
+    position: relative;
+    width: 100%;
+}
+
+@sizingUnit: 7rem;
+
+.taillesLim(@tailleMax1, @taille1: 0) when (@taille1 <= @tailleMax1) {
+
+    // Fixes
+    .w-@{taille1} { 
+        width: @taille1 * @sizingUnit; 
+    }
+    .h-@{taille1} { 
+        height: @taille1 * @sizingUnit; 
+    }
+
+    .row > .w-@{taille1},
+    .col > .h-@{taille1} {
+        flex: 0 0 @taille1 * @sizingUnit;
+    }
+
+    // Min - max
+    .w-@{taille1}-a {
+        min-width: @taille1 * @sizingUnit;
+    }
+
+    .w-a-@{taille1} {
+        max-width: @taille1 * @sizingUnit;
+        width: 100%; // We take the maximum space wecan
+    }
+
+    .h-@{taille1}-a {
+        min-height: @taille1 * @sizingUnit;
+    }
+
+    .h-a-@{taille1} {
+        max-height: @taille1 * @sizingUnit;
+        height: 100%; // We take the maximum space wecan
+    }
+
+    // Ranges
+    .taillesMax(@tailleMax2, @taille2: 0) when (@taille2 <= @tailleMax2) {
+
+        .w-@{taille1}-@{taille2} {
+            min-width: @taille1 * @sizingUnit;
+            max-width: @taille2 * @sizingUnit;
+            width: 100%; // We take the maximum space wecan
+
+            .row > & {
+                flex: 1;
+            }
+        }
+        .h-@{taille1}-@{taille2} {
+            min-height: @taille1 * @sizingUnit;
+            max-height: @taille2 * @sizingUnit;
+            height: 100%; // We take the maximum space wecan
+
+            .col > & {
+                flex: 1;
+            }
+        }
+	    
+        .taillesMax(@tailleMax2, @taille2 + 1);
+    }
+    .taillesMax(9);
+
+	.taillesLim(@tailleMax1, @taille1 + 1);
+
+}
+.taillesLim(9);

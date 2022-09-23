@@ -1,0 +1,356 @@
+
+
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+    backdrop-filter: blur(10px);
+    border-radius: inherit;
+}
+
+/*----------------------------------
+- RANGÉES
+----------------------------------*/
+
+.indiana-scroll-container {
+    &.row {
+
+        border-radius: @radius;
+        align-items: stretch;
+        justify-content: flex-start;
+    }
+
+    //overflow: visible !important;
+}
+
+.row {
+    display: flex;
+    flex-wrap: nowrap;
+
+    > * {
+        // Empêche les enfants de dépasser du conteneur
+        min-width: 0;
+    }
+
+    // Avec justify-content: center, les premiers élements sont cachés
+    .indiana-scroll-container > & {
+        justify-content: flex-start;
+    }
+
+    &.sep-1 > * + * { border-left: solid 1px var(--cLine); }
+
+    &.menu {
+
+        > li {
+            position: relative;
+
+            > a:hover::before {
+                content: ' ';
+                position: absolute;
+                top: 0; left: 0; bottom: 0; right: 0;
+                margin: 0 0.3em;
+                background: var(--cBgAccent);
+                border-radius: @radius;
+                z-index: 0;
+
+            }
+
+            > a > * {
+                z-index: 1;
+                position: relative;
+            }
+
+            > a.selected {
+                color: var(--cTxtImportant  );
+
+                @indicatorSize: 5px;
+                &::after {
+                    content: ' ';
+                    position: absolute;
+                    bottom: 10%;
+                    left: 50%;
+                    margin-left: -@indicatorSize / 2;
+
+                    display: block;
+                    width: @indicatorSize;
+                    height: @indicatorSize;
+                    border-radius: 50%;
+                    background-color: @c2;
+                }
+            }
+        }
+    }
+}
+
+.row.champs {
+    align-items: flex-start;
+}
+
+.row,
+.btn {
+
+    &.inline { display: inline-flex; }
+
+    &.al-left { justify-content: flex-start; }
+    &, 
+    &.al-center { justify-content: center; }
+    &.al-right { justify-content: flex-end; }
+
+    &.al-top { align-items: flex-start; }
+    &, &.al-middle { align-items: center; }
+    &.al-bottom { align-items: flex-end; }
+    &.al-fill { align-items: stretch; }
+    
+}
+
+.col {
+    display: flex;
+    flex-direction: column;
+
+    &.al-top { justify-content: flex-start; }
+    &, &.al-middle { justify-content: center; }
+    &.al-bottom { justify-content: flex-end; }
+
+    &.al-left { align-items: flex-start; }
+    &.al-center { align-items: center; }
+    &.al-right { align-items: flex-end; }
+    &, &.al-fill { align-items: stretch; }
+
+    &.sep-1 > * + * { border-top: solid 1px var(--cLine); }
+}
+
+.row, 
+.col {
+
+    &.sp-btw { justify-content: space-between; }
+    &.sp-ar { justify-content: space-around; }
+    &.wrap { flex-wrap: wrap; }
+    &.wrap-rev { flex-wrap: wrap-reverse; }
+
+    &.fill-a > * { flex: 1 1 auto; }
+
+    &-1, &.fill > * { flex: 1; }
+    &-2 { flex: 2; }
+    &-3 { flex: 3; }
+
+    &.menu {
+        gap: @spacing / 2;
+    }
+}
+
+.row.band {
+
+    border-top: solid 1px var(--cLine);
+    gap: 0;
+
+    > * {
+        
+        min-width: fit-content;
+        flex: 1;
+        padding: 2em;
+
+        // For buttons
+        border-radius: 0;
+        height: auto;
+
+        &.main {
+            background-color: fade(#000, 8%);
+        }
+
+        + * {
+            border-left: solid 1px var(--cLine);
+        }
+    }
+}
+
+/*----------------------------------
+- GRILLE
+----------------------------------*/
+.igrille { display: inline-grid; }
+
+.grid {
+    display: grid;
+    //grid-auto-flow: dense; // Rempli tous les blancs
+
+    .zones(9);
+
+    &.al-top { align-items: start; }
+    &, &.al-middle { align-items: center; }
+    &.al-bottom { align-items: end; }
+    &.al-fill { align-items: stretch; }
+
+    > * {
+        // By default, a grid item cannot be smaller than the size of its content.
+        // https://stackoverflow.com/questions/43311943/prevent-content-from-expanding-grid-items
+        min-width: 0; 
+    }
+
+    > img {
+        max-width: 100%;
+        height: 90px;
+        object-fit: cover;
+        border-radius: @radius;
+    }
+
+    &.bi-1 { // Bordure interne
+
+        background-color: var(--cLine2);
+        gap: 1px;
+        &.card {
+            overflow: hidden; // Make parent border-radius visibleslid
+        }
+
+        > * {
+            background: #fff;
+            border-radius: 0px;
+            height: auto;
+        }
+        
+    }
+}
+
+
+/*
+    Déclarer une grid: grid x-3
+    Placer un element: x1-3
+*/
+.zones(@nb, @i: 1) when (@i <= @nb) {
+	/*----------------------------------
+	- ZONES DE LA GRILLE
+	----------------------------------*/
+
+	.construire(@elements, @type) {
+
+        &.full {
+            grid-column-start: 1 !important;
+            grid-column-end: @i + 1 !important;
+        }
+
+		//&:not(.centrer) {
+
+			// Placement par défaut premier enfant
+			/*> :first-child {
+				grid-@{type}-start: 1;
+				//grid-@{type}-end: 4;
+			}
+
+			// Placement par défaut si enfant unique
+			> :first-child:last-child {
+				grid-@{type}-start: 1;
+				grid-@{type}-end: @i + 4;
+			}*/
+
+			grid-template-@{type}s: ~"@{elements}";
+		//}
+
+		/*&.centrer {
+
+			// Placement par défaut premier enfant
+			> :first-child {
+				grid-@{type}-start: 2;
+				//grid-@{type}-end: 4;
+			}
+
+			// Placement par défaut si enfant unique
+			> :first-child:last-child {
+				grid-@{type}-start: 2;
+				grid-@{type}-end: @i + 4;
+			}
+
+			grid-template-@{type}s: ~"1fr @{elements} 1fr";
+		}*/
+	}
+
+    /*----------------------------------
+	- AXES X ET Y
+	----------------------------------*/
+
+	// Nombre de colonnes
+	&.x-@{i} {
+        /*@t_zones: @L_max / @i;
+        @espace_zone: ~"repeat(@{i}, minmax(@{L_min}, @{t_zones}))";*/
+        @espace_zone: ~"repeat(@{i}, 1fr)";
+        .construire(@espace_zone, column);
+    }
+    
+    // Nombre de lignes
+	&.y-@{i} {
+        /*@t_zones: (@L_max) / @i;
+        @espace_zone: ~"repeat(@{i}, minmax(@{L_min}, @{t_zones}))";*/
+        @espace_zone: ~"repeat(@{i}, 1fr)";
+        .construire(@espace_zone, row);
+    }
+    
+    // Automatique
+    .taille-auto(@min, @max) when (@min <= @max) {
+		&.xa@{min}-@{max} {
+			grid-template-columns: repeat(auto-fit, minmax(@min * 100px, @max * 100px))
+		}
+		&.ya@{min}-@{max} {
+			grid-template-rows: repeat(auto-fit, minmax(@min * 100px, @max * 100px))
+		}
+		.taille-auto(@min + 1, @max);
+    }
+    &.xa@{i} {
+        grid-template-columns: repeat(auto-fit, minmax(@i * 100px, 1fr));
+        &5 {
+            grid-template-columns: repeat(auto-fit, minmax(@i * 100px + 4.15rem, 1fr));
+        }
+    }
+    &.ya@{i} {
+        grid-template-rows: repeat(auto-fit, minmax(@i * 100px, 1fr));
+        &5 {
+            grid-template-rows: repeat(auto-fit, minmax(@i * 100px + 4.15rem, 1fr));
+        }
+    }
+	.taille-auto(1, @i);
+
+	/*----------------------------------
+	- PLACEMENT DES ELEMENTS
+	----------------------------------*/
+	// Placements complets
+	.placements(@debut, @fin) when (@debut <= @fin) {
+		.x@{debut}-@{fin} {
+			grid-column-start: @debut !important;
+			grid-column-end: @fin !important;
+		}
+		.y@{debut}-@{fin} {
+			grid-row-start: @debut !important;
+			grid-row-end: @fin !important;
+		}
+		.placements(@debut + 1, @fin);
+	}
+	.placements(1, @i);
+
+	// Placements relatifs
+	/*.x_-@{i} { grid-column-start: @i !important; }
+	.x@{i}-_ { grid-column-end: @i !important; }
+	.y_-@{i} { grid-row-start: @i !important; }
+	.y@{i}-_ { grid-row-end: @i !important; }*/
+
+    // Suivant
+	.zones(@nb, @i + 1);
+}
+
+/*----------------------------------
+- MASONRY
+----------------------------------*/
+.masonry {
+
+    column-gap: @spacing;
+
+    > * {
+        margin-bottom: @spacing;
+        break-inside: avoid;
+    }
+
+    &.xa1 { column-width: 100px;  }
+    &.xa2 { column-width: 200px;  }
+    &,
+    &.xa3 { column-width: 300px;  }
+    &.xa4 { column-width: 400px;  }
+
+}

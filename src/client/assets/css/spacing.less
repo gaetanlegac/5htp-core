@@ -1,0 +1,71 @@
+/*----------------------------------
+- ESPACEMENTS
+----------------------------------*/
+
+.row, .col, .grid {
+    &.sp-0 { gap: 0px; }
+    &.sp-05 { gap: @spacing / 2; }
+    &, &.sp-1 { gap: @spacing }
+    &.sp-2 { gap: @spacingLayout; }
+    &.sp-3 { gap: @spacing * 3; }
+}
+
+.pd { padding: @spacing; }
+
+.espacement(@i, @nom) {
+
+    // MARGING
+
+    .mg-@{nom} { margin: @spacing * @i !important; }
+
+    .mgv-@{nom} {
+        margin-top: @spacing * @i !important;
+        margin-bottom: @spacing * @i !important;
+    }
+
+    .mgh-@{nom} {
+        margin-left: @spacing * @i !important;
+        margin-right: @spacing * @i !important;
+    }
+
+    .mgt-@{nom} { margin-top: @spacing * @i !important; }
+
+    .mgl-@{nom} { margin-left: @spacing * @i !important; }
+
+    .mgr-@{nom} { margin-right: @spacing * @i !important; }
+
+    .mgb-@{nom} { margin-bottom: @spacing * @i !important; }
+
+    // PADDING
+
+    .pd-@{nom} { padding: @spacing * @i !important; }
+
+    .pdv-@{nom} {
+        padding-top: @spacing * @i !important;
+        padding-bottom: @spacing * @i !important;
+    }
+
+    .pdh-@{nom} {
+        padding-left: @spacing * @i !important;
+        padding-right: @spacing * @i !important;
+    }
+
+    .pdt-@{nom} { padding-top: @spacing * @i !important; }
+
+    .pdl-@{nom} { padding-left: @spacing * @i !important; }
+
+    .pdr-@{nom} { padding-right: @spacing * @i !important; }
+
+    .pdb-@{nom} { padding-bottom: @spacing * @i !important; }
+}
+
+.espacements(@nb, @i: 0) when (@i <= @nb) {
+
+    .espacement(@i, @i);
+
+	.espacements(@nb, @i + 1);
+
+}
+
+.espacement(0.5, ~"05");
+.espacements(5);

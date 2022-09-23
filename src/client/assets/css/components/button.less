@@ -1,0 +1,359 @@
+.btn {
+
+    // Layout
+    position: relative;
+    gap: @spacing;
+ 
+    // Dimensions
+    font-size: 1em;
+    padding: 0 1.5em;
+    height: @sizeComponent;
+
+    // Shape
+    border-radius: @radius;
+    border: none;
+
+    // Text
+    text-decoration: none;
+    font-weight: 600;
+
+    // Colors
+    background: #fff;
+    color: var(--cTxtBase); 
+
+    &,
+    > .label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /*----------------------------------
+    - CONTENT
+    ----------------------------------*/
+
+    > .label {
+        text-align: left;
+        white-space: nowrap; // Autrement, si plusieurs mots, affiché sur plusieurs ligne
+        gap: @spacing / 2;
+        min-width: 4em;
+        font-size: 1rem;
+
+        li > & {
+            flex: 1;
+        }
+    }
+
+    &:not(.color):not(.icon) > i {
+        color: var(--c2);
+    }
+
+    > i {
+        font-size: 1.2em;
+    }
+
+    > img {
+
+        max-width: 100%;
+        max-height: 100%;
+
+    }
+
+    > .pastille {
+        position: absolute;
+        right: 10px;
+        bottom: 10px;
+    }
+
+    /*----------------------------------
+    - THEME
+    ----------------------------------*/
+    
+    // Hover / Click
+    transition: all .5s linear;
+    &:not([disabled]) {
+        
+        &:hover,
+        &.selected,
+        li:hover > & {
+            background: var(--cBgHover);
+            color: var(--cTxtImportant);
+            transition: all .1s linear;
+        }
+
+        &.pressed {
+            transform: scale(0.9);
+        }
+    }
+
+    // On donne moins d'importance à chaque bouton lorsqu'ils sont dans une liste (ex: menu)
+    /*li > &,
+    .menu > & {
+
+        &:not(.primary):not(.selected) {
+            color: inherit;
+        }
+    }*/
+
+    &.primary {
+
+        background: var(--cBg);
+        
+        &:not(:disabled) {
+            &:hover,
+            li:hover > & {
+                background: var(--cBgHighlight);
+            }
+        }
+
+        &:disabled {
+            opacity: 0.5;
+        }
+
+        strong {
+            color: var(--cTxtImportant);
+        }
+
+        > i {
+            color: inherit !important;
+        }
+
+    }
+
+    /*----------------------------------
+    - STATE
+    ----------------------------------*/
+
+    cursor: pointer;
+
+    &:not(.primary):hover,
+    &:not(.primary).selected {
+        &, & > i {
+            color: var(--cTxtImportant);
+        }
+    }
+
+    &:not(.primary).selected {
+
+        &.col {
+            box-shadow: 0 0 0 0.2em @c2;
+        }
+        
+        .menu &::after {
+            content: ' ';
+            display: block;
+            position: absolute;
+
+            background: @c1;
+            height: @sizeActiveIndicator;
+            width: @sizeActiveIndicator;
+            border-radius: 50%;
+        }
+
+        .menu.row &::after {
+            left: 50%;
+            margin-left: -@sizeActiveIndicator / 2;
+            bottom: -@sizeActiveIndicator / 2;
+        }
+
+        .menu.col &::after {
+            top: 50%;
+            margin-top: -@sizeActiveIndicator / 2;
+            right: -@sizeActiveIndicator / 2;
+        }
+    }
+
+    &[disabled] {
+        cursor: default;
+        opacity: 0.5;
+    }
+
+    /*----------------------------------
+    - DISPLAY MODES
+    ----------------------------------*/
+
+    &.col {
+        height: auto;
+        padding: @spacing * 1.25 @spacing;
+        align-items: center;
+
+        > .label {
+            flex-direction: column;
+        }
+    }
+
+    &.icon {
+
+        // La taille doit être autmatquement proportionnelle grace au padding
+        // WARN: Pourquoi au fait ?
+        padding: 0!important;
+        min-width: @sizeComponent;
+
+        &.round {
+            border-radius: 50%;
+        }
+    }
+
+    &.pill {
+        border-radius: @sizeComponent / 2;
+    }
+
+    &.link {
+        height: auto;
+        width: auto;
+        padding: 0;
+    }
+}
+
+/*----------------------------------
+- sHOW BUBBLE ON HOVER
+----------------------------------*/
+
+ul.col,
+ul.row {
+
+    &.menu > .btn, 
+    &.menu > li > .btn {
+
+        box-shadow: none;
+        width: 100%;
+
+        > .label {
+            justify-content: flex-start;
+        }
+
+        &.icon {
+
+            color: var(--cTxtDesc);
+
+            > .label {
+
+                display: none;
+                position: absolute;
+                
+                background: fade(@cDark, 90%);
+                backdrop-filter: blur(20px) saturate(180%);
+                
+                height: @sizeComponent;
+                line-height: @sizeComponent;
+                padding: 0 @spacing * 2;
+                border-radius: @radius;
+                
+                color: #fff;
+                white-space: nowrap; // Autrement, si plusieurs mots, affiché sur plusieurs ligne
+            }
+    
+            &:not([disabled]):hover > .label {
+                display: block;
+            }
+        }
+    }
+
+    .btn.icon > .label,
+    > li > .btn + ul {
+        position: absolute;
+    }
+
+
+    > li {
+
+        position: relative;
+
+        // Submenu
+        &:not(:hover) > .btn + ul,
+        > .btn[disabled] + ul {
+            display: none;
+        }
+    }
+
+    &.menu > li {
+        &:hover > .btn:not([disabled]):hover > .label {
+            display: block;
+        }
+    }
+
+}
+
+ul.col {
+
+    &.menu > .btn, 
+    &.menu > li > .btn {
+        
+        // Align items ver sla gauche
+        justify-content: flex-start;
+        
+        // Align all icons by giveing them the same width
+        > i {
+            flex: 0 0 24px;
+        }
+
+        &.icon {
+            width: @sizeComponent;
+            padding: 0;
+            justify-content: center;
+
+            > .label {
+                .row > li > & {
+                    bottom: 100%;
+                    left: 50%;
+                    margin-bottom: @spacing / 2;
+                    transform: translateX(-50%);
+                }
+            }
+    
+            &:not([disabled]):hover > .label {
+                display: block;
+            }
+        }
+    }
+
+    .btn.icon > .label,
+    > li > .btn + ul {
+        left: 100%;
+        margin-left: @spacing;
+    }
+
+    > li {
+
+        // Sous le label quand bouton = icone seulement
+        > .btn + ul {
+
+            top: @sizeComponent;
+            margin-top: @spacing / 2;
+
+            &::before {
+                content: ' ';
+                display: block;
+                position: absolute;
+
+                top: -@sizeComponent;
+                left: calc(0em - @spacingComponent);
+                right: calc(0em - @spacingComponent);
+
+                height: 100%;
+            }
+            
+        }
+    }
+
+
+    // Put the hover buggle at the left, instead of the right
+    &.bubble-left {
+
+        .btn.icon > .label,
+        > li > .btn + ul {
+            left: auto;
+            margin-left: 0;
+            right: 100%;
+            margin-right: @spacingComponent;
+        }
+    }
+}
+
+ul.row {
+    .btn.icon > .label,
+    > li > .btn + ul {
+        bottom: 100%;
+        margin-bottom: @spacing / 2;
+    }
+}

@@ -1,0 +1,84 @@
+table {
+
+    width: 100%;
+    border-collapse: separate; 
+    padding: 0;
+
+    // By default, chrome disables text inherits
+    line-height: inherit;
+    font-size: inherit;
+
+    th {
+        font-weight: 500;
+        color: var(--cTxtDesc);
+    }
+
+    td, th {
+
+        padding: 1em 1em;
+        text-align: center;
+
+        &:first-child {
+            padding-left: 2em;
+            text-align: left;
+        }
+
+        &:last-child:not(:first-child) {
+            padding-right: 2em;
+            text-align: right;
+        }
+    }
+
+    tbody {
+
+        td, th {
+            vertical-align: middle;
+            border-top: solid 1px var(--cLine);
+        }
+
+        &.actuel td {
+            background: var(--cPrincipale);
+            color: #fff;
+        }
+    }
+
+    // Tableua responsive
+    //  Utilisation déconseillée (lauvaise utilisation de l'espace, ergonomie horrible
+    /*@media (max-width: @responsive2) {
+
+        background: transparent;
+
+        thead {
+            display: none;
+        }
+
+        tr {
+            display: flex;
+            flex-direction: column;
+
+            margin-bottom: @spacing;
+            background-color: #fff;
+            border-radius: @radius;
+        }
+
+        td {
+            //font-size: .8em;
+            display: flex;
+
+            padding-left: 1em !important;
+            padding-right: 1em !important;
+
+            &::before {
+
+                content: attr(title);
+                font-weight: 500;
+                color: var(--cTxtDesc);
+
+                flex: 1;
+                text-align: left;
+                margin-right: @spacing;
+
+            }
+        }
+    }*/
+}

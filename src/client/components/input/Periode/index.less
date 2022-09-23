@@ -1,0 +1,169 @@
+@import (reference) '~@/general/client/assets/css/vars.less';
+
+.champ.periode {
+
+    display: flex;
+
+    > .input-date {
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+
+        > input[type=number] {
+            -moz-appearance: textfield;
+            padding: 0;
+            text-align: center;
+
+            width: 30px;
+            &.annee { width: 45px; }
+
+            &::-webkit-outer-spin-button,
+            &::-webkit-inner-spin-button {
+              -webkit-appearance: none;
+              margin: 0;
+            }
+        }
+
+    }
+}
+
+// https://github.com/wojtekmaj/react-calendar/blob/master/src/Calendar.less
+.react-calendar {
+  
+    &--doubleView {
+      width: 700px;
+  
+      .react-calendar__viewContainer {
+        display: flex;
+        margin: -.5em;
+  
+        > * {
+          width: 50%;
+          margin: .5em;
+        }
+      }
+    }
+  
+    &, & *, & *:before, & *:after {
+      -moz-box-sizing: border-box;
+      -webkit-box-sizing: border-box;
+      box-sizing: border-box;
+    }
+  
+    button {
+      margin: 0;
+      border: 0;
+      outline: none;
+      border-radius: @radiusBase;
+  
+      &:enabled {
+        &:hover {
+          cursor: pointer;
+        }
+      }
+    }
+  
+    &__navigation {
+      height: 40px;
+  
+      button {
+        min-width: 44px;
+        background: none;
+  
+        &:enabled {
+          &:hover, &:focus {
+            background-color: var(--cBgControl)
+          }
+        }
+  
+        &[disabled] {
+          color: var(--cTxtDiscret)
+        }
+      }
+    }
+  
+    &__month-view {
+      &__weekdays {
+        text-align: center;
+        text-transform: uppercase;
+        font-weight: bold;
+        font-size: .75em;
+  
+        &__weekday {
+          padding: .5em;
+        }
+      }
+  
+      &__weekNumbers {
+        font-weight: bold;
+  
+        .react-calendar__tile {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: .75em;
+          padding: calc(.75em / .75) calc(.5em / .75);
+        }
+      }
+  
+      &__days {
+        &__day {
+          &--weekend {
+            //color: rgb(209, 0, 0);
+          }
+  
+          &--neighboringMonth {
+          color: var(--cTxtDesc)
+          }
+        }
+      }
+    }
+  
+    &__year-view,
+    &__decade-view,
+    &__century-view {
+      .react-calendar__tile {
+        padding: 2em .5em;
+      }
+    }
+  
+    &__tile {
+      max-width: 100%;
+      text-align: center;
+      padding: .75em .5em;
+      background: none;
+  
+      &:disabled {
+          color: var(--cTxtDiscret)
+      }
+  
+      &:enabled {
+        &:hover, &:focus {
+            background-color: var(--cBgControl)
+        }
+      }
+  
+      &--now {
+        font-weight: 700;
+      }
+  
+      &--hasActive {
+        background: var(--cPrincipale);
+        color: #fff;
+      }
+  
+      &--active {
+        background: var(--cPrincipale);
+        color: #fff;
+      }
+    }
+  
+    &--selectRange {
+      .react-calendar__tile {
+        &--hover {
+            background-color: var(--cBgControl)
+        }
+      }
+    }
+  }

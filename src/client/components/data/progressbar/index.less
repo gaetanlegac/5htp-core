@@ -1,0 +1,152 @@
+div.progressbar {
+
+    background: var(--cLine);
+    position: relative;
+
+    @hProgress: 0.5rem;
+    
+    &,
+    > .progress {
+        border-radius: @hProgress / 2rem;
+        height: @hProgress;
+    }
+
+    > .progress {
+        --cBg: var(--c1);
+        background: var(--cBg);
+        width: 0%;
+        max-width: 100%;
+        transition: width .25s ease-in;
+    }
+
+    &.col {
+
+        width: @hProgress * 2rem;
+        
+        &,
+        > .progress {
+            border-radius: @hProgress;
+        }
+
+        > .progress {
+
+            width: auto;
+            height: 0%;
+            max-height: 100%;
+
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
+    }
+}
+
+div.progressbar_old {
+
+    &.reverse {
+        display: flex;
+        flex-direction: column-reverse;
+    }
+
+    > .rail {
+        
+        @h_progress: 7px;
+        @h_rail: 7px;
+        @h_etape: 9px;
+
+        &,
+        > .etape {
+            background: var(--cFondComposant);
+        }
+
+        //box-shadow: inset 0 0px 4px fade(#000, 15%);
+        height: @h_rail;
+        border-radius: @h_rail / 2;
+        position: relative;
+
+        > .progression {
+            position: relative;
+
+            height: @h_progress;
+            //top: 0px - (@h_progress / 2) + (@h_rail / 2);
+            width: 0%;
+
+            // 1s pour que la progression via un compteur soit fluide
+            // (les compteurs étant mis à jour toutes les secondes)
+            transition: all 1s linear;
+
+            height: @h_progress;
+            border-radius: @h_progress / 2;
+
+            //background: linear-gradient(to right, #41a79d, #96cb65);
+            background: linear-gradient(to right, #ee8694, #eeac97);
+
+            //box-shadow: 0 0 1.65rem fade(#eeac97, 75%);
+        }
+
+        > .etape {
+            position: absolute;
+            top: 0px - (@h_etape / 2) + (@h_rail / 2);
+            width: @h_etape;
+            height: @h_etape;
+            border-radius: 50%;
+            box-shadow: 0 0 0 3px var(--cFondConteneur);
+        }
+    }
+}
+
+.progressbar-svg {
+
+    position: relative;
+    min-width: 100px;
+    min-height: 100px;
+
+     > svg {
+
+        width: 100%;
+        display: block; // Vire l'espace blanc en bas
+
+        > .trail,
+        > .path {
+            stroke-linecap: round;
+            transform-origin: center center;
+        }
+
+        > .trail {
+            stroke: var(--cLine);
+        }
+
+        > .path {
+            stroke: #3e98c7;
+            //transition: stroke-dashoffset 0.5s ease-out 0s;
+        }
+
+        > .cran {
+            fill: var(--cTxtBase);
+        }
+
+        text {
+            fill: var(--cTxtBase);
+            font-size: 0.25em;
+        }
+
+        > .bg {
+            fill: var(--cFondConteneur);
+        }
+    }
+
+    > .label {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+
+        > i,
+        > img {
+            //height: @taille * 0.5;
+            vertical-align: bottom; // Vire espace blanc au bottom de l'img
+        }
+    }
+}

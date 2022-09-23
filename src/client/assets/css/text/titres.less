@@ -1,0 +1,41 @@
+h1, .h1, 
+h2, 
+h3 {
+
+    font-family: "Rubik";
+    font-weight: 600;
+    text-align: inherit;
+    color: var(--cTxtImportant);
+
+    /*.img & {
+        text-shadow: 0 0 25px fade(#000, 50%), 0 0 50px fade(#000, 75%);
+    }*/
+
+    // Cancels .bg-image shadow
+    .blanc &, 
+    .light & {
+        text-shadow: none;
+    }
+
+    strong {
+        color: var(--c1);
+        font-weight: inherit;
+    }
+}
+
+// sans input.h1, .h1 seul ne peut pas override le style par défaut des champs
+h1, .h1 {
+    font-size: 1.8rem;
+    line-height: 1.3em;
+}
+
+h2, .h2 {
+    font-size: 1.3rem;
+    line-height: 1.6em;
+}
+
+h3, 
+fieldset > legend {
+    font-size: 1.16rem;
+    line-height: 2rem;
+}

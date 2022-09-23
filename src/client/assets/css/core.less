@@ -1,0 +1,93 @@
+@import '../fonts/Inter/index.less';
+@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@600&display=swap');
+
+@import './text/text.less';
+@import './text/icons.less';
+@import './text/icons.less';
+@import './text/titres.less';
+
+@import './components/input.less';
+@import './components/button.less';
+@import './components/lists.less';
+@import './components/card.less';
+@import './components/logo.less';
+@import './components/table.less';
+@import './components/other.less';
+
+// Les classes utilitaires override les classes de composant
+@import './borders.less';
+@import './spacing.less';
+@import './layouts.less';
+
+@import './medias.less';
+@import './sizing.less';
+
+@import '@client/components/chart/chart.less';
+@import '@client/components/data/progressbar/index.less';
+
+@import (reference) "./theme.less";
+@import "~@/client/assets/theme.less";
+
+// Apply the theme class
+.bg {
+    background: var(--cBg);
+    color: var(--cTxtBase);    
+}
+
+html {
+	font-size: @sTxtPage;
+    line-height: 1.25em;
+	font-weight: 400;
+}
+
+* {
+    box-sizing: border-box;
+    outline: none;
+    font-size: 1em;
+    padding: 0;
+    margin: 0;
+    
+    &, &:hover, &:focus {
+        -webkit-tap-highlight-color: transparent;
+    }
+}
+
+body {
+    // Pas propre. A eviter (ex: perturbation smooth scroll
+    //overflow-x: hidden;
+
+	// FIX: Scrollbars document à cause de custom scrollbar sur barre communautés
+	// TEMPORAIRE
+	overflow-x: hidden;
+    background: var(--cBg);
+    color: var(--cTxtBase);
+
+	text-align: center;
+    &, .btn, .input {
+	    font-family: 'Inter', sans-serif;
+    }
+
+	-webkit-text-size-adjust: 100%;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+
+}
+
+/*#loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    backdrop-filter: blur(10px);
+    background: fade(#fff, 50%);
+    color: #000;
+
+    visibility: hidden;
+}*/

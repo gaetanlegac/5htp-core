@@ -1,0 +1,95 @@
+@import (reference) '~@/client/assets/theme.less';
+
+.uploadImg {
+    position: relative;
+    overflow: hidden;
+    border-radius: @radius;
+    border: dashed 3px var(--cLine);
+    min-height: 200px;
+    background: @cBgPage + #090909;
+
+    &:not(.enCours):hover {
+        border-color: var(--c1);
+    }
+
+    // Encadré
+    &.contain {
+        width: 100%;
+        height: 14.15rem;
+        padding: @spacing;
+
+        > img {
+            border-radius: @radius;
+            max-width: 100%;
+            height: 100%;
+        }
+    }
+
+    &.cover {
+        width: 15rem;
+        height: 14.15rem;
+
+        > img {
+            object-fit: cover;
+            width: 100%;
+            height: 100%;
+        }
+
+        .contChamp & {
+            width: 100%;
+            height: 15rem;
+        }
+
+        &.imageChoisie {
+            border: none;
+        }
+    }
+
+    > img {
+        display: block;
+        margin: 0 auto;
+    }
+
+    .indicateur,
+    input[type="file"] {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%; 
+        height: 100%;
+    }
+
+    .indicateur {
+        
+        transition: all .1s linear;
+        background: inherit;
+
+        input[type="file"] {
+            cursor: pointer;
+            opacity: 0;
+            z-index: 1;
+        }
+
+        .bouton {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            z-index: 2;
+        }
+    }
+
+    // Rend l'indicateur semi-transparent
+    &.imageChoisie .indicateur {
+        opacity: 0;
+    }
+
+    &.enCours {
+        cursor: wait;
+    }
+
+    &:hover,
+    &.enCours {
+        .indicateur {
+            opacity: 0.8;
+        }
+    }
+}
