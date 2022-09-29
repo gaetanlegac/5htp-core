@@ -1,9 +1,3 @@
-// Lancement en tant que root = risque sécurité
-if (process.getuid && process.getuid() === 0) {
-    console.error("Ne lance pas un serveur en root, pauvre fou !");
-    process.exit(1);
-}
-
 const moduleAlias = require('module-alias')
 moduleAlias.addAliases({
     'react': "preact/compat",

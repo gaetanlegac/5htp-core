@@ -11,7 +11,7 @@ import prompts from 'prompts';
 // Core
 import { loadYaml } from "../../../src/server/app/config";
 import cli from '../..';
-import { sendFiles, ssh, api } from './utils';
+import { ssh, api } from './utils';
 
 // Load configs
 const localEnv = loadYaml( cli.paths.app.root + '/env.yaml' );
@@ -46,67 +46,24 @@ export async function run() {
     const { simulate } = cli.args;
     console.log(localEnv, '=>', serverEnv);
 
-    const temp = cli.paths.app.root + '/.temp';
+    const temp = cli.paths.app.root + '/.deployment';
     fs.emptyDirSync(temp);
 
-    // app package.json: Merge dependencies
+    // Merge package.json: framework + app
     const appPkg = fs.readJSONSync(cli.paths.app.root + '/package.json');
     const corePkg = fs.readJSONSync(cli.paths.core.root + '/package.json');
     fs.outputJSONSync(temp + '/package.json', {
-
         ...appPkg,
         dependencies: mergeDeps(corePkg, appPkg),
         devDependencies: {}
-
     }, { spaces: 4 });
 
+    // Copy config file
     fs.copyFileSync( cli.paths.app.root + (simulate ? '/env.yaml' : '/env.server.yaml'), temp + '/env.yaml' );
 
-    // Upload
-    await cli.shell(
-
-        'echo "Uploading App files ..."',
-        sendFiles( cli.paths.app.root, [
-            '/bin/**',      // Server & chunks
-            '/*.yaml',      // Config files
-            '/public/**',   // Public resources
-            ...(simulate ? ['/var/**'] : []) // Internal variable resources
-        ], simulate),
-
-        'echo "Uploading App files ..."',
-        sendFiles( temp, [
-            '/package.json',
-            '/env.yaml',
-        ], simulate),
-
-        'echo "Applying update ..."',
-        ssh(`
-
-            ${toast("info", "Server update", 
-                "A server update will start. You might experience some temporary slowdowns.")}
-
-            if [ -d "./node_modules" ]; then
-                echo "Updating node_modules";
-                npm install --prefer-offline --no-audit --ignore-scripts;
-            else
-                echo "Installing node_modules";
-                npm install
-            fi
-
-            echo "Finished.";
-
-            ${toast("success", "Updated.", 
-                "Your app has been updated. Please reload it to use the new version and, by the way, prevent bugs.")}
-
-        ` + (simulate ? `
-
-            npm start;
-        
-        ` : `
-        
-        `), simulate)
-
-    );
+    // Compile & Run Docker
+    await cli.shell(`docker compose up --build`);
+    toast("info", "Server update", "A server update will start. You might experience some temporary slowdowns.")
 
     fs.removeSync(temp);
 

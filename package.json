@@ -1,9 +1,9 @@
 {
-	"name": "@dopamyn/framework",
+	"name": "@gaetanlegac/happy-dev",
 	"description": "",
 	"version": "1.0.0",
-	"author": "Gaetan Le Gac (https://github.com/dopamyn)",
-	"repository": "dopamyn/framework",
+	"author": "Gaetan Le Gac (https://github.com/gaetanlegac)",
+	"repository": "git://github.com/gaetanlegac/happy-dev.git",
 	"license": "MIT",
 	"bin": {
 		"happy": "cli/index.ts"
@@ -130,6 +130,7 @@
 		"react-dev-utils": "^11.0.4",
 		"speed-measure-webpack-plugin": "^1.5.0",
 		"terser-webpack-plugin": "^5.2.4",
+		"ts-node": "^10.9.1",
 		"webfont": "^11.2.26",
 		"webpack": "^5.56.0",
 		"webpack-assets-manifest": "^5.0.6",

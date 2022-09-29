@@ -118,11 +118,12 @@ export default class CLI {
 
             console.log('$ ' + fullCommand);
 
-            const tempFile = this.paths.app.root + '/.exec.sh';
+            /*const tempFile = this.paths.app.root + '/.exec.sh';
             fs.outputFileSync(tempFile, '#! /bin/bash\n' + fullCommand);
-            const wrappedCommand = `tilix --new-process -e bash -c 'chmod +x "${tempFile}"; "${tempFile}"; echo "Entrée pour continuer"; read a;'`;
-            /*console.log("Press enter to run the command: " + wrappedCommand)
-            await this.waitForInput('enter');*/
+            const wrappedCommand =  `tilix --new-process -e bash -c 'chmod +x "${tempFile}"; "${tempFile}"; echo "Entrée pour continuer"; read a;'`;*/
+            const wrappedCommand =  `bash -c '${fullCommand}; echo "Entrée pour continuer"; read a;'`;
+            console.log("Running command: " + wrappedCommand)
+            //await this.waitForInput('enter');
 
             const proc = cp.spawn(wrappedCommand, [], {
                 cwd: process.cwd(),
@@ -132,9 +133,11 @@ export default class CLI {
                 shell: true
             });
 
+            console.log( proc.exitCode );
+
             proc.on('exit', function () {
 
-                fs.removeSync(tempFile);
+                //fs.removeSync(tempFile);
 
                 resolve();
             })

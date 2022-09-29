@@ -40,12 +40,12 @@ export default function createCompiler(mode: TCompileMode): webpack.Configuratio
     identityAssets();
 
     // Symlinks to public
-    const publicDirs = fs.readdirSync(cli.paths.app.root + '/public');
+    /*const publicDirs = fs.readdirSync(cli.paths.app.root + '/public');
     for (const publicDir of publicDirs)
         fs.symlinkSync( 
             cli.paths.app.root + '/public/' + publicDir,  
             cli.paths.app.public + '/' + publicDir
-        );
+        );*/
 
     // Convert tsconfig cli.paths to webpack aliases
     const { aliases } = cli.paths.aliases.client.forWebpack(cli.paths.app.root + '/node_modules');

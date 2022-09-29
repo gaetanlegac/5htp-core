@@ -15,32 +15,6 @@ import { Transporter, TCompleteEmail } from '..';
 import nodemailer from 'nodemailer';
 
 /*----------------------------------
-- CONFIG
-----------------------------------*/
-const transporter = nodemailer.createTransport({
-    host: config.host,
-    port: config.port,
-    secure: config.tls, // TLS
-    auth: {
-        user: config.login,
-        pass: config.password
-    },
-    tls: {
-        // Evite erreur: Hostname/IP does not match certificate's altnames: Host: localhost. is not in the cert's altnames: DNS:gaetan-legac.fr, DNS:www.gaetan-legac.fr
-        rejectUnauthorized: false
-    }
-});
-
-console.log("Vérification de la connexion SMTP ...");
-transporter.verify(function (error, success) {
-    if (error) {
-        console.error("Erreur avec le serveur mail: ", error);
-    } else {
-        console.log("Connexion SMTP OK.");
-    }
-});
-
-/*----------------------------------
 - TYPES
 ----------------------------------*/
 
@@ -67,7 +41,42 @@ declare global {
 ----------------------------------*/
 
 export class LocalMailTransporter extends Transporter {
+
+    private transporter?: nodemailer.Transporter;
+    private async connect() {
+
+        if (this.transporter !== undefined) 
+            return this.transporter;
+
+        console.log(`Connecting to the local mail server ...`);
+        this.transporter = nodemailer.createTransport({
+            host: config.host,
+            port: config.port,
+            secure: config.tls, // TLS
+            auth: {
+                user: config.login,
+                pass: config.password
+            },
+            tls: {
+                // Evite erreur: Hostname/IP does not match certificate's altnames: Host: localhost. is not in the cert's altnames: DNS:gaetan-legac.fr, DNS:www.gaetan-legac.fr
+                rejectUnauthorized: false
+            }
+        });
+
+        console.log("Vérification de la connexion SMTP ...");
+        this.transporter.verify(function (error, success) {
+            if (error) {
+                console.error("Erreur avec le serveur mail: ", error);
+            } else {
+                console.log("Connexion SMTP OK.");
+            }
+        });
+
+        return this.transporter;
+    }
+
     public async send( emails: TCompleteEmail[] ) {
+        const transporter = await this.connect();
         await Promise.all( emails.map( email => new Promise(( resolve, reject ) => {
 
             transporter.sendMail({
@@ -86,7 +95,6 @@ export class LocalMailTransporter extends Transporter {
     
     
             });
-    
         })));
     }
 }

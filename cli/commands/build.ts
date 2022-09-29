@@ -22,11 +22,9 @@ export const run = (): Promise<void> => new Promise(async (resolve) => {
 
     const multiCompiler = await createCompilers('prod');
 
-    const { deploy } = cli.args;
-
     multiCompiler.run(async (error, stats) => {
 
-        if (deploy) {
+        /*if (deploy) {
             await cli.runCommand('deploy-web', { simulate: false });
         } else {
 
@@ -50,7 +48,7 @@ export const run = (): Promise<void> => new Promise(async (resolve) => {
                     break;
             }
 
-        }
+        }*/
 
         resolve();
 

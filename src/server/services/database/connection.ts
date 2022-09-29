@@ -8,6 +8,7 @@ import mysql from 'mysql2/promise';
 // Core: general
 import app from '@server/app';
 import loadMetadata, { TDatabasesList } from './metas';
+import { seconds } from '@common/utils';
 
 /*----------------------------------
 - DEFINITIONS TYPESSQL
@@ -36,6 +37,9 @@ export default class FastDatabase {
 
     public loading: Promise<void> | undefined = undefined;
     public async load() {
+
+        // Wait for database service to be ready
+        //await seconds(5);
 
         this.initialized = false;
 

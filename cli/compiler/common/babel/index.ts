@@ -164,14 +164,14 @@ module.exports = (side: TAppSide, dev: boolean): webpack.RuleSetRule[] => ([{
 
                         // Exclude layouts
                         if (file.filename.includes("/_layout/")) {
-                            console.log("Exclude", file, 'from pages loaders (its a layout)');
+                            //console.log("Exclude", file, 'from pages loaders (its a layout)');
                             continue;
                         }
 
                         // Excliude components
                         const filename = path.basename( file.filename );
                         if (alphabet.includes(filename[0]) && filename[0] === filename[0].toUpperCase()) {
-                            console.log("Exclude", file, 'from pages loaders (its a component)');
+                            //console.log("Exclude", file, 'from pages loaders (its a component)');
                             continue;
                         }
                             

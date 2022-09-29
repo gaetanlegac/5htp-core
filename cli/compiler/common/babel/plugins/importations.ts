@@ -78,7 +78,7 @@ function getFiles( dir: string ) {
 
 function Plugin (babel, { rules, debug, removeAliases }: TOptions & { rules: TTransformRule[] }) {
 
-    debug = true;
+    //debug = true;
 
     const t = babel.types as typeof types;
 
