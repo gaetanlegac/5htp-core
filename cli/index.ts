@@ -25,10 +25,9 @@ const commands: {[name: string]: {
     },
 }
 
-let options = commands[commandName]
-if (options === undefined)
+if (commands[commandName] === undefined)
     throw new Error(`Command ${commandName} does not exists.`);
-options = { ...globalOptions, ...options };
+const options = { ...globalOptions, ...commands[commandName] };
 
 let opt: string | null = null;
 for (const a of argv) {

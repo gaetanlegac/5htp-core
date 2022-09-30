@@ -71,7 +71,6 @@ type AppIdentityConfig = {
 export default ( appDir: string, envName?: Core.Config.EnvName ): { 
     env: TEnvConfig, 
     identity: Core.Config.Identity,
-    config: Core.Config.Services,
 } => {
 
     const envFile = appDir + '/env' + (envName === undefined ? '' : '.' + envName) + '.yaml';
@@ -79,8 +78,7 @@ export default ( appDir: string, envName?: Core.Config.EnvName ): {
 
     const config = { 
         env, 
-        identity: loadYaml( appDir + '/identity.yaml' ),
-        //config: require('@/').default(envName)
+        identity: loadYaml( appDir + '/identity.yaml' )
     }
 
     console.log("Loaded config:", config);

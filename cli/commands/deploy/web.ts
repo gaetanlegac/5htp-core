@@ -4,18 +4,11 @@
 
 // Npm
 import fs from 'fs-extra';
-
 import prompts from 'prompts';
 
-
 // Core
-import { loadYaml } from "../../../src/server/app/config";
 import cli from '../..';
-import { ssh, api } from './utils';
-
-// Load configs
-const localEnv = loadYaml( cli.paths.app.root + '/env.yaml' );
-const serverEnv = loadYaml(cli.paths.app.root + '/env.server.yaml');
+import { api } from './utils';
 
 0/*----------------------------------
 - HELPERS
@@ -44,7 +37,6 @@ const toast = (type: string, title: string, content: string) =>
 export async function run() {
 
     const { simulate } = cli.args;
-    console.log(localEnv, '=>', serverEnv);
 
     const temp = cli.paths.app.root + '/.deployment';
     fs.emptyDirSync(temp);
