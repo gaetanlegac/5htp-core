@@ -6,7 +6,6 @@
 import webpack from 'webpack';
 import TsAlias from 'ts-alias';
 import path from 'path';
-import cli from '../../';
 
 // Plugins
 var nodeExternals = require('webpack-node-externals');
@@ -16,7 +15,7 @@ const TerserPlugin = require("terser-webpack-plugin");
 //var VirtualModulesPlugin = require('webpack-virtual-modules');
 
 // Core
-import cli from 'cli';
+import cli from '@cli';
 import createCommonConfig, { TCompileMode, regex } from '../common';
 
 /*----------------------------------
@@ -100,7 +99,7 @@ export default function createCompiler( mode: TCompileMode ): webpack.Configurat
 
             alias: {
                 ...aliases,
-                "@root": cli.paths.app.root
+                "@root": cli.paths.app.root,
             },
 
             extensions: ['.ts', '.tsx', ".json", ".sql"],

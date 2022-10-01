@@ -15,9 +15,9 @@ export default async () => {
         console.info(`Generating identity assets ...`);
         fs.emptyDirSync(dossierCache);
 
-        const identity = cli.app.identity;
+        const identity = cli.identity;
 
-        const response = await favicons(cli.paths.app.root + '/src/client/assets/identity/logo.svg', {
+        const response = await favicons( cli.paths.app.root + '/src/client/assets/identity/logo.svg', {
 
             path: '/assets/img/identite/favicons/',
             appName: identity.name,

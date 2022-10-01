@@ -219,9 +219,9 @@ export default function createCompiler(mode: TCompileMode): webpack.Configuratio
 
         // https://webpack.js.org/configuration/devtool/#devtool
         devtool: 'source-map',
-        devServer: {
+        /*devServer: {
             hot: true,
-        },
+        },*/
 
         optimization: {
 

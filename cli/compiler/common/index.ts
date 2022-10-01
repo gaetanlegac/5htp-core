@@ -13,7 +13,7 @@ import IconesSvg from './plugins/indexage/icones-svg';
 import InjectDeps from './plugins/indexage/injection-dependances';
 
 // Core
-import { TAppSide } from '@cli/cli';
+import { TAppSide } from '@cli';
 import cli from '../..';
 
 /*----------------------------------
@@ -67,7 +67,7 @@ export default function createCommonConfig( side: TAppSide, mode: TCompileMode )
 
                 CORE_PATH: JSON.stringify(cli.paths.core.root),
                 APP_PATH: JSON.stringify(cli.paths.app.root),
-                APP_NAME: JSON.stringify(cli.app.identity.web.title),
+                APP_NAME: JSON.stringify(cli.identity.web.title),
 
             }),
 
