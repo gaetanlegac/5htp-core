@@ -8,7 +8,7 @@ import '../patch';
 import fs from 'fs-extra';
 
 // Core
-import loadConfig, { TEnvConfig } from './config';
+import ConfigParser, { TEnvConfig } from './config';
 
 /*----------------------------------
 - TYPES
@@ -50,13 +50,25 @@ export class App {
     /*----------------------------------
     - PROPERTIES
     ----------------------------------*/
-    
-    // Configs
-    public config!: Core.Config.Services;
-    public identity: Core.Config.Identity;
-    public env: TEnvConfig;
 
+    // Context
+    public hmr: __WebpackModuleApi.Hot | undefined = module.hot;
+
+    public path = {
+        root: process.cwd(),
+        data: process.cwd() + '/var/data',
+        log: process.cwd() + '/var/log',
+        public: process.cwd() + '/public',
+    }
+
+    public pkg = fs.readJSONSync(this.path.root + '/package.json');
+
+    // Status
     public launched: boolean = false;
+    public loading: Promise<void>[] = [];
+    public status = {
+        services: false
+    }
 
     public services: Core.Services = new Proxy( servicesObj, {
         get: (container, serviceId, receiver) => {
@@ -68,28 +80,11 @@ export class App {
         }
     }) as Core.Services;
 
-    public loading: Promise<void>[] = [];
-
-    public status = {
-        services: false
-    }
-
-    public hmr: __WebpackModuleApi.Hot | undefined = module.hot;
-
     public hooks: {[name in THookName]: THook[]} = {
         ready: [],
         cleanup: [],
         error: []
     }
-
-    public path = {
-        root: process.cwd(),
-        data: process.cwd() + '/var/data',
-        log: process.cwd() + '/var/log',
-        public: process.cwd() + '/public',
-    }
-
-    public pkg = fs.readJSONSync(this.path.root + '/package.json');
 
     /*----------------------------------
     - INIT
@@ -97,18 +92,17 @@ export class App {
 
     public constructor() {
         // Load config files
-        ({
-            env: this.env,
-            identity: this.identity
-        } = loadConfig(this.path.root));
+        const configParser = new ConfigParser( this.path.root );
+        this.env = configParser.env();
+        this.identity = configParser.identity();
     }
 
-    /*----------------------------------
-    - HOOKS
-    ----------------------------------*/
-
-    public configure( configModule: (envName: Core.Config.EnvName) => Core.Config.Services) {
-        this.config = configModule( this.env.name );
+    // Configs
+    public config!: Core.Config.Services;
+    public identity: Core.Config.Identity;
+    public env: TEnvConfig;
+    public configure( config: Core.Config.Services) {
+        this.config = config;
         console.log("Configure services with", this.config);
     }
 
@@ -145,8 +139,9 @@ export class App {
         console.info(`Launching application ...`);
         await Promise.all( this.hooks.ready.map(cb => cb()) );
 
-        if (this.hmr)
-            this.activateHMR();
+        // NOTE: Useless ?
+        /*if (this.hmr)
+            this.activateHMR();*/
 
         console.info(`Application is ready.`);
 
@@ -156,7 +151,6 @@ export class App {
 
     private activateHMR() {
 
-        return;
         if (!module.hot) return;
 
         console.info(`Activating HMR ...`);

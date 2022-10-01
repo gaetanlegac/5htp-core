@@ -7,8 +7,6 @@ import { PluginObj } from '@babel/core';
 import * as types from '@babel/types'
 var minimatch = require("minimatch")
 
-import { getCheminControleur } from '@root/cli/chemins';
-
 import cli from '@cli';
 
 /*----------------------------------

@@ -2,10 +2,14 @@
 - DEPENDANCES
 ----------------------------------*/
 
+/*
+    WARNING: This file SHOULDN'T import deps from the project
+        Because it's imported by the CLI, which should be independant of the app escept for loading config
+*/
+
 // Npm
 import fs from 'fs-extra';
 import yaml from 'yaml';
-import deepExtend from 'deep-extend';
 
 /*----------------------------------
 - TYPES
@@ -14,32 +18,41 @@ import deepExtend from 'deep-extend';
 declare global {
     namespace Core {
         namespace Config {
-            type EnvName = TEnvConfig["name"];
-            interface Services {}
 
+            type EnvName = TEnvConfig["name"];
+
+            type Env = TEnvConfig;
             type Identity = AppIdentityConfig;
+            interface Services {}
         }
     }
 }
 
 export type TEnvName = TEnvConfig["name"];
 export type TEnvConfig = {
+
+    name: 'local' | 'server',
     profile: 'dev' | 'prod',
     level: 'silly' | 'info' | 'warn' | 'error',
+
     domain: string,
     protocol: 'http' | 'https',
     url: string, // protocol + domain
     localIP?: string
-} & ({
-    name: 'local'
-} | {
-    name: 'server',
-    ssh: {
-        login: string,
+
+    http: {
+        port: number,
+        ssl: boolean
+    },
+
+    database: {
         host: string,
-        port: number
-    }
-})
+        port: number,
+        login: string,
+        password: string,
+        list: string[]
+    },
+}
 
 type AppIdentityConfig = {
 
@@ -65,31 +78,38 @@ type AppIdentityConfig = {
     }                                 
 }
 
+export type AppConfig = { 
+    env: Core.Config.Env, 
+    identity: Core.Config.Identity,
+}
+
 /*----------------------------------
 - LOADE
 ----------------------------------*/
-export default ( appDir: string, envName?: Core.Config.EnvName ): { 
-    env: TEnvConfig, 
-    identity: Core.Config.Identity,
-} => {
+export default class ConfigParser {
 
-    const envFile = appDir + '/env' + (envName === undefined ? '' : '.' + envName) + '.yaml';
-    const env = loadYaml( envFile ) as TEnvConfig;
+    public constructor(
+        public appDir: string,
+        public envName?: string
+    ) {
 
-    const config = { 
-        env, 
-        identity: loadYaml( appDir + '/identity.yaml' )
     }
 
-    console.log("Loaded config:", config);
+    private loadYaml( filepath: string ) {
+        console.info(`Loading config ${filepath}`);
+        const rawConfig = fs.readFileSync(filepath, 'utf-8');
+        return yaml.parse(rawConfig);
+    }
 
-    return config;
-}
+    public env() {
+        const envFile = this.appDir + '/env' + (this.envName === undefined ? '' : '.' + this.envName) + '.yaml';
+        return this.loadYaml( envFile );
+    }
 
-export const loadYaml = (filepath: string) => {
-    console.info(`Loading config ${filepath}`);
-    const rawConfig = fs.readFileSync(filepath, 'utf-8');
-    return yaml.parse(rawConfig);
+    public identity() {
+        const identityFile = this.appDir + '/identity.yaml';
+        return this.loadYaml( identityFile );
+    }
 }
 
 /*const walkYaml = (dir: string, configA: any, envName: string) => {
