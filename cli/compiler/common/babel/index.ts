@@ -12,10 +12,13 @@ import PluginIndexage from '../plugins/indexage';
 import BabelGlobImports from './plugins/importations';
 
 import cli from '../../..';
-import { TAppSide } from '../../../cli';
+import { TAppSide } from '../../..';
 
 // Const
 const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+// Resources
+const routesToPreload = require( cli.paths.appRoot + '/src/client/pages/preload.json' );
 
 /*----------------------------------
 - REGLES
@@ -177,7 +180,7 @@ module.exports = (side: TAppSide, dev: boolean): webpack.RuleSetRule[] => ([{
                             
                         // Page config
                         const { chunkId } = cli.paths.getPageChunk(file.filename);
-                        const preloadPage = cli.app.config.router.preload.includes(chunkId);
+                        const preloadPage = routesToPreload.includes(chunkId);
 
                         // Import type according to preloading option
                         if (preloadPage) {
