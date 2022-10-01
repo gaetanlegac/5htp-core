@@ -38,7 +38,7 @@ import { TFetcherArgs } from '@common/router/request';
 
 export type RouterServiceConfig = {
     // Routes to systematically preload
-    preload: string[]
+    
 }
 
 declare global {
