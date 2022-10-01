@@ -1,7 +1,15 @@
-bin
+# Core folders
 node_modules
-public
 env.*
+
+# Temp files
 .temp
+bin
+public
+
+# Configs
 .vscode
 .DS_Store
+
+# Auto-generated
+src/types/icons.d.ts
