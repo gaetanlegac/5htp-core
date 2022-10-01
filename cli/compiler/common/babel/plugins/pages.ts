@@ -9,7 +9,7 @@ import generate from '@babel/generator';
 
 // Core
 import cli from '@cli';
-import { TAppSide } from '@cli/cli';
+import { TAppSide } from '@cli/index';
 
 /*----------------------------------
 - WEBPACK RULE

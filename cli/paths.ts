@@ -13,7 +13,7 @@ import TsAlias from 'ts-alias';
 - TYPES
 ----------------------------------*/
 
-import type { TAppSide } from './cli';
+import type { TAppSide } from '.';
 
 export type TPathInfos = {
 

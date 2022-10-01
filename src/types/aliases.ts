@@ -2,6 +2,10 @@ declare module "@/client/pages/\*.tsx" {
     const value: import("../client/router").TRoutesLoaders;
     export = value;
 }
+declare module "@client/pages/\*.tsx" {
+    const value: import("../client/router").TRoutesLoaders;
+    export = value;
+}
 
 // Basic Models
 declare module "@/server/models/User" {

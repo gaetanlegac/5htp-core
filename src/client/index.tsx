@@ -18,7 +18,7 @@ import { GuestUser } from '@common/models';
 
 import ClientResponse from './router/response';
 import ClientRequest from './router/request';
-import { ReactClientContext, ClientContext, TBugReportInfos } from '@client/context';
+import { ClientContext, TBugReportInfos } from '@client/context';
 import PageResponse from '@common/router/response/page';
 import type { TSsrData } from '@server/services/router/response';
 
@@ -26,8 +26,16 @@ import type { TSsrData } from '@server/services/router/response';
 import App from '@client/App';
 
 /*----------------------------------
-- INITIALIZATION
+- types
 ----------------------------------*/
+
+declare global {
+    interface Window {
+        dev: boolean,
+        context: ClientContext,
+        user: User
+    }
+}
 
 /*----------------------------------
 - BUG REPORT

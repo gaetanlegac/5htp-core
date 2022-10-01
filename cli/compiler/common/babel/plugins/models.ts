@@ -8,7 +8,7 @@ import type { PluginObj, NodePath } from '@babel/core';
 import generate from '@babel/generator';
 
 // Core
-import { TAppSide } from '@cli/cli';
+import type { TAppSide } from '@cli/index';
 
 /*----------------------------------
 - WEBPACK RULE

@@ -19,7 +19,6 @@
             "@models": ["../.cache/client/models"],
 
             "@/*": ["./*"],
-
            
             // ATTENTION: Les références à preact doivent toujours pointer vers la même instance
             "react": ["../node_modules/@dopamyn/framework/node_modules/preact/compat"],
