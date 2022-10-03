@@ -21,8 +21,10 @@ export const run = (): Promise<void> => new Promise(async (resolve) => {
 
     multiCompiler.run((error, stats) => {
 
-        if (error)
+        if (error) {
             console.error("An error occurred during the compilation:", error);
+            throw error;
+        }
 
         resolve();
 
