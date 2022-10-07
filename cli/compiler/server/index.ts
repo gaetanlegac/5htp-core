@@ -66,9 +66,6 @@ export default function createCompiler( mode: TCompileMode ): webpack.Configurat
             './chunk-manifest.json',
             './asset-manifest.json',
 
-            // N'exclue pas les node_module de @dopamyn/framework
-            //nodeExternals(),
-
             // node_modules
             function ({ request }, callback) {
 

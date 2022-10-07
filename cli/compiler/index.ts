@@ -33,10 +33,6 @@ export default async function createCompilers(
     // Cleanup
     fs.emptyDirSync( cli.paths.app.bin );
 
-    // Allow the dev servet to fetch the frameworg node modules
-    if (mode === 'dev')
-        fs.createSymlinkSync( cli.paths.core.root + '/node_modules', cli.paths.app.bin + '/node_modules', 'dir' );
-
     // Create compilers
     const multiCompiler = webpack([
         smp.wrap( createServerConfig(mode) ),
