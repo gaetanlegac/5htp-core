@@ -11,7 +11,7 @@ import yaml from 'yaml';
 
 // Core
 import cli from '../..';
-import { api } from './utils';
+import { api } from '../utils';
 
 /*----------------------------------
 - COMMAND
