@@ -17,9 +17,9 @@ import ConfigParser from '../src/server/app/config';
 - TYPES
 ----------------------------------*/
 
-type TCliCommand = () => Promise<{ 
+type TCliCommand = { 
     run: () => Promise<void> 
-}>
+}
 
 export type TAppSide = 'server' | 'client'
 
@@ -64,8 +64,8 @@ export class CLI {
     ----------------------------------*/
     // Les importations asynchrones permettent d'accéder à l'instance de cli via un import
     public commands: { [name: string]: TCliCommand } = {
-        "dev": () => import('./commands/dev'),
-        "build": () => import('./commands/build'),
+        "dev": require('./commands/dev'),
+        "build": require('./commands/build'),
     }
 
     public start() {
@@ -123,29 +123,20 @@ export class CLI {
         if (this.commands[command] === undefined)
             throw new Error(`Command ${command} does not exists.`);
 
-        // Loading
-        this.commands[command]().then((runner) => {
+        // Running
+        this.commands[command].run().then(() => {
 
-            // Running
-            runner.run().then(() => {
-
-                console.info(`Command ${command} finished.`);
-
-            }).catch((e) => {
-
-                console.error(`Error during execution of ${command}:`, e);
-
-            }).finally(() => {
-
-                process.exit();
-
-            })
+            console.info(`Command ${command} finished.`);
 
         }).catch((e) => {
 
-            console.error(`Error loading ${command}:`, e);
+            console.error(`Error during execution of ${command}:`, e);
 
-        });
+        }).finally(() => {
+
+            process.exit();
+
+        })
     }
 
 
