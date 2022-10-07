@@ -42,7 +42,7 @@ export const run = () => new Promise<void>(async () => {
         poll: 1000,
 
         // Decrease CPU or memory usage in some file systems
-        ignored: /node_modules\/(?!happy\-dev\/src\/)/,
+        ignored: /node_modules\/(?!5\-htp\/src\/)/,
 
         //aggregateTimeout: 1000,
     }, async (error, stats) => {
