@@ -157,7 +157,7 @@ export class Console {
             const appPrefix = '/webpack:/' + app.pkg.name + '/src/';
             const appPrefixIndex = miniLog.filePath.indexOf(appPrefix);
 
-            const corePrefix = '/webpack:/' + app.pkg.name + '/node_modules/@dopamyn/framework/src/';
+            const corePrefix = '/webpack:/' + app.pkg.name + '/node_modules/happy-dev/src/';
             const corePrefixIndex = miniLog.filePath.indexOf(corePrefix);
 
             if (appPrefixIndex !== -1)

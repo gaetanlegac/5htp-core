@@ -3,6 +3,7 @@
 ----------------------------------*/
 
 // Npm
+import fs from 'fs-extra';
 import { spawn, ChildProcess } from 'child_process';
 
 // Cor elibs
@@ -18,7 +19,6 @@ import cli from '../';
 export const run = () => new Promise<void>(async () => {
 
     const multiCompiler = await createCompilers('dev', {
-
         before: () => {
 
             console.log('before');
@@ -31,6 +31,9 @@ export const run = () => new Promise<void>(async () => {
         }
     });
 
+    // Allow the dev servet to fetch the frameworg node modules
+    fs.createSymlinkSync( cli.paths.core.root + '/node_modules', cli.paths.app.bin + '/node_modules', 'dir' );
+
     multiCompiler.watch({
 
         // https://webpack.js.org/configuration/watch/#watchoptions
@@ -39,7 +42,7 @@ export const run = () => new Promise<void>(async () => {
         poll: 1000,
 
         // Decrease CPU or memory usage in some file systems
-        ignored: /node_modules\/(?!@dopamyn\/framework\/src\/)/,
+        ignored: /node_modules\/(?!happy\-dev\/src\/)/,
 
         //aggregateTimeout: 1000,
     }, async (error, stats) => {

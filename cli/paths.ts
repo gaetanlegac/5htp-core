@@ -40,7 +40,7 @@ export default class Paths {
 
     public constructor( 
         public appRoot: string,
-        public coreRoot = appRoot + '/node_modules/@dopamyn/framework'
+        public coreRoot = appRoot + '/node_modules/happy-dev'
     ) {
         
     }

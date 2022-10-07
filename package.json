@@ -1,7 +1,7 @@
 {
-	"name": "@dopamyn/framework",
+	"name": "happy-dev",
 	"description": "",
-	"version": "1.0.0",
+	"version": "0.0.1",
 	"author": "Gaetan Le Gac (https://github.com/gaetanlegac)",
 	"repository": "git://github.com/gaetanlegac/happy-dev.git",
 	"license": "MIT",
