@@ -1,31 +1,31 @@
 {
-    "extends": "../../node_modules/happy-dev/tsconfig.common.json",
+    "extends": "../../node_modules/5-htp/tsconfig.common.json",
     "compilerOptions": {
         "rootDir": "..",
         "baseUrl": "..",
         "paths": {
 
-            "@client/*": ["../node_modules/happy-dev/src/client/*"],
-            "@common/*": ["../node_modules/happy-dev/src/common/*"],
+            "@client/*": ["../node_modules/5-htp/src/client/*"],
+            "@common/*": ["../node_modules/5-htp/src/common/*"],
 
             // Only used for typings (ex: ServerResponse)
             // Removed before webpack compilation
-            "@server/*": ["../node_modules/happy-dev/src/server/*"],
+            "@server/*": ["../node_modules/5-htp/src/server/*"],
 
-            "@validator": ["../node_modules/happy-dev/src/client/data/input"],
-            "@router": ["../node_modules/happy-dev/src/client/router"],
-            "@errors": ["../node_modules/happy-dev/src/common/errors"],
+            "@validator": ["../node_modules/5-htp/src/client/data/input"],
+            "@router": ["../node_modules/5-htp/src/client/router"],
+            "@errors": ["../node_modules/5-htp/src/common/errors"],
 
             "@models": ["../.cache/client/models"],
 
             "@/*": ["./*"],
            
             // ATTENTION: Les références à preact doivent toujours pointer vers la même instance
-            "react": ["../node_modules/happy-dev/node_modules/preact/compat"],
-            "react-dom/test-utils": ["../node_modules/happy-dev/node_modules/preact/test-utils"],
-            "react-dom": ["../node_modules/happy-dev/node_modules/preact/compat"], // Must be below test-utils
-            "react/jsx-runtime": ["../node_modules/happy-dev/node_modules/preact/jsx-runtime"],
-            "preact/jsx-runtime": ["../node_modules/happy-dev/node_modules/preact/jsx-runtime"]
+            "react": ["../node_modules/5-htp/node_modules/preact/compat"],
+            "react-dom/test-utils": ["../node_modules/5-htp/node_modules/preact/test-utils"],
+            "react-dom": ["../node_modules/5-htp/node_modules/preact/compat"], // Must be below test-utils
+            "react/jsx-runtime": ["../node_modules/5-htp/node_modules/preact/jsx-runtime"],
+            "preact/jsx-runtime": ["../node_modules/5-htp/node_modules/preact/jsx-runtime"]
         }
     },
     "include": [
