@@ -25,10 +25,11 @@
         "rootDir": "./src",
         "baseUrl": "./src",
         "paths": {
+            
+            "@root/*": ["./*"],
             "@client/*": ["./client/*"],
             "@common/*": ["./common/*"],
             "@server/*": ["./server/*"],
-            "@root/*": ["./*"],
 
             "@errors": ["./common/errors"],
             "@models": ["./common/models"],
