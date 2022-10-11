@@ -20,10 +20,10 @@
             "@/*": ["./*"],
 
             // ATTENTION: Les références à preact doivent toujours pointer vers la même instance
-            "react": ["../node_modules/5htp-core/node_modules/preact/compat"],
-            "react-dom/test-utils": ["../node_modules/5htp-core/node_modules/preact/test-utils"],
-            "react-dom": ["../node_modules/5htp-core/node_modules/preact/compat"], // Must be below test-utils
-            "react/jsx-runtime": ["../node_modules/5htp-core/node_modules/preact/jsx-runtime"]
+            "react": ["preact/compat"],
+            "react-dom/test-utils": ["preact/test-utils"],
+            "react-dom": ["preact/compat"], // Must be below test-utils
+            "react/jsx-runtime": ["preact/jsx-runtime"]
         }
     },
     
