@@ -35,23 +35,9 @@ export type TEnvConfig = {
     profile: 'dev' | 'prod',
     level: 'silly' | 'info' | 'warn' | 'error',
 
+    localIP: string,
     domain: string,
-    protocol: 'http' | 'https',
-    url: string, // protocol + domain
-    localIP?: string
-
-    http: {
-        port: number,
-        ssl: boolean
-    },
-
-    database: {
-        host: string,
-        port: number,
-        login: string,
-        password: string,
-        list: string[]
-    },
+    url: string,
 }
 
 type AppIdentityConfig = {
@@ -101,9 +87,27 @@ export default class ConfigParser {
         return yaml.parse(rawConfig);
     }
 
-    public env() {
-        const envFile = this.appDir + '/env' + (this.envName === undefined ? '' : '.' + this.envName) + '.yaml';
-        return this.loadYaml( envFile );
+    public env(): TEnvConfig {
+        // We assume that when we run 5htp dev, we're in local
+        // Otherwise, we're in production environment (docker)
+        console.log("Using environment:", process.env.NODE_ENV);
+        return process.env.NODE_ENV === 'development' ? {
+            name: 'local',
+            profile: 'dev',
+            level: 'silly',
+        
+            localIP: '86.76.176.80',
+            domain: 'localhost:3010',
+            url: 'http://localhost:3010',
+        } : {
+            name: 'server',
+            profile: 'prod',
+            level: 'silly',
+        
+            localIP: '86.76.176.80',
+            domain: 'megacharger.io',
+            url: 'https://megacharger.io',
+        }
     }
 
     public identity() {

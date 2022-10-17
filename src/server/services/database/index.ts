@@ -41,11 +41,19 @@ export type TInsertQueryOptions<TData extends TObjetDonnees = TObjetDonnees> = T
 ----------------------------------*/
 
 export type DatabaseServiceConfig = {
-    host: string,
     list: string[],
-    login: string,
-    password: string,
-    port: number
+    dev: {
+        host: string,
+        port: number,
+        login: string,
+        password: string,
+    },
+    prod: {
+        host: string,
+        port: number,
+        login: string,
+        password: string,
+    }
 }
 
 declare global {

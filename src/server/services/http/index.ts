@@ -89,7 +89,7 @@ export default class HttpServer {
 
             this.http = http.createServer(this.express);
 
-        } else if ('ssh' in app.env) {
+        } /*else if ('ssh' in app.env) {
 
             const ssh = app.env.ssh;
 
@@ -102,7 +102,7 @@ export default class HttpServer {
                 rejectUnauthorized: false
             }, this.express);
             
-        } else
+        }*/ else
             throw new Error(`SSL was enabled, but no ssh config was specified in app.env (required to load ssl certificate files)`);
 
         // Start HTTP Server

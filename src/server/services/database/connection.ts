@@ -62,13 +62,15 @@ export default class FastDatabase {
 
         console.info(`Connecting to databases ...`);
 
+        const creds = this.config[ app.env.profile ];
+
         return await mysql.createPool({
 
             // Identification
-            host: this.config.host,
-            port: this.config.port,
-            user: this.config.login,
-            password: this.config.password,
+            host: creds.host,
+            port: creds.port,
+            user: creds.login,
+            password: creds.password,
             database: this.config.list[0],
 
             // Pool
@@ -106,7 +108,7 @@ export default class FastDatabase {
         let type = field.type;
         if (field.db) {
 
-            // A revoir, car les infos passées peuvent être des alias
+            // TODO: A revoir, car les infos passées peuvent être des alias
 
             const db = this.tables[ field.db ];
             if (db === undefined) {
