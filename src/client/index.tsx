@@ -33,7 +33,8 @@ declare global {
     interface Window {
         dev: boolean,
         context: ClientContext,
-        user: User
+        user: User,
+        gtag: (action: string, name: string, params?: any) => void
     }
 }
 
