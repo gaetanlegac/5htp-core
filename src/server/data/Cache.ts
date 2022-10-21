@@ -2,68 +2,123 @@
 - DEPENDANCES
 ----------------------------------*/
 
+// Node
+import path from 'path';
+
 // Npm
 import hInterval from 'human-interval';
+import fs from 'fs-extra';
+
+// Core
+import app from '@server/app';
 
 // Libs
-import redis from '@server/services/redis';
-import { ErreurCritique } from '@common/errors';
+
+/*----------------------------------
+- TYPES
+----------------------------------*/
+
+type TPrimitiveValue = string | boolean | number | undefined | {[key: string]: TPrimitiveValue} | TPrimitiveValue[];
+
+type TExpirationDelay = string | number | Date | null;
+
+type CacheEntry = { 
+    // Value
+    value: TPrimitiveValue, 
+    // Expiration Timestamp
+    expiration?: number 
+};
+
+// TODO:    REPLACE REDIS BY CACHE
 
 /*----------------------------------
 - SERVICE
 ----------------------------------*/
-const Cache = {
+class Cache {
+    
+    private cacheFile = path.join(app.path.data, 'cache/mem.json');
+
+    private data: {[key: string]: CacheEntry | undefined} = {};
+
+    private changes: number = 0;
+    
+    public constructor() {
+
+        setInterval(() => this.cleanMem(), 10000);
+
+        if (fs.existsSync(this.cacheFile))
+            fs.readJSONSync(this.cacheFile)
+    }
+
+    private cleanMem() {
+
+        console.log("Clean memory");
+
+        const now = Date.now();
+        for (const key in this.data) {
+            const entry = this.data[ key ];
+            if (entry?.expiration && entry.expiration < now)
+                this.del(key);
+        }
+        
+        if (this.changes > 0)
+            fs.outputJSONSync(this.cacheFile, this.data);
+    }
 
     // Expiration = Durée de vie en secondes ou date max
     // Retourne null quand pas de valeur
-    async get<TValeur>(
+    public get<TValeur extends TPrimitiveValue>(
         cle: string, 
-        func: Function | null = null,
-        expiration: number | Date | null = null,
-        avecDetails?: boolean
-    ): Promise<null | TValeur> {
+        func?: (() => Promise<TValeur>),
+        expiration?: TExpirationDelay,
+        avecDetails?: true
+    ): Promise<CacheEntry>;
 
-        let retour: any = await this.getVal(cle);
+    public get<TValeur extends TPrimitiveValue>(
+        cle: string, 
+        func: (() => Promise<TValeur>),
+        expiration?: TExpirationDelay,
+        avecDetails?: false
+    ): Promise<null | TValeur>;
+
+    public async get<TValeur extends TPrimitiveValue>(
+        cle: string, 
+        func?: (() => Promise<TValeur>),
+        expiration?: TExpirationDelay,
+        avecDetails?: boolean
+    ): Promise<null | TValeur | CacheEntry> {
+
+        let retour: CacheEntry | undefined = this.data[cle];
+
+        // Expired
+        if (retour?.expiration && retour.expiration < Date.now()){
+            console.log(`[cache] Key ${cle} expired.`);
+            retour = undefined;
+        }
 
         // Donnée inexistante
-        if (retour === null && func !== null) {
+        if (retour === undefined && func !== undefined) {
 
             // Rechargement
-            retour = await func();
+            retour = {
+                value: await func(),
+                expiration: expiration 
+                ? this.delayToTimestamp(expiration) 
+                : undefined
+            }
 
             // undefined retourné = pas d'enregistrement
-            if (retour !== undefined)
+            if (retour.value !== undefined)
                 await this.set(cle, retour, expiration);
         }
 
+        if (retour === undefined)
+            return null;
+
         return avecDetails 
-            ? {
-                donnees: retour
-            } 
-            : retour;
-    },
-
-    getVal<TValeur>(cle: string): Promise<TValeur | null> {
-        return new Promise((resolve) => {
-
-           redis.instance.get(cle, (err, val) => {
-
-                if (val === null) {
-                    resolve( null );
-                } else {
-                    try {
-                        resolve( JSON.parse(val) )
-                    } catch (error) {
-
-                        console.warn(`Error while parsing JSON value from cache (id: ${cle})`, error, 'Raw value:', val);
-                        resolve(null);
-
-                    }
-                }
-
-            });
-        });
-    },
+            ? retour
+            : retour.value as TValeur;
+    };
 
     /**
      * Put in cache a JSON value, associated with an unique ID.
@@ -76,49 +131,44 @@ const Cache = {
      *  - null: no expiration (default)
      * @returns A void promise
      */
-    set( cle: string, val: any, expiration: string | number | Date | null = null ): Promise<void> {
+    public set( cle: string, val: TPrimitiveValue, expiration: TExpirationDelay = null ): void {
+        
         console.log("Updating cache " + cle);
-        return new Promise((resolve) => {
+        this.data[ cle ] = {
+            value: val,
+            expiration: this.delayToTimestamp(expiration)
+        }
 
-            //console.info('Enregistrement de ' + cle + ' avec la valeur ', val, 'expiration', expiration);
+        this.changes++;
+    };
 
-            val = JSON.stringify(val);
+    public del( cle: string ): void {
+        this.data[ cle ] = undefined;
+        this.changes++;
+    }
 
-            // Conversion de l'expiration en nombre de secondes (ttl, time to live)
-            if (expiration === null)
-               redis.instance.set(cle, val, () => {
-                    resolve()
-                });
-            else {
 
-                let secondes: number;
+    /*----------------------------------
+    - UTILS
+    ----------------------------------*/
+    private delayToTimestamp( delay: TExpirationDelay ): number {
 
-                // H expression
-                if (typeof expiration === 'string') {
+        // H expression
+        if (typeof delay === 'string') {
 
-                    const ms = hInterval(expiration); 
-                    if (ms === undefined) throw new Error(`Invalid period string: ` + expiration);
-                    secondes = ms / 1000;
+            const ms = hInterval(delay); 
+            if (ms === undefined) throw new Error(`Invalid period string: ` + delay);
+            return Date.now() + ms;
 
-                // Via durée de vie en secondes
-                } else if (typeof expiration === 'number')
-                    secondes = expiration;
-                // Date limite
-                else
-                    secondes = (expiration.getTime() - (new Date).getTime()) / 1000;
-
-                redis.instance.set(cle, val, 'EX', secondes, () => {
-                    resolve()
-                });
-            }
-        });
-    },
-
-    del( cle: string ): Promise<void> {
-        return new Promise((resolve) => {
-           redis.instance.del(cle, () => resolve());
-        });
+        // Via durée de vie en secondes
+        } else if (typeof delay === 'number')
+            return Date.now() + delay;
+        // Date limite
+        else if (delay !== null)
+            return delay.getTime();
+        else
+            return Date.now();
     }
 }
 
-export default Cache;
+export default new Cache;
