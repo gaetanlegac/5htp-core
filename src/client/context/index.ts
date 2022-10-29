@@ -202,7 +202,7 @@ export class ClientContext {
     public handleError(e: Error) {
         switch (e.http) {
             case 401:
-                this.page?.redirect('/');
+                this.page?.go('/');
                 break;
             default:
                 this.toast.error(e.title || "Uh Oh ...", e.message, null, { autohide: false });
@@ -225,12 +225,13 @@ export class ClientContext {
         }
     }
 
+    // Services
     public modal = createDialog(this, false);
     public toast = createDialog(this, true);
-
     public socket = new SocketClient(this)
     public captcha = new Recaptcha(this);
 
+    // Tracking
     public event( name: string, params?: object ) {
         if (!window.gtag) return;
         if (name === 'pageview')
