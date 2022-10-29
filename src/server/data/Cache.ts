@@ -29,8 +29,6 @@ type CacheEntry = {
     expiration?: number 
 };
 
-// TODO:    REPLACE REDIS BY CACHE
-
 /*----------------------------------
 - SERVICE
 ----------------------------------*/
@@ -47,12 +45,12 @@ class Cache {
         setInterval(() => this.cleanMem(), 10000);
 
         if (fs.existsSync(this.cacheFile))
-            fs.readJSONSync(this.cacheFile)
+            this.data = fs.readJSONSync(this.cacheFile)
     }
 
     private cleanMem() {
 
-        console.log("Clean memory");
+        console.log("[cache] Clean memory");
 
         const now = Date.now();
         for (const key in this.data) {
@@ -90,6 +88,8 @@ class Cache {
 
         let retour: CacheEntry | undefined = this.data[cle];
 
+        console.log(`[cache] Get "${cle}".`);
+
         // Expired
         if (retour?.expiration && retour.expiration < Date.now()){
             console.log(`[cache] Key ${cle} expired.`);
@@ -103,8 +103,8 @@ class Cache {
             retour = {
                 value: await func(),
                 expiration: expiration 
-                ? this.delayToTimestamp(expiration) 
-                : undefined
+                    ? this.delayToTimestamp(expiration) 
+                    : undefined
             }
 
             // undefined retourné = pas d'enregistrement
@@ -133,7 +133,7 @@ class Cache {
      */
     public set( cle: string, val: TPrimitiveValue, expiration: TExpirationDelay = null ): void {
         
-        console.log("Updating cache " + cle);
+        console.log("[cache] Updating cache " + cle);
         this.data[ cle ] = {
             value: val,
             expiration: this.delayToTimestamp(expiration)
