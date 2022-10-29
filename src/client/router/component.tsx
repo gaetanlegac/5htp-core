@@ -69,10 +69,10 @@ export default () => {
 
     const [pages, setPages] = React.useState<{
         current: undefined | PageResponse,
-        previous: undefined | PageResponse
+        //previous: undefined | PageResponse
     }>({
         current: gui.page,
-        previous: undefined
+        //previous: undefined
     });
     
     const resolvePage = async (request: ClientRequest, locationUpdate?: Update) => {
@@ -116,13 +116,13 @@ export default () => {
             if (oldPage !== undefined) {
                 setTimeout(() => setPages({ 
                     current: newpage,
-                    previous: undefined
+                    //previous: undefined
                 }), 500);
             }
 
             return  {
                 current: newpage,
-                previous: oldPage
+                //previous: oldPage
             }
         });
     }
@@ -175,9 +175,9 @@ export default () => {
     
     // Render the page component
     return <>
-        {pages.previous && (
+        {/*pages.previous && (
             <Page page={pages.previous} key={pages.previous.id === undefined ? undefined : 'page_' + pages.previous.id} />
-        )}
+        )*/}
 
         {pages.current && (
             <Page page={pages.current} isCurrent key={pages.current.id === undefined ? undefined : 'page_' + pages.current.id} />
