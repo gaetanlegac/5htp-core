@@ -5,17 +5,6 @@ moduleAlias.addAliases({
 })
 
 /*----------------------------------
-- DEBUG
-----------------------------------*/
-
-// Gestion crash
-process.on('unhandledRejection', (error: any, promise: any) => {
-
-    console.error("Unhandled promise rejection:", error);
-
-});
-
-/*----------------------------------
 - DATES & TIMZEONE
 ----------------------------------*/
 process.env.TZ = 'Europe/Paris';

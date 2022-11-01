@@ -91,6 +91,20 @@ export class App {
     ----------------------------------*/
 
     public constructor() {
+
+        // Gestion crash
+        process.on('unhandledRejection', (error: any, promise: any) => {
+
+            console.error("Unhandled promise rejection:", error);
+
+            // Send email report
+            if (this.isLoaded('console'))
+                $.console.bugReport.server(error);
+            else
+                console.error(`Unable to send bug report: console service not loaded.`);
+
+        });
+
         // Load config files
         const configParser = new ConfigParser( this.path.root );
         this.env = configParser.env();
@@ -107,13 +121,17 @@ export class App {
     }
 
     // Register a service
-    public register( id: string, Service: TServiceClass, options: Partial<TServiceOptions> = {}) {
+    public register<TServiceName extends keyof Core.Services>( 
+        id: TServiceName, 
+        Service: TServiceClass, 
+        options: Partial<TServiceOptions> = {}
+    ) {
 
         // Pas d'export default new Service pour chaque fichier de service,
         //  dissuaded'importer ms service sn'importe où, ce qui créé des références circulaires
         console.log(`[services] Registering service ${id} ...`);
         const service = options.instanciate !== false ? new Service() : Service;
-        this.services[id] = service;
+        this.services[id as string] = service;
 
         if ('load' in service) {
 
@@ -140,7 +158,7 @@ export class App {
     }
 
     // Test if a service was registered
-    public isLoaded( id: string ) {
+    public isLoaded( id: keyof Core.Services ) {
         return id in this.services;
     }
 
