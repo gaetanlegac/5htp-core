@@ -15,7 +15,7 @@ import ConfigParser, { TEnvConfig } from './config';
 ----------------------------------*/
 
 type THookName = 'ready' | 'cleanup' | 'error'
-type THook = () => void;
+type THook = () => Promise<void>;
 
 type TServiceOptions = {
     instanciate: boolean
@@ -106,21 +106,42 @@ export class App {
         console.log("Configure services with", this.config);
     }
 
+    // Register a service
     public register( id: string, Service: TServiceClass, options: Partial<TServiceOptions> = {}) {
 
         // Pas d'export default new Service pour chaque fichier de service,
         //  dissuaded'importer ms service sn'importe où, ce qui créé des références circulaires
-        console.log(`Launching service ${id} ...`, Service);
+        console.log(`[services] Registering service ${id} ...`);
         const service = options.instanciate !== false ? new Service() : Service;
         this.services[id] = service;
 
-        // Lorsque service.load est async, une propriété loading doit etre présente 
-        //     De façon à ce que les autres services puissent savoir quand ce service est prêt
-        if ('loading' in service) {
-            service.loading = service.load();
-            this.loading.push(service.loading);
-        } else if ('load' in service)
-            service.load();
+        if ('load' in service) {
+
+            console.log(`[services] Starting service ${id} ...`);
+            const loading = service.load()
+
+            // Lorsque service.load est async, une propriété loading doit etre présente 
+            //     De façon à ce que les autres services puissent savoir quand ce service est prêt
+            if (('loading' in service) && (loading instanceof Promise)) {
+                
+                console.log(`[services] Waiting service ${id} to be fully loaded ...`);
+                service.loading = loading.then(() => {
+                    console.info(`[service] Service ${id} successfully started.`);
+                }).catch(e => {
+                    // Bug report via email
+                    console.error(`[service] Error while starting the ${id} service:`, e);
+                    e.message = `Start ${id} service: ` + e.message;
+                    $.console.bugReport.server(e);
+                });;
+
+                this.loading.push(service.loading);
+            }
+        }
+    }
+
+    // Test if a service was registered
+    public isLoaded( id: string ) {
+        return id in this.services;
     }
 
     public on( name: THookName, callback: THook ) {
@@ -128,23 +149,36 @@ export class App {
         return this;
     }
 
+    public runHook( hookName: THookName ) {
+        console.info(`[hook] Run all ${hookName} hook (${this.hooks.ready.length}).`);
+        return Promise.all( 
+            this.hooks.ready.map(
+                cb => cb().catch(e => {
+                    console.error(`[hook] Error while executing hook ${hookName}:`, e);
+                })
+            ) 
+        ).then(() => {
+            console.info(`[hook] Hooks ${hookName} executed with success.`);
+        })
+    }
+
     /*----------------------------------
     - LAUNCH
     ----------------------------------*/
     public async launch() {
 
-        console.info(`Waiting for services to be ready ...`);
+        console.info(`[boot] Waiting for all services to be ready ...`);
         await Promise.all( this.loading );
 
-        console.info(`Launching application ...`);
-        await Promise.all( this.hooks.ready.map(cb => cb()) );
+        console.info(`[boot] Launching application ...`);
+        await this.runHook('ready');
 
         // NOTE: Useless ?
         /*if (this.hmr)
             this.activateHMR();*/
 
-        console.info(`Application is ready.`);
-
+        console.info(`[boot] Application is ready.`);
+        
         this.launched = true;
 
     }

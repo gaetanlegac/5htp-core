@@ -79,7 +79,6 @@ export default class BugReporter {
         // Get context
         const now = new Date();
         const hash = uuid();
-        const erroTitle = "Server Bug: " + error.message;
         const { channelType, channelId } = this.console.getChannel();
 
         // On envoi l'email avant l'insertion dans bla bdd
@@ -90,31 +89,36 @@ export default class BugReporter {
         );
 
         // Send notification
-        $.email.send({
-            to: app.identity.author.email,
-            subject: "Bug serveur: " + erroTitle,
-            html: `
-                <a href="${app.env.url}/admin/activity/requests/${channelId}">
-                    View Request details & console
-                </a>
-                <br/>
-                ${logsHtml}
-            `
-        });
-        // Memorize
-        $.sql.insert('BugServer', {
-            // Context
-            hash: hash,
-            date: now,
-            channelType, 
-            channelId,
-            // User
-            user: request?.user?.name,
-            ip: request?.ip,
-            // Error
-            stacktrace: error.stack || error.message,
-            logs: logsHtml
-        });
+        if (app.isLoaded('email'))
+            $.email.send({
+                to: app.identity.author.email,
+                subject: "Server bug: " + error.message,
+                html: `
+                    <a href="${app.env.url}/admin/activity/requests/${channelId}">
+                        View Request details & console
+                    </a>
+                    <br/>
+                    ${logsHtml}
+                `
+            });
+        else
+            console.error("Unable to send bug report: email service not loaded.");
+
+        /*if (app.isLoaded('sql'))
+            // Memorize
+            $.sql.insert('BugServer', {
+                // Context
+                hash: hash,
+                date: now,
+                channelType, 
+                channelId,
+                // User
+                user: request?.user?.name,
+                ip: request?.ip,
+                // Error
+                stacktrace: error.stack || error.message,
+                logs: logsHtml
+            });*/
 
         // Update error message
         error.message = "A bug report has been sent to my personal mailbox. Sorry for the inconvenience.";

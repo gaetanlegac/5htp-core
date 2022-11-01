@@ -256,7 +256,7 @@ export class Console {
         let html = logs.map( log => logToHTML( log, this )).join('\n');
 
         if (full) {
-            const consoleCss = `background: #000; padding: 20px; font-family: 'monospace'; font-size: 12px; line-height: 20px;`
+            const consoleCss = `background: #000; padding: 20px; font-family: 'Fira Mono', 'monospace', 'Monaco'; font-size: 12px; line-height: 20px;`
             html = '<div style="' + consoleCss + '">' + html + '</div>';
         }
 

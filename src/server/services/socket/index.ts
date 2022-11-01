@@ -49,7 +49,7 @@ export class WebSocketCommander {
     public scopes: {[path: string]: SocketScope} = {}
 
     public constructor() {
-        app.on('cleanup', () => {
+        app.on('cleanup', async () => {
             this.closeAll();
         });
     }
