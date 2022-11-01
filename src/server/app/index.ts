@@ -136,14 +136,13 @@ export class App {
         if ('load' in service) {
 
             console.log(`[services] Starting service ${id} ...`);
-            const loading = service.load()
 
             // Lorsque service.load est async, une propriété loading doit etre présente 
             //     De façon à ce que les autres services puissent savoir quand ce service est prêt
-            if (('loading' in service) && (loading instanceof Promise)) {
+            if ('loading' in service) {
                 
                 console.log(`[services] Waiting service ${id} to be fully loaded ...`);
-                service.loading = loading.then(() => {
+                service.loading = service.load().then(() => {
                     console.info(`[service] Service ${id} successfully started.`);
                 }).catch(e => {
                     // Bug report via email
@@ -153,7 +152,9 @@ export class App {
                 });;
 
                 this.loading.push(service.loading);
-            }
+                
+            } else
+                service.load();
         }
     }
 

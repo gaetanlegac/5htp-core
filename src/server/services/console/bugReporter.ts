@@ -70,7 +70,7 @@ export default class BugReporter {
     public async server( error: Error, request?: ServerRequest ) {
 
         // error should be printed in the console, so they're acccessible from logs
-        console.error(error);
+        console.error(`Sending bug report for the following error:`, error);
 
         // Prevent duplicates
         if (!this.shouldSendReport('server', request?.user?.name, undefined, error.message))
