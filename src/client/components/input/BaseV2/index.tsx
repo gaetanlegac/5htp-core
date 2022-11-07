@@ -57,8 +57,10 @@ export function useInput<TValue>(
     // External value change
     React.useEffect(() => {
 
-        console.log("External value change", externalValue);
-        setState({ value: externalValue, valueSource: 'external' })
+        if (externalValue !== undefined && externalValue !== state.value) {
+            console.log("External value change", externalValue);
+            setState({ value: externalValue, valueSource: 'external' })
+        }
         
     }, [externalValue]);
 
