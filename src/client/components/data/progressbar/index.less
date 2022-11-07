@@ -99,8 +99,8 @@ div.progressbar_old {
 .progressbar-svg {
 
     position: relative;
-    min-width: 100px;
-    min-height: 100px;
+    width: @sizeComponent;
+    height: @sizeComponent;
 
      > svg {
 
@@ -142,6 +142,8 @@ div.progressbar_old {
         left: 0;
         right: 0;
         bottom: 0;
+        // Text should fit inside the progressbar
+        font-size: 0.8em;
 
         > i,
         > img {
