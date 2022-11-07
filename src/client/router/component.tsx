@@ -50,6 +50,7 @@ const Page = ({ page, isCurrent }: { page: PageResponse, isCurrent?: boolean }) 
             id={page.id === undefined ? undefined : 'page_' + page.id}
         >
 
+            {/* Make request parameters and api data accessible from the page component */}
             {page.component ? (
 
                 <page.component {...gui.request.data} {...data} />
