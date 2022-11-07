@@ -11,11 +11,13 @@ export type TVariation = {
     color: string,
 }
 
-export const variationStr = (value: number, reference: number, lowerIsBetter: boolean = false): TVariation => {
+export const variationStr = (value: number, reference: number, options: {
+    lowerIsBetter?: boolean
+} = {}): TVariation => {
     const pc = variation(value, reference);
     const pcStr = pc.toFixed(2);
     return {
         txt: ((pc > 0) ? '+' + pcStr : pcStr) + '%',
-        color: (lowerIsBetter ? pc > 0 : pc < 0) ? 'ea3943' : '16c784'
+        color: (options.lowerIsBetter ? pc > 0 : pc < 0) ? 'ea3943' : '16c784'
     }
 }
