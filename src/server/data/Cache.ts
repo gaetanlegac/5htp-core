@@ -15,6 +15,12 @@ import app from '@server/app';
 // Libs
 
 /*----------------------------------
+- CONFIG
+----------------------------------*/
+
+const debug = false;
+
+/*----------------------------------
 - TYPES
 ----------------------------------*/
 
@@ -50,7 +56,7 @@ class Cache {
 
     private cleanMem() {
 
-        console.log("[cache] Clean memory");
+        debug && console.log("[cache] Clean memory");
 
         const now = Date.now();
         for (const key in this.data) {
@@ -88,11 +94,11 @@ class Cache {
 
         let retour: CacheEntry | undefined = this.data[cle];
 
-        console.log(`[cache] Get "${cle}".`);
+        debug && console.log(`[cache] Get "${cle}".`);
 
         // Expired
         if (retour?.expiration && retour.expiration < Date.now()){
-            console.log(`[cache] Key ${cle} expired.`);
+            debug && console.log(`[cache] Key ${cle} expired.`);
             retour = undefined;
         }
 
@@ -133,7 +139,7 @@ class Cache {
      */
     public set( cle: string, val: TPrimitiveValue, expiration: TExpirationDelay = null ): void {
         
-        console.log("[cache] Updating cache " + cle);
+        debug && console.log("[cache] Updating cache " + cle);
         this.data[ cle ] = {
             value: val,
             expiration: this.delayToTimestamp(expiration)
