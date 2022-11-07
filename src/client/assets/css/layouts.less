@@ -217,6 +217,7 @@
     Déclarer une grid: grid x-3
     Placer un element: x1-3
 */
+@gridUnit: 6.66rem;
 .zones(@nb, @i: 1) when (@i <= @nb) {
 	/*----------------------------------
 	- ZONES DE LA GRILLE
@@ -287,23 +288,23 @@
     // Automatique
     .taille-auto(@min, @max) when (@min <= @max) {
 		&.xa@{min}-@{max} {
-			grid-template-columns: repeat(auto-fit, minmax(@min * 100px, @max * 100px))
+			grid-template-columns: repeat(auto-fit, minmax(@min * @gridUnit, @max * @gridUnit))
 		}
 		&.ya@{min}-@{max} {
-			grid-template-rows: repeat(auto-fit, minmax(@min * 100px, @max * 100px))
+			grid-template-rows: repeat(auto-fit, minmax(@min * @gridUnit, @max * @gridUnit))
 		}
 		.taille-auto(@min + 1, @max);
     }
     &.xa@{i} {
-        grid-template-columns: repeat(auto-fit, minmax(@i * 100px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(@i * @gridUnit, 1fr));
         &5 {
-            grid-template-columns: repeat(auto-fit, minmax(@i * 100px + 4.15rem, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(@i * @gridUnit + 4.15rem, 1fr));
         }
     }
     &.ya@{i} {
-        grid-template-rows: repeat(auto-fit, minmax(@i * 100px, 1fr));
+        grid-template-rows: repeat(auto-fit, minmax(@i * @gridUnit, 1fr));
         &5 {
-            grid-template-rows: repeat(auto-fit, minmax(@i * 100px + 4.15rem, 1fr));
+            grid-template-rows: repeat(auto-fit, minmax(@i * @gridUnit + 4.15rem, 1fr));
         }
     }
 	.taille-auto(1, @i);
@@ -347,10 +348,10 @@
         break-inside: avoid;
     }
 
-    &.xa1 { column-width: 100px;  }
-    &.xa2 { column-width: 200px;  }
+    &.xa1 { column-width: @gridUnit;  }
+    &.xa2 { column-width: @gridUnit * 2;  }
     &,
-    &.xa3 { column-width: 300px;  }
-    &.xa4 { column-width: 400px;  }
+    &.xa3 { column-width: @gridUnit * 3;  }
+    &.xa4 { column-width: @gridUnit * 4;  }
 
 }
