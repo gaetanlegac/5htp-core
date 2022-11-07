@@ -4,10 +4,12 @@
 
 // Npm
 import React from 'react';
-import { ComponentChild } from 'preact';
+import { ComponentChild, RefObject } from 'preact';
 
 // Core
 import Button, { Props as ButtonProps } from '../button';
+import { TDialogControls } from '../Dialog/Manager';
+export type { TDialogControls } from '../Dialog/Manager';
 
 // Libs
 import useContexte from '@client/context';
@@ -17,23 +19,8 @@ import useContexte from '@client/context';
 ----------------------------------*/
 
 export type Props = ButtonProps & {
-    content: ComponentChild
-}
-
-export type TAction<TDonnee> = {
-    icone?: TIcons,
-    label: ComponentChild,
-    multi?: boolean,
-
-    onClick?: (donnees: TDonnee, index: number) => void,
-    lien?: (donnees: TDonnee, index: number) => string,
-    bouton?: (donnees: TDonnee, index: number) => ButtonProps
-}
-
-export type TActionsPopover = {
-    show: () => void,
-    hide: () => void,
-    toggle: () => void
+    content: ComponentChild,
+    refModal?: RefObject<TDialogControls>
 }
 
 /*----------------------------------
@@ -45,15 +32,19 @@ export default (props: Props) => {
 
     let {
         content,
-        immutable,
+        refModal,
         ...buttonProps
     } = props;
 
     const refButton = React.useRef<HTMLElement>(null);
 
-    const open = () => modal.show(() => content);
+    const open = () => {
+        const modalInstance = modal.show(() => content);
+        if (refModal)
+            refModal.current = modalInstance;
+    }
 
     return (
-        <Button {...buttonProps} onClick={open} refElem={refButton} />
+        <Button {...buttonProps} onClick={(open)} refElem={refButton} />
     )
 }
