@@ -35,7 +35,7 @@ const getLayout = (routePath: string | undefined): Layout | undefined => {
             if (routePath === layoutPath || routePath.startsWith( layoutPath + '/' ))
                 layout = { path: layoutPath, Component: layouts[layoutPath] };
     }
-    layout && console.log(`Using Layout: ${layout.path}`);
+    //layout && console.log(`${routePath}: Using Layout: ${layout.path}`);
     return layout;
 }
 
