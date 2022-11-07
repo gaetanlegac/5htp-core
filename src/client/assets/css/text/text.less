@@ -5,6 +5,7 @@ a {
     color: inherit;
     cursor: pointer;
     text-decoration: underline;
+    text-decoration: none;
 
     &:not([disabled]):hover, 
     &.active {
@@ -12,12 +13,16 @@ a {
     }
 
     &.super {
-        position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
-        z-index: 5;
-
-        ~ a, ~ * a, ~ button, ~ * button {
-            z-index: 6;
+        text-decoration: none;
+        &::after {
+            content: ' ';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 5;
+    
+            ~ a, ~ * a, ~ button, ~ * button {
+                z-index: 6;
+            }
         }
     }
 }
