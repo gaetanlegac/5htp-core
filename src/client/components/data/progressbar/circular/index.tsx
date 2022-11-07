@@ -33,7 +33,7 @@ export default ({
     ratioCercle = 1,
     className, 
     style = {},
-    epaisseur = 5,
+    epaisseur = 10,
     rotation,
     etapes,
     taille,
