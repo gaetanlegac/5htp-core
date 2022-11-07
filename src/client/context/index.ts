@@ -112,42 +112,6 @@ export class ClientContext {
         this.request = request;
         this.user = this.request.user || { ...GuestUser };
 
-        this.api.reload = (ids?: string | string[], params?: TObjetDonnees) => {
-            
-            if (this.page === undefined)
-                throw new Error("context.page is missing");
-
-            if (ids === undefined)
-                ids = Object.keys(this.page.fetchers);
-            else if (typeof ids === 'string')   
-                ids = [ids];
-
-            console.log("[api] Reload data", ids, params, this.page.fetchers);
-
-            for (const id of ids) {
-
-                const fetcher = this.page.fetchers[id];
-                if (fetcher === undefined)
-                    return console.error(`Unable to reload ${id}: Request not found in fetchers list.`);
-
-                if (params !== undefined)
-                    fetcher.data = { ...(fetcher.data || {}), ...params };
-
-                console.log("[api][reload]", id, fetcher.method, fetcher.path, fetcher.data);
-                const indicator = this.toast.loading("Loading ...");
-
-                this.request.fetchAsync(fetcher.method, fetcher.path, fetcher.data).then((data) => {
-
-                    this.api.set({ [id]: data });
-
-                }).finally(() => {
-
-                    indicator.close(true);
-
-                })
-            }
-        }
-
     }
 
     // Is overwrote by the native app
@@ -194,10 +158,51 @@ export class ClientContext {
 
     // fetch doit appartenir à response, et non clientcontxt
     // car la méthode varie selon client (http) ou serveur (router.resolve)
-    public api = this.request.api as this["request"]["api"] & {
-        reload: (id?: string, params?: TObjetDonnees) => void,
-        set: (data: TObjetDonnees) => void
-    };
+    public api = {
+        ...this.request.api,
+        set: (newData: TObjetDonnees) => {
+
+            console.log("[api] Update page data", newData);
+            if (this.page)
+                this.page.setAllData(curData => ({ ...curData, ...newData }));
+            
+        },
+        reload: (ids?: string | string[], params?: TObjetDonnees) => {
+            
+            if (this.page === undefined)
+                throw new Error("context.page is missing");
+
+            if (ids === undefined)
+                ids = Object.keys(this.page.fetchers);
+            else if (typeof ids === 'string')   
+                ids = [ids];
+
+            console.log("[api] Reload data", ids, params, this.page.fetchers);
+
+            for (const id of ids) {
+
+                const fetcher = this.page.fetchers[id];
+                if (fetcher === undefined)
+                    return console.error(`Unable to reload ${id}: Request not found in fetchers list.`);
+
+                if (params !== undefined)
+                    fetcher.data = { ...(fetcher.data || {}), ...params };
+
+                console.log("[api][reload]", id, fetcher.method, fetcher.path, fetcher.data);
+                const indicator = this.toast.loading("Loading ...");
+
+                this.request.fetchAsync(fetcher.method, fetcher.path, fetcher.data).then((data) => {
+
+                    this.api.set({ [id]: data });
+
+                }).finally(() => {
+
+                    indicator.close(true);
+
+                })
+            }
+        }
+    }
 
     public handleError(e: Error) {
         switch (e.http) {
