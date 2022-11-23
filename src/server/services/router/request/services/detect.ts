@@ -6,7 +6,7 @@
 import express from 'express';
 
 // Core
-import { AccesRefuse } from '@common/errors';
+import { Forbidden } from '@common/errors';
 import request from '@server/data/ApiClient';
 import ServerRequest from '..';
 import TrackerService from './tracking';
@@ -54,7 +54,7 @@ export default class ProtectService {
         // If IP Address already used by another account
         /*const username = whitelist || this.request.user?.name;
         if (ip.user_name !== undefined && ip.user_name !== null && (username === undefined || username !== ip.user_name))
-            throw new AccesRefuse(`
+            throw new Forbidden(`
                 I noticed you're trying to use multiple accounts.
                 Only one account is allowed per IP address.
                 If you think I'm wrong, please contact me at contact@gaetan-legac.fr and I will solve the problem.
@@ -90,7 +90,7 @@ export default class ProtectService {
         });
 
         if (!token)
-            throw new AccesRefuse("Le captcha n'a pas été complété.");
+            throw new Forbidden("Le captcha n'a pas été complété.");
 
         const res = await request.post('https://www.google.com/recaptcha/api/siteverify', {}, {
             params: {
@@ -105,7 +105,7 @@ export default class ProtectService {
 
         const ok = res.success || false;
 
-        if (!ok) throw new AccesRefuse("Le captcha est incorrect");
+        if (!ok) throw new Forbidden("Le captcha est incorrect");
     }
 
 }

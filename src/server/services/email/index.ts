@@ -135,7 +135,7 @@ export default class Email {
                 const template = templates[email.template];
 
                 if (template === undefined)
-                    throw new Error(`Impossible de charger la template email ${email.template} depuis le cache (introuvable).`);
+                    throw new Error(`Impossible de charger la template email ${email.template} depuis le cache (NotFound).`);
 
                 const txt = template(email.data || {})
 
@@ -198,6 +198,3 @@ declare global {
         }
     }
 }
-
-// Register transporters
-require("./transports/*");

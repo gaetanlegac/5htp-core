@@ -174,7 +174,7 @@ export default class ServerRequest extends BaseRequest {
 
             console.log("Validate request data:", this.data);
 
-            // Les ErreurSaisie seront propagées vers le middleware dédié à la gestion des erreurs
+            // Les InputError seront propagées vers le middleware dédié à la gestion des erreurs
             const { valeurs } = await validerSchema(
                 schema,
                 this.data, 

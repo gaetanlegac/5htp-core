@@ -3,7 +3,7 @@
 ----------------------------------*/
 
 // Libs
-import { ErreurSaisie } from '@common/errors';
+import { InputError } from '@common/errors';
 import * as basicValidators from './basic';
 
 // Components
@@ -39,7 +39,7 @@ export const champ = <TValeur>(
                     return undefined;
                 // Requis
                 else
-                    throw new ErreurSaisie("Please enter a value");
+                    throw new InputError("Please enter a value");
             }
 
             if (opts.valider !== undefined)

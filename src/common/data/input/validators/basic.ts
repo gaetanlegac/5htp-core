@@ -11,7 +11,7 @@ import {
 } from 'validator';
 
 // Libs
-import { ErreurSaisie } from '@common/errors';
+import { InputError } from '@common/errors';
 import File from '@common/data/file';
 
 // Libs métier
@@ -39,7 +39,7 @@ export const object = (opts: TSchemaChamp<object> & {} = {}) => champ<object>('o
             }*/
 
         if (typeof val !== 'object' || val.constructor !== Object)
-            throw new ErreurSaisie("This value must be an object.");
+            throw new InputError("This value must be an object.");
 
         return opts.valider ? await opts.valider(val, donneesSaisie, donneesRetour) : val;
     },
@@ -60,7 +60,7 @@ export const array = (subtype?: Schema<any> | TSchemaChamp<any[]>, { choix, ...o
             //console.log('VALIDER ARRAY', items, donneesSaisie);
 
             if (!Array.isArray(items))
-                throw new ErreurSaisie("This value must be an array.");
+                throw new InputError("This value must be an array.");
 
             // Verif items
             if (subtype !== undefined) {
@@ -86,7 +86,7 @@ export const choice = (values: any[], opts: TSchemaChamp<any> & {} = {}) => cham
     valider: async (val: any, donneesSaisie: TObjetDonnees, donneesRetour: TObjetDonnees) => {
 
         if (!values.includes(val))
-            throw new ErreurSaisie("Invalid value. Must be: " + values.join(', '));
+            throw new InputError("Invalid value. Must be: " + values.join(', '));
 
         return opts.valider ? await opts.valider(val, donneesSaisie, donneesRetour) : val;
     },
@@ -104,21 +104,21 @@ export const string = ({ min, max, ...opts }: TSchemaChamp<string> = {}) => cham
         else if (typeof val === 'number')
             return val.toString();
         else if (typeof val !== 'string')
-            throw new ErreurSaisie("This value must be a string.");
+            throw new InputError("This value must be a string.");
 
         // Espaces blancs
         val = trim(val);
 
         // Taille min
         if (val.length < min)
-            throw new ErreurSaisie(`Must be at least ` + min + ' characters');
+            throw new InputError(`Must be at least ` + min + ' characters');
 
         // Taille max
         if (val.length > max)
             if (corriger)
                 val = val.substring(0, max);
             else
-                throw new ErreurSaisie(`Must be up to ` + max + ' characters');
+                throw new InputError(`Must be up to ` + max + ' characters');
 
         return opts.valider ? await opts.valider(val, donneesSaisie, donneesRetour) : val;
     },
@@ -131,7 +131,7 @@ export const url = (opts: TSchemaChamp<string> & {} = {}) => string({
         if (!isURL(val, {
             // https://www.npmjs.com/package/validator
         }))
-            throw new ErreurSaisie(`Please provide a valid URL.`);
+            throw new InputError(`Please provide a valid URL.`);
 
         return opts.valider ? await opts.valider(val, donneesSaisie, donneesRetour, corriger) : val;
     },
@@ -142,7 +142,7 @@ export const email = (opts: TSchemaChamp<string> & {} = {}) => string({
     valider: async (val: any, donneesSaisie: TObjetDonnees, donneesRetour: TObjetDonnees, corriger?: boolean) => {
 
         if (!isEmail(val))
-            throw new ErreurSaisie("Please enter a valid email address.");
+            throw new InputError("Please enter a valid email address.");
 
         const retour = normalizeEmail(val);
 
@@ -177,7 +177,7 @@ const nombre = (float: boolean) => ({ ...opts }: TSchemaChamp<number> & {} = {})
                 if (corriger)
                     val = opts.min;
                 else
-                    throw new ErreurSaisie("This value must be a number.");
+                    throw new InputError("This value must be a number.");
             }
 
             // Minimum
@@ -185,14 +185,14 @@ const nombre = (float: boolean) => ({ ...opts }: TSchemaChamp<number> & {} = {})
                 if (corriger)
                     val = opts.min;
                 else
-                    throw new ErreurSaisie(`Must be at least ` + opts.min);
+                    throw new InputError(`Must be at least ` + opts.min);
 
             // Maximum
             if (opts.max !== undefined && val > opts.max)
                 if (corriger)
                     val = opts.max;
                 else
-                    throw new ErreurSaisie(`Must be up to ` + opts.max);
+                    throw new InputError(`Must be up to ` + opts.max);
 
         }
 
@@ -210,7 +210,7 @@ export const bool = (opts: TSchemaChamp<boolean> & {} = {}) => champ<boolean>('b
     valider: async (val: any, donneesSaisie: TObjetDonnees, donneesRetour: TObjetDonnees) => {
 
         if (typeof val !== 'boolean' && !['true', 'false'].includes(val))
-            throw new ErreurSaisie("This value must be a boolean.");
+            throw new InputError("This value must be a boolean.");
 
         val = !!val;
 
@@ -233,12 +233,12 @@ export const date = (opts: TSchemaChamp<Date> & {} = {}) => champ<Date>('date', 
         if (chaine) {
 
             if (!isISO8601(val))
-                throw new ErreurSaisie("This value must be a date.");
+                throw new InputError("This value must be a date.");
 
             val = toDate(val);
 
         } else if (!(val instanceof Date))
-            throw new ErreurSaisie("This value must be a date.");
+            throw new InputError("This value must be a date.");
 
         return opts.valider ? await opts.valider(val, donneesSaisie, donneesRetour) : val;
 
@@ -265,7 +265,7 @@ export const validateurFichier = async (
     console.log('VALIDER FICHIER', type, val);
 
     if (!(val instanceof NormalizedFile))
-        throw new ErreurSaisie(`Must be a File (${typeof val} received)`);
+        throw new InputError(`Must be a File (${typeof val} received)`);
 
     // MIME
     if (type !== undefined) {
@@ -284,7 +284,7 @@ export const validateurFichier = async (
         // Vérification
         const mimeFichier = val.type;
         if (!mimetypes.includes(mimeFichier))
-            throw new ErreurSaisie('Only the following formats are allowed: ' + mimetypes.join(', ') + '. The file you gave is ' + mimeFichier + '.');
+            throw new InputError('Only the following formats are allowed: ' + mimetypes.join(', ') + '. The file you gave is ' + mimeFichier + '.');
 
     }
 
@@ -292,7 +292,7 @@ export const validateurFichier = async (
     if (taille) {
         const tailleFichier = val.size / 1024 / 1024; // Mo
         if (tailleFichier > taille)
-            throw new ErreurSaisie(`Le fichier ne doit pas faire plus de ${taille} Mo (taille reçue: ${tailleFichier} Mo)`);
+            throw new InputError(`Le fichier ne doit pas faire plus de ${taille} Mo (taille reçue: ${tailleFichier} Mo)`);
     }
 
     return opts.valider ? await opts.valider(val, donneesSaisie, donneesRetour) : val;

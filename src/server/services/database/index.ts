@@ -9,7 +9,7 @@ const safeStringify = require('fast-safe-stringify'); // remplace les référenc
 
 // Core: general
 import app, { $ } from '@server/app';
-import { Introuvable } from '@common/errors';
+import { NotFound } from '@common/errors';
 
 // Services
 import './connection';
@@ -113,7 +113,7 @@ export function sql<TRowData extends TObjetDonnees = {}>(strings: TemplateString
         fetchStats(columns, string, periodStr, intervalStr)*/
 
     query.mergeValues = (options: TQueryOptions = {}) => 
-        sql.query(string, options).then(queriesResult => {
+        sql.query(string, options).then( queriesResult => {
 
             const data: TObjetDonnees = {};
             for (const queryResult of queriesResult)
@@ -211,7 +211,8 @@ sql.query = async <TRowData extends TObjetDonnees = {}>(
                     time: Date.now() - startTime,
                 });
         }
-        return rows;
+
+        return rows as unknown as TRowData[];
         
     } catch (error) {
         
@@ -251,7 +252,7 @@ sql.firstOrFail = <TRowData extends TObjetDonnees = {}>(query: string, message?:
     sql.query(query, opts).then((resultatRequetes: any) => {
 
         if (resultatRequetes.length === 0)
-            throw new Introuvable(message);
+            throw new NotFound(message);
 
         return resultatRequetes[0];
 
@@ -359,18 +360,15 @@ sql.insert = async <TData extends TObjetDonnees>(
         }).join(', ');
 
     if (opts.upsert !== undefined)
-        query += ' ON DUPLICATE KEY UPDATE ' + opts.upsert.map(col => 
+        query += ' ON DUPLICATE KEY UPDATE ' + opts.upsert.map( col => 
             '`' + col + '` = ' + (opts.upsertMode === 'increment' ? '`' + col + '` + ' : '') + 'VALUES(' + col + ')'
         )
 
     const queryResult = await sql.query(query + ';', opts);
 
-    if (opts.returnQuery)
-        return queryResult;
-    else {
-        data.id = queryResult.insertId;
-        return data;
-    }
+    console.log("opts.returnQuery", opts.returnQuery, "queryResult", queryResult);
+    
+    return [data, queryResult.insertId, queryResult];
 }
 
 /*----------------------------------

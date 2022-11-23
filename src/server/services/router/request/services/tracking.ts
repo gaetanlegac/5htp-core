@@ -9,7 +9,7 @@ import got from 'got';
 
 // Core
 import { arrayToObj } from '@common/data/tableaux';
-import { AccesRefuse } from '@common/errors';
+import { Forbidden } from '@common/errors';
 import requete from '@server/data/ApiClient';
 import app, { $ } from '@server/app';
 
@@ -183,7 +183,7 @@ export default class TrackerService {
 
             // Déjà banni
             if (ip.banned)
-                throw new AccesRefuse(`Banned for the following reason: ` + ip.banReason);
+                throw new Forbidden(`Banned for the following reason: ` + ip.banReason);
 
             // Données expirées
             const tempsDepuisDerniereMaj = dayjs().diff(ip.dateMaj, 'day');

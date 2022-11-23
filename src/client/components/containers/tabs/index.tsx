@@ -55,7 +55,7 @@ export const MenuOnglets = (props: JSX.HTMLAttributes<HTMLDivElement>) => {
 
     const onglets = React.useContext(ContexteOnglets);
     if (onglets === null)
-        return <>Contexte onglets introuvable</>;
+        return <>Contexte onglets NotFound</>;
 
     return (
         <ul {...props} className={"row tabs" + (props.className ? ' ' + props.className : '')}>
@@ -76,7 +76,7 @@ export const Onglet = ({ id, children, asDiv, ...props }: {
 
     const onglets = React.useContext(ContexteOnglets);
     if (onglets === null)
-        return <>Contexte onglets introuvable</>;
+        return <>Contexte onglets NotFound</>;
 
     if (id !== onglets.actuel)
         return null;

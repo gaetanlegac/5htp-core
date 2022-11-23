@@ -8,7 +8,7 @@ import { ComponentChild, FunctionComponent } from 'preact';
 import dottie from 'dottie';
 
 // Libs
-import { TListeErreursSaisie, ErreurSaisieSchema } from '@common/errors';
+import { TListeErreursSaisie, InputErrorSchema } from '@common/errors';
 import { propsDefautChampForm, TBasePropsChamp } from '@client/components/input/Base';
 import { TSchema, TRetourValidation, initDonnees, validate as validerSchema, TSchemaChampComplet } from '@common/data/input/validate';
 import { simpleDeepCopy, chemin } from '@common/data/objets';
@@ -280,7 +280,7 @@ export const useForm = <TDonnees extends TObjetDonnees>(
 
                 if (debug) console.log("RETOUR ERREURS API", e);
 
-                if (e instanceof ErreurSaisieSchema) {
+                if (e instanceof InputErrorSchema) {
 
                     setState((stateA) => ({
                         ...stateA,

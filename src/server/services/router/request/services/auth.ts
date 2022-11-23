@@ -9,7 +9,7 @@ import jwt from 'jsonwebtoken';
 
 // Cre
 import app, { $ } from '@server/app';
-import { ErreurSaisie, AuthRequise, AccesRefuse } from '@common/errors';
+import { InputError, AuthRequired, Forbidden } from '@common/errors';
 import { TUserRole } from '@common/models';
 
 /*----------------------------------
@@ -70,7 +70,7 @@ export default class AuthService {
             // Une erreur s'affichera à chaque tentatove de login
             if (user.banned) {
                 req.res.clearCookie('authorization');
-                throw new AccesRefuse("Your account has been suspended. If you think it's a mistake, please contact me: contact@gaetan-legac.fr.");
+                throw new Forbidden("Your account has been suspended. If you think it's a mistake, please contact me: contact@gaetan-legac.fr.");
             }
 
         }
@@ -111,7 +111,7 @@ export default class AuthService {
         if (role === false) {
 
             if (user !== null)
-                throw new ErreurSaisie("You're already logged in.");
+                throw new InputError("You're already logged in.");
 
         } else if (role === 'DEV' && (process.env.environnement === 'local' || (user && user.roles.includes('ADMIN')))) {
 
@@ -121,13 +121,13 @@ export default class AuthService {
 
             console.warn("Refusé pour anonyme (" + this.request.ip + ")");
 
-            throw new AuthRequise(motivation);
+            throw new AuthRequired(motivation);
 
         } else if (!user.roles.includes(role)) {
 
             console.warn("Refusé: " + role + " pour " + user.name + " (" + (user.roles ? user.roles.join(', ') : 'role inconnu') + ")");
 
-            throw new AccesRefuse("You do not have sufficient permissions to access this resource.");
+            throw new Forbidden("You do not have sufficient permissions to access this resource.");
 
         } else {
 

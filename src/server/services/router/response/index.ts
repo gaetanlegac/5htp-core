@@ -13,7 +13,7 @@ import express from 'express';
 
 // Core
 import { $ } from '@server/app';
-import { Introuvable, AccesRefuse } from '@common/errors';
+import { NotFound, Forbidden } from '@common/errors';
 
 // Libs métier
 import * as render from '../../../libs/pages/render';
@@ -174,7 +174,7 @@ export default class ServerResponse<TData extends TResponseData = TResponseData>
 
         // Securité
         if (fichier.includes('..'))
-            throw new AccesRefuse("Disallowed");
+            throw new Forbidden("Disallowed");
 
         // Force absolute path
         if (!fichier.startsWith( app.path.root ))
@@ -187,7 +187,7 @@ export default class ServerResponse<TData extends TResponseData = TResponseData>
         // Verif existance
         if (!fs.existsSync(fichier)) {
             console.log("File " + fichier + " was not found.");
-            throw new Introuvable();
+            throw new NotFound();
         }
 
         // envoi fichier

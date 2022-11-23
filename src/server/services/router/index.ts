@@ -22,7 +22,7 @@ import TrackingService from './request/services/tracking';
 
 // Core: libs
 import app, { $ } from '@server/app';
-import { Introuvable } from '@common/errors';
+import { NotFound } from '@common/errors';
 
 // Core: types
 import type { TSsrUnresolvedRoute, TRegisterPageArgs } from '@client/router';
@@ -439,7 +439,7 @@ export class Router extends BaseRouter {
                 return response;
         }
 
-        throw new Introuvable(`The requested endpoint was not found.`);
+        throw new NotFound(`The requested endpoint was not found.`);
     }
 
 }

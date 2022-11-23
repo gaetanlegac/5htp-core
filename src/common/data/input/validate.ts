@@ -8,7 +8,7 @@
 import { ComponentChild } from 'preact'
 
 // Libs
-import { Erreur, TListeErreursSaisie, ErreurSaisieSchema } from '@common/errors';
+import { Erreur, TListeErreursSaisie, InputErrorSchema } from '@common/errors';
 
 import { EXCLURE_VALEUR } from './validators/build';
 
@@ -216,7 +216,7 @@ export const validate = async <TSchemaA extends TSchema, TDonnees extends TObjet
     }
 
     if (nbErreurs !== 0 && opts.critique === true) {
-        throw new ErreurSaisieSchema(erreurs);
+        throw new InputErrorSchema(erreurs);
     }
 
     debug && console.log('[schema][valider]', inputAvalider, '=>', output);

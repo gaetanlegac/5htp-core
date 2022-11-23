@@ -3,7 +3,7 @@
 ----------------------------------*/
 
 // Core
-import { Introuvable } from '@common/errors';
+import { NotFound } from '@common/errors';
 import app from '@server/app';
 import context from '@server/context';
 
@@ -99,7 +99,7 @@ export class CronManager {
         const tache = CronManager.taches[nom];
 
         if (tache === undefined)
-            throw new Introuvable("Tâche introuvable: " + nom);
+            throw new NotFound("Tâche NotFound: " + nom);
 
         await tache.run(true);
 

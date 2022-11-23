@@ -66,13 +66,13 @@ export abstract class Erreur extends Error {
     }
 }
 
-export class ErreurSaisie extends Erreur {
+export class InputError extends Erreur {
     public http = 400;
     public title = "Bad Request";
     public static msgDefaut = "Bad Request.";
 }
 
-export class ErreurSaisieSchema extends Erreur {
+export class InputErrorSchema extends Erreur {
 
     public http = 400;
     public title = "Bad Request";
@@ -89,7 +89,7 @@ export class ErreurSaisieSchema extends Erreur {
 
     public constructor(message: TListeErreursSaisie, details?: TDetailsErreur) {
 
-        super( ErreurSaisieSchema.listeToString(message), details );
+        super( InputErrorSchema.listeToString(message), details );
 
         this.erreursSaisie = message;
 
@@ -103,29 +103,33 @@ export class ErreurSaisieSchema extends Erreur {
     }
 }
 
-export class AuthRequise extends Erreur {
+export class AuthRequired extends Erreur {
     public http = 401;
     public title = "Authentication Required";
     public static msgDefaut = "Please Login to Continue.";
 }
 
-export class AccesRefuse extends Erreur {
+export class Forbidden extends Erreur {
     public http = 403;
     public title = "Access Denied";
     public static msgDefaut = "You're not allowed to access to this resource.";
 }
 
-export class Introuvable extends Erreur {
+export class NotFound extends Erreur {
     public http = 404;
     public title = "Not Found";
     public static msgDefaut = "The resource you asked for was not found.";
 }
 
-export class ErreurCritique extends Erreur {
+export class Anomaly extends Erreur {
 
     public http = 500;
     public title = "Technical Error";
     public static msgDefaut = "A technical error has occurred. A notification has just been sent to the admin.";
+
+    public constructor(message, public data: object) {
+        super(message);
+    }
 }
 
 export class NotAvailable extends Erreur {
@@ -148,13 +152,13 @@ export const instancierViaCode = (
 ): Erreur => {
 
     if (typeof message === 'object')
-        return new ErreurSaisieSchema(message, details);
+        return new InputErrorSchema(message, details);
 
     switch (code) {
-        case 400: return new ErreurSaisie( message, details);
-        case 401: return new AuthRequise( message, details);
-        case 403: return new AccesRefuse( message, details);
-        case 404: return new Introuvable( message, details);
-        default: return new ErreurCritique( message, details);
+        case 400: return new InputError( message, details);
+        case 401: return new AuthRequired( message, details);
+        case 403: return new Forbidden( message, details);
+        case 404: return new NotFound( message, details);
+        default: return new Anomaly( message, details);
     }
 }
