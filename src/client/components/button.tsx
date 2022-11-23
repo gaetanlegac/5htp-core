@@ -135,7 +135,7 @@ export default ({
         className += ' ' + size;
 
     if (type !== undefined)
-        className += ' ' + type;
+        className += ' bg ' + type;
 
     if (icon) {
         if (children === undefined)

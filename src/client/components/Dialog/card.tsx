@@ -133,7 +133,7 @@ export default ({
         }, []);
 
     let render = isToast ? (
-        <div class="card row color dark glass" onClick={() => isToast && !prison && close(true)}>
+        <div class="card row bg dark glass" onClick={() => isToast && !prison && close(true)}>
 
             {icon}
 
