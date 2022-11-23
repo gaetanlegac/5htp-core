@@ -32,7 +32,7 @@ a {
 }
 
 p, .p {
-    text-align: center;
+    text-align: justify;
     line-height: 1.8em;
     margin: 0; // Overwrite browser defaults
 }
@@ -75,10 +75,10 @@ p, .p {
 .txt-blanc { color: #fff !important; }
 
 .txtPrimary, .txtC1 {
-    color: var(--c1);
+    color: var(--cAccent);
 }
 
-.txtC2 { color: var(--c2); }
+.txtC2 { color: var(--cAccent2); }
 
 /*----------------------------------
 - TAILLE
@@ -147,11 +147,12 @@ em {
         content: ' ';
         display: block;
         height: 0.5em;
-        background: var(--c2);
+        border-radius: 0.25em;
+        background: var(--cAccent2);
 
         position: absolute;
         z-index: -1;
-        bottom: 0.15em;
+        bottom: 0.05em;
         left: -0.1em;
         right: -0.1em;
     }
