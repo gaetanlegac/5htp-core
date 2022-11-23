@@ -90,6 +90,12 @@ route.post('/auth/logout', async ({ auth }) => {
 
 });
 
+
+
+
+
+
+// Too specific to project
 route.get('/invite', async ({ auth, schema }) => {
 
     const user = await auth.check("USER");

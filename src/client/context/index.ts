@@ -7,7 +7,6 @@ import React from 'react';
 import type { ComponentChild } from 'preact';
 
 // Core
-import { AuthRequise } from '@common/errors';
 import { createDialog } from '@client/components/Dialog/Manager';
 import BaseRequest from '@common/router/request';
 import router, { TClientRoute } from '@client/router';
