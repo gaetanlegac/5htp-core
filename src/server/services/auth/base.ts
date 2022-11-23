@@ -7,7 +7,7 @@ import md5 from 'md5';
 import { OAuth2Client, LoginTicket } from 'google-auth-library';
 
 // Core libs
-import { ErreurSaisie, AuthRequise, AccesRefuse } from '@common/errors';
+import { Forbidden } from '@common/errors';
 
 // App Libs
 import { IP } from '@models';
@@ -38,7 +38,7 @@ export type AuthConfig = {
         key: string,
         expiration: string,
     },
-    google: {
+    google?: {
         web: {
             clientId: string,
             secret: string,
@@ -75,11 +75,13 @@ export default abstract class UserAuthBase {
     public abstract beforeSignup(user: User): Promise< void >;
     public abstract afterSignup(user: User): Promise<{ redirect: string }>;
     
-    private googleClient = new OAuth2Client(
-        app.config.auth.google.web.clientId, // Google Client ID
-        app.config.auth.google.web.secret, // Private key
-        "https://" + app.env.domain + "/auth/google/response" // Redirect url
-    );
+    private googleClient = app.config.auth.google
+        ? new OAuth2Client(
+            app.config.auth.google.web.clientId, // Google Client ID
+            app.config.auth.google.web.secret, // Private key
+            "https://" + app.env.domain + "/auth/google/response" // Redirect url
+        )
+        : undefined;
 
     public async load() {
 
@@ -100,6 +102,9 @@ export default abstract class UserAuthBase {
     }
 
     public async FromGoogle(request: ServerRequest): Promise<string> {
+
+        if (!this.googleClient)
+            throw new Forbidden(`Authentication method disabled.`);
 
         // Register  start time, so we can determine the signup time to display
         request.response?.cookie('signupstart', Date.now());
@@ -126,8 +131,11 @@ export default abstract class UserAuthBase {
         request: ServerRequest,
     ): Promise<AuthResponse> {
 
+        if (!this.googleClient)
+            throw new Forbidden(`Authentication method disabled.`);
+
         if (codeOrToken === undefined)
-            throw new AccesRefuse("Bad code / token");
+            throw new Forbidden("Bad code / token");
 
         if (type === 'code') {
             const r = await this.googleClient.getToken(codeOrToken);
@@ -146,16 +154,16 @@ export default abstract class UserAuthBase {
                 ]
             });
         } catch (error) {
-            throw new AccesRefuse(`Google denied your login attempt: ` + error.message + `. If you don't think it's normal, please contact us.`);
+            throw new Forbidden(`Google denied your login attempt: ` + error.message + `. If you don't think it's normal, please contact us.`);
         }
 
         const payload = ticket.getPayload();
         if (payload === undefined)
-            throw new AccesRefuse("Invalid payload");
+            throw new Forbidden("Invalid payload");
         const { email, sub: google_id } = payload;
 
         if (email === undefined)
-            throw new AccesRefuse("Unable to get your email address from the Google sign-in.");
+            throw new Forbidden("Unable to get your email address from the Google sign-in.");
 
         return await this.Auth(email, request, true);
 
@@ -180,7 +188,7 @@ export default abstract class UserAuthBase {
 
         } else if (!canPass) { // Send login email
 
-            throw new AccesRefuse("This option is not available");
+            throw new Forbidden("This option is not available");
 
             // If the current IP was used to connect to another account that the current
             ip = await request.detect.botsAndMultiaccount(user.name);
