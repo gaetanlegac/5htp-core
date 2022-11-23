@@ -15,7 +15,7 @@ import hInterval from 'human-interval';
 
 // Core
 import Cron, { CronTask } from '@server/services/cron';
-import { AccesRefuse } from '@common/errors';
+import { Forbidden } from '@common/errors';
 
 const debug = true;
 
@@ -82,7 +82,7 @@ class Tokens {
         debug && console.log("Get token", token, options);
         if (options === undefined) {
             if (critical)
-                throw new AccesRefuse(`Invalid token.`);
+                throw new Forbidden(`Invalid token.`);
             else
                 return undefined;
         }

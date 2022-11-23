@@ -6,7 +6,7 @@
 import crypto from 'crypto';
 
 // Core
-import { AccesRefuse } from '@common/errors';
+import { Forbidden } from '@common/errors';
 
 const debug = true;
 
@@ -43,7 +43,7 @@ class AES {
 
         } catch (error) {
 
-            throw new AccesRefuse("Invalid token.");
+            throw new Forbidden("Invalid token.");
             
         }
         
