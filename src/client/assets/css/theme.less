@@ -4,31 +4,36 @@
 .build-theme( 
     @bg, 
     @fg: if( lightness(@bg) >= 80%, @bg - @fgDelta, @bg + @fgDelta),
-    @apply: true,
-
-    @bgChild: @bg + @bgDelta,
-    @fgChild: if( lightness(@bgChild) >= 80%, @bgChild - @fgDelta, @bgChild + @fgDelta)
+    @cAccent: @c1,
+    @cAccent2: @c2,
+    @apply: true
 ) {
 
     @isLight: boolean( lightness(@bg) >= 80% );
 
+    --cAccent: @cAccent;
+    --cAccent2: @cAccent2;
+
     // Background
+    // TODO: Nettoyer
+    @bg2: @bg - #121212;
     @bgDark: darken(@bg, 5%);
     @bgDarkPlus: darken(@bg, 10%);
     --cBg: @bg; 
+    --cBg2: @bg2;
     --cBgAccent: @bgDark;
     --cBgAccentPlus: @bgDarkPlus;
     --cBgControl: if( @bg = #fff, @cBgPage, #fff );
+    --cBgHover: #f5f5f5;
+
+    @cBgHighlight: @bg + #111;
+    --cBgHighlight: @cBgHighlight;
 
     // Other
     @cLine: if( @isLight, @bg - #151515, @bg + #151515);
     @cLine2: if( @isLight, @bg - #191919, @bg + #050505);
     --cLine: @cLine;
     --cLine2: @cLine2;
-
-    > * {
-        --c1: if( @isLight, @c1, #ffffff );
-    }
 
     // Text
     .build-theme-txt(@fg, @bg, @apply);
@@ -50,18 +55,15 @@
 
     @isLight: boolean( lightness(@bg) >= 70% );
     
-
     // Text
     @cTxtDiscret: if( @isLight, @bg - #444, @bg + #444);
     @cTxtDesc: if( @isLight, @cTxtBase + #222, @cTxtBase - #222);
     @cTxtImportant: if( @isLight, @cDark, #fff);
+    @cTxtAccent: if( @bg = @c1, @cTxtImportant, @c1);
 
     --cTxtDiscret: @cTxtDiscret;
     --cTxtDesc: @cTxtDesc;
     --cTxtBase: @cTxtBase;
     --cTxtImportant: @cTxtImportant;
-
-    /*& when (lightness(@bg) < 90%) {
-        --c1: @cTxtImportant;
-    }*/
+    --cTxtAccent: @cTxtAccent;
 }
