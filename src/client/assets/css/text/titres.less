@@ -18,24 +18,24 @@ h3 {
     }
 
     strong {
-        color: var(--c1);
+        color: var(--cAccent);
         font-weight: inherit;
     }
 }
 
 // sans input.h1, .h1 seul ne peut pas override le style par défaut des champs
 h1, .h1 {
-    font-size: 1.8rem;
+    font-size: @h1Size;
     line-height: 1.3em;
 }
 
 h2, .h2 {
-    font-size: 1.3rem;
+    font-size: @h2Size;
     line-height: 1.6em;
 }
 
 h3, 
 fieldset > legend {
-    font-size: 1.16rem;
-    line-height: 2rem;
+    font-size: @h3Size;
+    line-height: 2em;
 }
