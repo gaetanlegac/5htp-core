@@ -1,18 +1,25 @@
-.card {
-   
+@import (reference) "../theme.less";
+
+.card,
+.msg {
     position: relative; // For .overlay
-    padding: @spacing;
-    background-color: var(--cBg);
     color: var(--cTxtBase);  
     border-radius: @radius;
+}
 
-    &.clickable {
-        cursor: pointer;
+.card {
 
-        &:hover {
-            > * {
-                --cTxtImportant: @c1;
-            }
+    background-color: var(--cBg);
+    padding: @spacing;
+
+    &.bg {
+        --cBg: difference(@cBgPage, #0a0a0a);
+        --cBg2: difference(@cBgPage, #111);
+        background: var(--cBg);
+
+        &.img {
+            background-position: center;
+            background-size: cover;
         }
     }
 
@@ -52,25 +59,25 @@
 
     > .cov-t {
 
-        margin-top: calc( -1 * @spacingComponent );
+        margin-top: calc( -1 * @spacing );
     }
 
     > .cover,
     > .table {
 
-        margin-left: calc( -1 * @spacingComponent );
-        margin-right: calc( -1 * @spacingComponent );
+        margin-left: calc( -1 * @spacing );
+        margin-right: calc( -1 * @spacing );
 
         &:first-child {
             border-top-left-radius: @radius;
             border-top-right-radius: @radius;
-            margin-top: calc( -1 * @spacingComponent );
+            margin-top: calc( -1 * @spacing );
         }
 
         &:last-child {
             border-bottom-left-radius: @radius;
             border-bottom-right-radius: @radius;
-            margin-bottom: calc( -1 * @spacingComponent );
+            margin-bottom: calc( -1 * @spacing );
         }
     }
 
@@ -78,6 +85,28 @@
         margin: 0px !important;
         height: 100%;
         width: 100%;
+    }
+}
+
+.msg, .card.bg.info {
+    
+    padding: @spacing @spacing * 2;
+
+    .build-theme( lighten(@cInfo, 35%), darken(@cInfo, 20%));
+
+}
+
+.msg, .card.bg {
+    &.error {
+        .build-theme( lighten(@cInfo, 35%), darken(@cInfo, 20%));
+    }
+
+    &.warn {
+        .build-theme( lighten(@cWarn, 25%), darken(@cWarn, 30%));
+    }
+
+    &.success {
+        .build-theme( lighten(@cSuccess, 50%), darken(@cSuccess, 30%));
     }
 }
 
