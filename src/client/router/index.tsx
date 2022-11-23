@@ -94,12 +94,19 @@ export const Link = ({ to, ...props }: {
     className?: string
 }) => {
 
-    return (
-        <a {...props} href={to} onClick={(e) => {
+    // External = open in new tab by default
+    if (to[0] !== '/' || to.startsWith('//'))
+        props.target = '_blank';
+    // Otherwise, propagate to the router
+    else 
+        props.onClick = (e) => {
             history?.push(to);
             e.preventDefault();
             return false
-        }}/>
+        }
+
+    return (
+        <a {...props} href={to} />
     )
 
 }
