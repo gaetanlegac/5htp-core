@@ -1,3 +1,12 @@
+/*----------------------------------
+- CONFIG
+----------------------------------*/
+
+@sizeActiveIndicator: 0.3rem;
+
+/*----------------------------------
+- BUTTON
+----------------------------------*/
 .btn {
 
     // Layout
@@ -18,8 +27,26 @@
     font-weight: 600;
 
     // Colors
-    background: transparent;
-    color: var(--cTxtBase); 
+    color: var(--cTxtAccent);  
+        
+    // Hover
+    transition: all .5s linear;
+    &:hover,
+    &.selected,
+    li:hover > & {
+
+        color: var(--cTxtImportant);
+        transition: all .1s linear;
+        
+        > i {
+            color: var(--cAccent)
+        }
+    }
+
+    // Click
+    &.pressed {
+        transform: scale(0.9);
+    }
 
     &,
     > .label {
@@ -44,12 +71,9 @@
         }
     }
 
-    &:not(.color):not(.icon) > i {
-        color: var(--c2);
-    }
-
     > i {
         font-size: 1.2em;
+        color: inherit;
     }
 
     > img {
@@ -68,36 +92,11 @@
     /*----------------------------------
     - THEME
     ----------------------------------*/
-    
-    // Hover / Click
-    transition: all .5s linear;
-    &:not([disabled]) {
-        
-        &:hover,
-        &.selected,
-        li:hover > & {
-            background: var(--cBgHover);
-            color: var(--cTxtImportant);
-            transition: all .1s linear;
-        }
 
-        &.pressed {
-            transform: scale(0.9);
-        }
-    }
-
-    // On donne moins d'importance à chaque bouton lorsqu'ils sont dans une liste (ex: menu)
-    /*li > &,
-    .menu > & {
-
-        &:not(.primary):not(.selected) {
-            color: inherit;
-        }
-    }*/
-
-    &.primary {
+    &.bg {
 
         background: var(--cBg);
+        color: var(--cTxtBase);
         
         &:not(:disabled) {
             &:hover,
@@ -125,13 +124,6 @@
     ----------------------------------*/
 
     cursor: pointer;
-
-    &:not(.primary):hover,
-    &:not(.primary).selected {
-        &, & > i {
-            color: var(--cTxtImportant);
-        }
-    }
 
     &:not(.primary).selected {
 
@@ -206,7 +198,7 @@
 }
 
 /*----------------------------------
-- sHOW BUBBLE ON HOVER
+- BUTTON IN LISTS
 ----------------------------------*/
 
 ul.col,
@@ -215,9 +207,20 @@ ul.row {
     &.menu > .btn, 
     &.menu > li > .btn {
 
+        // Give less imortance to buttons which are in lists
+        color: var(--cTxtBase);  
         box-shadow: none;
+        border: none;
         width: 100%;
+        background: transparent;
 
+        &.selected,
+        &:hover {
+            background: var(--cBg2);
+            color: var(--cTxtImportant);
+        }
+
+        // All the list items label must be aligned
         > .label {
             justify-content: flex-start;
         }
@@ -327,8 +330,8 @@ ul.col {
                 position: absolute;
 
                 top: -@sizeComponent;
-                left: calc(0em - @spacingComponent);
-                right: calc(0em - @spacingComponent);
+                left: calc(0em - @spacing);
+                right: calc(0em - @spacing);
 
                 height: 100%;
             }
@@ -345,7 +348,7 @@ ul.col {
             left: auto;
             margin-left: 0;
             right: 100%;
-            margin-right: @spacingComponent;
+            margin-right: @spacing;
         }
     }
 }
