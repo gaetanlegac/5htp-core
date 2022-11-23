@@ -61,6 +61,7 @@
         
         > i {
             color: @c1;
+            flex: 0 0 1em;
         }
 
         h2 {
@@ -85,13 +86,13 @@
 
         background: fade(#000, 30%);
         backdrop-filter: blur(50px) saturate(2);
-        border-radius: @layoutRadius;
+        border-radius: @radius;
 
         // Desktop = vertically center the modal
-        @media (min-width: @responsive1) {
+        /*@media (min-width: @responsive1) {
             justify-content: center;
             padding: @spacing;
-        }
+        }*/
 
         // Pour les animations (ex: conffetis
         > canvas {
