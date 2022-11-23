@@ -382,7 +382,7 @@ export default function <TDonnee extends DonneesGraph, TTypeChartJs extends Char
                     
                 // Default color
                 if (!dataset.colonne.color) 
-                    dataset.colonne.color = css.getPropertyValue('--c1');
+                    dataset.colonne.color = css.getPropertyValue('--cAccent');
 
                 return {
                     label: dataset.colonne.label,
