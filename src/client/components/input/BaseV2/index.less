@@ -1,6 +1,6 @@
 @import (reference) '~@/client/assets/theme.less';
 
-@hInput: @sizeComponent * 1.2;
+@hInput: @sizeComponent;
 
 // TODO: Adapter textarea à input/basev2
 .contChamp textarea {
@@ -24,11 +24,11 @@
     border-radius: @radius;
 
     --cBg2: #eee;
-    background: fade(#000, 5%);
     //box-shadow: 1px 3px 0 fade(#000,4%), 0 1px 2px 0 fade(#000,2%);
 
     > i {
         margin-left: 0.5em;
+        color: var(--cTxtDesc);
     }
 
     .contValue {
@@ -42,7 +42,7 @@
     @gapAround: (@hInput - @labelH) / 2;
     > .btn:first-child { margin-left: 0 - @gapAround / 2; }
 
-    @labelH: 1.2em;
+    @labelH: 0.6em;
     label {
         position: absolute;
         left: 0; width: 100%;
@@ -51,6 +51,7 @@
         align-items: center;
 
         height: @labelH;
+        font-size: 0.8em;
         color: var(--cTxtDesc);
         transition: all .1s ease-out;
     }
