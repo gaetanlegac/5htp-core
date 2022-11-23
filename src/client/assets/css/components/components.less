@@ -1,0 +1,25 @@
+.card,
+.input.text,
+.btn,
+i.solid {
+
+    .build-theme( #fff, #8E8E8E);
+
+    &:not(.bg) {
+        background: white;
+        box-shadow: 0 10px 20px fade(#000, 10%);
+        border: solid 1px fade(#000, 10%);
+        border-radius: @radius;
+    }
+
+    .bg & {
+        box-shadow: none;
+        border: none;
+    }
+}
+
+.btn:hover,
+.input.text.focus {
+    z-index: 5;
+    box-shadow: 0 10px 50px fade(#000, 15%);
+}
