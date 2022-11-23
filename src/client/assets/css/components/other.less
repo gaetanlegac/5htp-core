@@ -52,9 +52,8 @@ img.bg-cover {
     height: @t_pastille;
     border-radius: 50%;
 
-    --color: #e243bc;
-    background: var(--color);
-    box-shadow: 0 0 25px var(--color);
+    background: var(--cBg);
+    box-shadow: 0 0 25px var(--cBg);
 
     &.l {
         width: 2rem;
@@ -117,7 +116,12 @@ strong.placeholder {
 }
 
 hr {
+
     border: none;
-    border-top: solid 1px var(--cLine2);
-    margin: 1.65rem 0;
+
+    &::before {
+        display: block;
+        content: '• • •';
+        color: var(--cTxtDesc);
+    }
 }
