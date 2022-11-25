@@ -1,0 +1,65 @@
+@import (reference) "~@/client/assets/theme.less";
+
+@hideeWidth: 10em;
+
+.scrollable-row {
+    
+    position: relative;
+
+    > .container {
+        padding: @spacing 0;
+        overflow: hidden;
+        position: relative;
+        left: 0;
+
+        > .row {
+            justify-content: flex-start;
+            padding: 0 @spacing;
+        }
+    }
+
+    > .btn {
+        position: absolute;
+        top: 50%;
+        margin-top: 0 - (@sizeComponent / 2);
+        z-index: 1;
+
+        &.left {
+            left: 0;
+        }
+
+        &.right {
+            right: 0;
+        }
+    }
+
+    &::before,
+    &::after {
+        content: ' ';
+        display: block;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: @hideeWidth;
+    }
+
+    &::before {
+        left: 0;
+        background: linear-gradient(to right, fade(@cBgPage, 100%), fade(@cBgPage, 0%));
+    }
+
+    &::after {
+        background: linear-gradient(to left, fade(@cBgPage, 100%), fade(@cBgPage, 0%));
+        right: 0;
+    }
+
+    &.stopLeft {
+        > .btn.left { display: none; }
+        &::before { display: none; }
+    }
+
+    &.stopRight {
+        > .btn.right { display: none; }
+        &::after { display: none; }
+    }
+}
