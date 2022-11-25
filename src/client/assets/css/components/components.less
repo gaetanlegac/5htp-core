@@ -1,13 +1,14 @@
 .card,
 .input.text,
 .btn,
+.table,
 i.solid {
 
-    .build-theme( #fff, #8E8E8E);
+    .build-theme-bg( #fff, #8E8E8E);
 
     &:not(.bg) {
         background: white;
-        box-shadow: 0 10px 20px fade(#000, 10%);
+        box-shadow: 0 3px 2px fade(#000, 10%);
         border: solid 1px fade(#000, 10%);
         border-radius: @radius;
     }
@@ -18,6 +19,7 @@ i.solid {
     }
 }
 
+//.card.clickable:hover,
 .btn:hover,
 .input.text.focus {
     z-index: 5;
