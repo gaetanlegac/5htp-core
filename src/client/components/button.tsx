@@ -135,7 +135,7 @@ export default ({
         className += ' ' + size;
 
     if (type !== undefined)
-        className += ' bg ' + type;
+        className += type === 'link' ? type : (' bg ' + type);
 
     if (icon) {
         if (children === undefined)
