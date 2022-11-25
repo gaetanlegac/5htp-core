@@ -20,9 +20,17 @@ import { User } from '@models';
 
 import type ServerRequest from '@server/services/router/request'
 
-type TJwtSession = { username: string }
+type TJwtSession = { email: string }
 
-const jwtConfig = app.config.auth.jwt;
+type TRequest = express.Request | http.IncomingMessage;
+
+/*----------------------------------
+- CONFIG
+----------------------------------*/
+
+const config = app.config.auth;
+
+const LogPrefix = '[router][auth]';
 
 /*----------------------------------
 - MODULE
@@ -35,9 +43,11 @@ export default class AuthService {
         this.request = request;
     }
     
-    public static async decode( req: express.Request | http.IncomingMessage, withData: true ): Promise<User | null>;
-    public static async decode( req: express.Request | http.IncomingMessage, withData?: false ): Promise<string | null>;
-    public static async decode( req: express.Request | http.IncomingMessage, withData: boolean = false ): Promise<string | User | null> {
+    public static async decode( req: TRequest, withData: true ): Promise<User | null>;
+    public static async decode( req: TRequest, withData?: false ): Promise<string | null>;
+    public static async decode( req: TRequest, withData: boolean = false ): Promise<string | User | null> {
+
+        config.debug && console.log(LogPrefix, 'Decode:', { cookie: req.cookies['authorization'] });
         
         let token: string | undefined;
         if (('cookies' in req) && typeof req.cookies['authorization'] === 'string')
@@ -47,42 +57,66 @@ export default class AuthService {
             token = req.headers['authorization'];
 
         if (token === undefined)
-            return null;
+            return this.authFailed(req);
 
         let session: TJwtSession;
         try {
-            session = jwt.verify(token, jwtConfig.key, { maxAge: jwtConfig.expiration });
+            session = jwt.verify(token, config.jwt.key, { maxAge: config.jwt.expiration });
         } catch (error) {
-            console.warn("Failed to decode jwt token:", token);
-            return null;
+            console.warn(LogPrefix, "Failed to decode jwt token:", token);
+            return this.authFailed(req);
         }
 
-        if (!session.username)
-            return null;
+        // Not normal (could assume the JWT session is incompatible ??)
+        if (!session.email) {
+            console.warn(LogPrefix, "No email provided in JWT decrypted session:", session);
+            return this.authFailed(req);
+        }
 
-        if (!withData)
-            return session.username;
+        // Return email only
+        if (!withData) {
+            config.debug && console.log(LogPrefix, `Auth user ${session.email} successfull. Return email only`);
+            return session.email;
+        }
 
-        console.log(`[securite][auth] Déserialisation de l'utilisateur ${session.username}`);
-        const user = await $.auth.getData('name = ' + $.sql.esc(session.username));
+        // Deserialize full user data
+        config.debug && console.log(LogPrefix, `Deserialize user ${session.email}`);
+        const user = await $.auth.getData('email = ' + $.sql.esc(session.email));
         if (user) {
+
+            config.debug && console.log(LogPrefix, `Deserialized user ${session.email}:`, user);
+
              // Banni = déconnexion
             // Une erreur s'affichera à chaque tentatove de login
             if (user.banned) {
-                req.res.clearCookie('authorization');
+
+                this.authFailed(req);
                 throw new Forbidden("Your account has been suspended. If you think it's a mistake, please contact me: contact@gaetan-legac.fr.");
             }
 
         }
 
-        return user;
+        return user;    
     }
 
-    public login(username: string): string {
+    private static authFailed( req: TRequest ) {
 
-        console.info(`Authentification de ` + username);
+        if ('res' in req) {
+            // If use auth failed, we remove the jwt token so we avoid to trigger the same auth error in the next request
+            console.warn(LogPrefix, "Auth failed: remove authorization cookie");
+            req.res?.clearCookie('authorization');
+        }
 
-        const token = jwt.sign({ username: username }, jwtConfig.key);
+        return null;
+    }
+
+    public login( email: string ): string {
+
+        config.debug && console.info(LogPrefix, `Authentification de ` + email);
+
+        const token = jwt.sign({ email }, config.jwt.key);
+
+        config.debug && console.info(LogPrefix, `Generated JWT token: ` + token);
 
         this.request.res.cookie('authorization', token);
 
@@ -94,9 +128,9 @@ export default class AuthService {
         const user = this.request.user;
         if (!user) return;
 
-        console.info(`Logout ${user.name}`);
-        this.request.res.clearCookie('authorization',);
-        $.socket.disconnect(user.name, 'Logout');
+        config.debug && console.info(LogPrefix, `Logout ${user.email}`);
+        this.request.res.clearCookie('authorization');
+        $.socket.disconnect(user.email, 'Logout');
     }
 
     public check(role: TUserRole, motivation?: string): User;
@@ -108,6 +142,7 @@ export default class AuthService {
         if (role === true)  
             role = 'USER';
 
+        // First layer control
         if (role === false) {
 
             if (user !== null)
@@ -115,27 +150,30 @@ export default class AuthService {
 
         } else if (role === 'DEV' && (process.env.environnement === 'local' || (user && user.roles.includes('ADMIN')))) {
 
-            
+            // It's a bypass
+            return user;
 
         } else if (user === null) {
 
-            console.warn("Refusé pour anonyme (" + this.request.ip + ")");
-
+            config.debug && console.warn(LogPrefix, "Refusé pour anonyme (" + this.request.ip + ")");
             throw new AuthRequired(motivation);
 
-        } else if (!user.roles.includes(role)) {
-
-            console.warn("Refusé: " + role + " pour " + user.name + " (" + (user.roles ? user.roles.join(', ') : 'role inconnu') + ")");
-
-            throw new Forbidden("You do not have sufficient permissions to access this resource.");
-
         } else {
+            
+            // Second layer control
+            if (!user.roles.includes(role)) {
 
-            console.warn("Autorisé " + role + " pour " + user.name + " (" + user.roles.join(', ') + ")");
+                console.warn(LogPrefix, "Refusé: " + role + " pour " + user.email + " (" + (user.roles ? user.roles.join(', ') : 'role inconnu') + ")");
 
+                throw new Forbidden("You do not have sufficient permissions to access this resource.");
+
+            } else {
+
+                console.warn(LogPrefix, "Autorisé " + role + " pour " + user.email + " (" + user.roles.join(', ') + ")");
+
+            }
+
+            return user;
         }
-
-        return user;
-
     }
 }

@@ -136,7 +136,7 @@ export default class TrackerService {
 
     public static values({ user, ip, langue, country }: TrackingInfos) {
         return {
-            user: user ? user.name : null,
+            user: user ? user.email : null,
             ip: ip.address,
             country,
             langue

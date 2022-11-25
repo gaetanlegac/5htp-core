@@ -32,7 +32,13 @@ type AuthResponse = {
 - CONFIG
 ----------------------------------*/
 
+const config = app.config.auth;
+
+const LogPrefix = '[auth]'
+
 export type AuthConfig = {
+    debug: boolean,
+    logoutUrl: string,
     jwt: {
         // 2048 bits
         key: string,
@@ -142,7 +148,7 @@ export default abstract class UserAuthBase {
             return this.GoogleResponse('token', r.tokens.id_token, request);
         }
 
-        console.log("AUTH GOOGLE", app.config.auth.google);
+        config.debug && console.log(LogPrefix, "Auth via google", app.config.auth.google);
 
         let ticket: LoginTicket;
         try {
@@ -169,10 +175,18 @@ export default abstract class UserAuthBase {
 
     }
 
+    /**
+     * Login u
+     * @param email Email that identifies the account to log in
+     * @param request Used to call security-related features
+     * @param canPass true when from 3rd party auth, we're sure the email is owned bu the current user
+     * @param userInfo User field to update (eg: lastLogin)
+     * @returns 
+     */
     public async Auth( 
         email: string, 
         request: ServerRequest, 
-        canPass: boolean = false, // true when from google, we're sure the email is owned bu the current user
+        canPass: boolean = false,
         userInfo: Partial<User> = {} 
     ): Promise<AuthResponse> {
 
@@ -191,7 +205,7 @@ export default abstract class UserAuthBase {
             throw new Forbidden("This option is not available");
 
             // If the current IP was used to connect to another account that the current
-            ip = await request.detect.botsAndMultiaccount(user.name);
+            ip = await request.detect.botsAndMultiaccount(user.email);
 
             // Send email with link to /auth/token (expiration 5 min)
 
@@ -199,19 +213,19 @@ export default abstract class UserAuthBase {
 
         } else { // Login 
 
-            redirect = '/';
+            redirect = config.logoutUrl;
             
         }
 
-        await $.sql`
+        /*await $.sql`
             INSERT INTO UserLogin SET
-                user = ${user.name},
+                user = ${user.email},
                 date = NOW(),
                 ip = ${request.ip},
                 device = ${request.deviceString()}
-        `.run();
+        `.run();*/
 
-        const token = request.auth.login(user.name);
+        const token = request.auth.login(user.email);
 
         return { token, user, redirect };
 

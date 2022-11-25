@@ -282,17 +282,16 @@ export class Router extends BaseRouter {
         if (!keepLogs)  
             requestId = 'admin';
 
-        // Create request context & resolve it
+        // Create request context so we can access request context across all the request-triggered libs
         context.run({ channelType: 'request', channelId: requestId }, async () => {
 
             let response: ServerResponse;
             try {
                 
+                // Auth
                 request.user = await AuthService.decode(req, true);
-                // If use auth failed, we remove the jwt token so we avoid to trigger the same auth error in the next request
-                if (request.user === null)
-                    res.clearCookie('authorization');
 
+                // Bulk API Requests
                 if (request.path === '/api' && typeof request.data.fetchers === "object") {
 
                     const responseData: TObjetDonnees = {};
@@ -417,7 +416,7 @@ export class Router extends BaseRouter {
                 continue;
 
             // Testing = must be admin
-            if (route.options.TESTING === true && !(request.user && request.user.name === "Decentraliseur"))
+            if (route.options.TESTING === true && !(request.user && request.user.email === "Decentraliseur"))
                 break;
 
             // Auth

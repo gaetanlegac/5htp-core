@@ -107,7 +107,7 @@ route.get('/invite', async ({ auth, schema }) => {
             meet,
             activity
         FROM User u
-        WHERE referrer = ${user.name}
+        WHERE referrer = ${user.email}
     `.all();
 
     const stats = await getStats('UserStats', [
@@ -118,9 +118,9 @@ route.get('/invite', async ({ auth, schema }) => {
         relative: true,
         period: '12 hours', 
         interval: '1 hour',
-        where: user ? (`user = ` + app.services.sql.esc(user.name)) : '0',
+        where: user ? (`user = ` + app.services.sql.esc(user.email)) : '0',
         cache: user ? { 
-            id: 'user.' + user.name + '.referrals' 
+            id: 'user.' + user.email + '.referrals' 
         } : undefined
     });
 
