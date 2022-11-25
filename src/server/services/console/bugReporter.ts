@@ -31,16 +31,73 @@ type AppBugInfos = {
     stacktrace: string,
 }
 
+export type ServerBug = {
+    // Context
+    hash: string,
+    date: Date, // Timestamp
+    channelType?: string, 
+    channelId?: string,
+
+    user: string | null | undefined,
+    ip: string | null | undefined,
+    
+    // Error
+    stacktrace: string,
+    logs: string
+}
+
+export type ApplicationBug = {
+    // Context
+    hash: string,
+    date: Date,
+    side: string,
+    action: string,
+    // User
+    user: string | null | undefined,
+    ip: string | null | undefined,
+    device: string, 
+    // Client
+    client: string,
+    build: string,
+    status: string,
+    // Error
+    message: string,
+    stacktrace: string
+}
+
+const config = app.config.console;
+
 /*----------------------------------
 - CONFIG
 ----------------------------------*/
 
 const errorMailInterval = (1 * 60 * 60 * 1000); // 1 hour
 
+const LogPrefix = '[console][bugReporter]'
+
+export type TTransport = {
+    name: string,
+    send: TransportSender
+}
+
+export type Bug = ServerBug | ApplicationBug
+
+type TransportSender = (report: Bug, error?: Error) => Promise<any>
+
 /*----------------------------------
 - SERVICE
 ----------------------------------*/
 export default class BugReporter {
+
+    private transporters: TTransport[] = [];
+
+    public addTransporter( name: string, sender: TransportSender ) {
+        console.log(LogPrefix, `Register trabsporter ${name} ...`);
+        this.transporters.push({
+            name,
+            send: sender
+        })
+    }
 
     // Bug ID => Timestamp latest send
     private sentBugs: {[bugId: string]: number} = {};
@@ -70,7 +127,7 @@ export default class BugReporter {
     public async server( error: Error, request?: ServerRequest ) {
 
         // error should be printed in the console, so they're acccessible from logs
-        console.error(`Sending bug report for the following error:`, error);
+        console.error(LogPrefix, `Sending bug report for the following error:`, error);
 
         // Prevent duplicates
         if (!this.shouldSendReport('server', request?.user?.name, undefined, error.message))
@@ -88,21 +145,21 @@ export default class BugReporter {
             true
         );
 
-        // Send notification
-        if (app.isLoaded('email'))
-            $.email.send({
-                to: app.identity.author.email,
-                subject: "Server bug: " + error.message,
-                html: `
-                    <a href="${app.env.url}/admin/activity/requests/${channelId}">
-                        View Request details & console
-                    </a>
-                    <br/>
-                    ${logsHtml}
-                `
-            });
-        else
-            console.error("Unable to send bug report: email service not loaded.");
+        const bugReport: ServerBug = {
+            // Context
+            hash: hash,
+            date: now,
+            channelType, 
+            channelId,
+            // User
+            user: request?.user?.name,
+            ip: request?.ip,
+            // Error
+            stacktrace: error.stack || error.message,
+            logs: logsHtml
+        }
+
+        await this.sendToTransporters(bugReport);
 
         /*if (app.isLoaded('sql'))
             // Memorize
@@ -134,15 +191,8 @@ export default class BugReporter {
         const now = new Date();
         const hash = uuid();
 
-        // Send notification
-        $.email.send({
-            to: app.identity.author.email,
-            subject: "Bug app: " + report.message,
-            html: report
-        });
+        const bugReport: ApplicationBug = {
 
-        // Memorize
-        $.sql.insert('BugApp', {
             // Context
             hash: hash,
             date: now,
@@ -159,7 +209,36 @@ export default class BugReporter {
             // Error
             message: report.message,
             stacktrace: report.stacktrace,
+        }
+
+        await this.sendToTransporters(bugReport);
+
+        /* // Send notification
+        $.email.send({
+            to: app.identity.author.email,
+            subject: "Bug app: " + report.message,
+            html: report
         });
+
+        // Memorize
+        $.sql.insert('BugApp', );*/
+    }
+
+    private async sendToTransporters( bugReport: Bug, error?: Error ) {
+
+        // Check if a transporter if configurated
+        if (this.transporters.length === 0) {
+            console.warn(LogPrefix, `No transporter configurated to report this error.`);
+            return false;
+        }
+
+        // Send report to trabporters
+        await Promise.all( 
+            this.transporters.map( transport => {
+                console.log(LogPrefix, `Report via transporter ${transport.name} ...`);
+                return transport.send(bugReport, error);
+            }) 
+        );
     }
 
 }

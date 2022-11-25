@@ -14,6 +14,27 @@ import context from '@server/context';
 import BugReporter from "./bugReporter";
 
 /*----------------------------------
+- SERVICE CONFIG
+----------------------------------*/
+
+export type TReportTransport = keyof typeof $
+
+export type ConsoleConfig = {
+    bugReport: TReportTransport[]
+}
+
+declare global {
+    namespace Core {
+        interface EmailTransporters { }
+        namespace Config {
+            interface Services {
+                console: ConsoleConfig
+            }
+        }
+    }
+}
+
+/*----------------------------------
 - TYPES
 ----------------------------------*/
 

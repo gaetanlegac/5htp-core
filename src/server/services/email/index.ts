@@ -7,7 +7,7 @@
 */
 
 // Core
-import app from '../../app';
+import app, { $ } from '@server/app';
 //import templates from './templates';
 const templates = {} as {[template: string]: (data: any) => string}
 import { jsonToHtml } from './utils';
@@ -18,6 +18,7 @@ import greetings from '@common/data/chaines/greetings';
 ----------------------------------*/
 
 export type EmailServiceConfig = {
+    debug: boolean,
     default: {
         transporter: TransporterName,
         from: string
@@ -77,6 +78,7 @@ type TOptions = {
     testing?: boolean
 }
 
+// TODO: to normalize
 export const userMail = (username: string, content: string) => `
     ${greetings(username)}<br/><br/>
 
@@ -91,7 +93,7 @@ export const userMail = (username: string, content: string) => `
     <a href="https://www.linkedin.com/in/ga%C3%ABtanlegac/">Gaëtan Le Gac</a>
 `
 
-const emailConfig = app.config.email;
+const config = app.config.email;
 
 /*----------------------------------
 - FONCTIONS
@@ -105,6 +107,17 @@ export default class Email {
     }
 
     public load() {
+        $.console.bugReport.addTransporter('email', (report, error) => this.send({
+            to: app.identity.author.email,
+            subject: "Server bug: " + error.message,
+            html: `
+                <a href="${app.env.url}/admin/activity/requests/${report.channelId}">
+                    View Request details & console
+                </a>
+                <br/>
+                ${report.logs}
+            `
+        }));
         
     }
 
@@ -117,12 +130,12 @@ export default class Email {
         if (!Array.isArray( emails ))
             emails = [emails];
 
-        console.log(`Preparing to send ${emails.length} emails ...`);
+        config.debug && console.log(`Preparing to send ${emails.length} emails ...`);
 
         const emailsToSend: TCompleteEmail[] = emails.map(email => {
 
             const from = email.from === undefined
-                ? emailConfig.default.from
+                ? config.default.from
                 : email.from;
 
             const to = typeof email.to === 'string'
@@ -163,23 +176,23 @@ export default class Email {
             
         });
 
-        console.info(`Sending ${emailsToSend.length} emails`, emailsToSend[0].subject);
+        const transporterName = options.transporter || app.config.email.default.transporter;
+        if (transporterName === undefined)
+            throw new Error(`Please define at least one mail transporter.`);
+
+        console.info(`Sending ${emailsToSend.length} emails via transporter "${transporterName}"`, emailsToSend[0].subject);
 
         // Pas d'envoi d'email quand local
-        if (app.env.name === 'local' && options.testing !== false) {
+        /*if (app.env.name === 'local' && options.testing !== false) {
             console.log(`Email send canceled: Test mode enabled, or you're in local`, { 
                 'options.testing': options.testing,
                 'app.env.name': app.env.name,
             });
             return;
-        } else if (emailsToSend.length === 0) {
+        } else */if (emailsToSend.length === 0) {
             console.log(`No email to send.`);
             return;
         }
-
-        const transporterName = options.transporter || app.config.email.default.transporter;
-        if (transporterName === undefined)
-            throw new Error(`Please define at least one mail transporter.`);
 
         const Transporter = this.transporters[ transporterName ];
         await Transporter.send(emailsToSend);
