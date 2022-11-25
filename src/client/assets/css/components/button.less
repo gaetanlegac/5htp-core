@@ -194,6 +194,12 @@
         height: auto;
         width: auto;
         padding: 0;
+
+        &, 
+        &:hover {
+            background: none;
+            box-shadow: none;
+        }
     }
 }
 
@@ -211,7 +217,7 @@ ul.row {
         color: var(--cTxtBase);  
         box-shadow: none;
         border: none;
-        width: 100%;
+        //width: 100%;
         background: transparent;
 
         &.selected,
