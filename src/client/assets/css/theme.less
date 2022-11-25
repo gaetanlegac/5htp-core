@@ -1,7 +1,7 @@
 @bgDelta: #111;
 @fgDelta: #999;
 
-.build-theme( 
+.build-theme-bg( 
     @bg, 
     @fg: if( lightness(@bg) >= 80%, @bg - @fgDelta, @bg + @fgDelta),
     @cAccent: @c1,
@@ -16,7 +16,7 @@
 
     // Background
     // TODO: Nettoyer
-    @bg2: @bg - #121212;
+    @bg2: darken(@bg, 8%);
     @bgDark: darken(@bg, 5%);
     @bgDarkPlus: darken(@bg, 10%);
     --cBg: @bg; 
@@ -36,7 +36,7 @@
     --cLine2: @cLine2;
 
     // Text
-    .build-theme-txt(@fg, @bg, @apply);
+    .build-theme-fg(@fg, @bg, @apply);
 
     // Childrens
     & when (@apply = true) {
@@ -51,7 +51,7 @@
     }
 }
 
-.build-theme-txt( @cTxtBase, @bg, @apply: true ) {
+.build-theme-fg( @cTxtBase, @bg: @cBgPage, @apply: true ) {
 
     @isLight: boolean( lightness(@bg) >= 70% );
     
@@ -66,4 +66,6 @@
     --cTxtBase: @cTxtBase;
     --cTxtImportant: @cTxtImportant;
     --cTxtAccent: @cTxtAccent;
+
+    color: var(--cTxtBase);
 }
