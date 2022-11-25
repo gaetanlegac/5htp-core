@@ -2,7 +2,6 @@ h1, .h1,
 h2, 
 h3 {
 
-    font-family: "Rubik";
     font-weight: 600;
     text-align: inherit;
     color: var(--cTxtImportant);
@@ -23,6 +22,11 @@ h3 {
     }
 }
 
+h1,
+h2 {
+    font-family: "Rubik";
+}
+
 // sans input.h1, .h1 seul ne peut pas override le style par défaut des champs
 h1, .h1 {
     font-size: @h1Size;
@@ -37,5 +41,5 @@ h2, .h2 {
 h3, 
 fieldset > legend {
     font-size: @h3Size;
-    line-height: 2em;
+    line-height: 1.5em;
 }
