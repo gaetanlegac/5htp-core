@@ -16,18 +16,19 @@ import Dropdown from '@client/components/dropdown.old';
 
 export type TDonneeInconnue = {[cle: string]: any};
 
-export type Props<TDonnee> = {
-    data: TDonnee[],
-    columns: (donnee: TDonnee, data: TDonnee[], index: number) => TColonne[];
+export type Props<TRow> = {
+    
+    data: TRow[],
+    columns: (row: TRow, rows: TRow[], index: number) => TColumn[];
 
-    setDonnees?: (data: TDonnee[]) => void,
+    setData?: (rows: TRow[]) => void,
     vide?: ComponentChild,
     className?: string,
 
-    actions?: TAction<TDonnee>[]
+    actions?: TAction<TRow>[]
 }
 
-export type TColonne = {
+export type TColumn = {
     label: ComponentChild,
     cell: ComponentChild,
     raw?: number | string | boolean,
@@ -37,33 +38,33 @@ export type TColonne = {
 /*----------------------------------
 - COMPOSANTS
 ----------------------------------*/
-export default function Liste<TDonnee extends TDonneeInconnue>({
-    data, setDonnees, vide ,
+export default function Liste<TRow extends TDonneeInconnue>({
+    data: rows, setData, vide ,
     columns, actions, ...props
-}: Props<TDonnee>) {
+}: Props<TRow>) {
 
-    if (data.length === 0)
+    if (rows.length === 0)
         return (
             <div class="card pd-2 col al-center">
                 <i src="meh-rolling-eyes" class="xl" />
-                Uh ... No data here.
+                Uh ... No rows here.
             </div>
         );
 
     const [selection, setSelection] = React.useState<number[]>([]);
     const [sort, setSort] = React.useState<{ col: number, dir: 1 | -1 } | null>(null);
 
-    const trier = (colonne: TColonne, iColonne: number) => {
+    const trier = (colonne: TColumn, iColonne: number) => {
 
-        if (!setDonnees)
-            throw new Error(`setDonnees dit être renseigné pour pouvoir trier les données.`);
+        if (!setData) 
+            return console.warn(`[ui][table] Please specify a setData function to enable sorting features.`);
 
         const ordre = sort && iColonne === sort.col
             ? -1 * sort.dir as (1 | -1) // Inversement ordre
             : 1;
             
-        setDonnees([
-            ...data.sort((a: TDonnee, b: TDonnee) => {
+        setData([
+            ...rows.sort((a: TRow, b: TRow) => {
 
                 const valA = colonne.valeur(a);
                 const valB = colonne.valeur(b);
@@ -94,7 +95,7 @@ export default function Liste<TDonnee extends TDonneeInconnue>({
     ----------------------------------*/
     let renduColonnes: ComponentChild[] = [];
     
-    const renduLignes = data.map((donnee: TDonnee, iDonnee: number) => (
+    const renduLignes = rows.map((row: TRow, iDonnee: number) => (
         <tr>
             {/*selectionMultiple && (
                 <td>
@@ -113,7 +114,7 @@ export default function Liste<TDonnee extends TDonneeInconnue>({
                 </td>
                     )*/}
 
-            {columns(donnee, data, iDonnee).map((colonne, iColonne) => {
+            {columns(row, rows, iDonnee).map((colonne, iColonne) => {
 
                 const triable = colonne.raw !== undefined;
 
@@ -141,7 +142,7 @@ export default function Liste<TDonnee extends TDonneeInconnue>({
 
             {/*actions !== undefined && (
                 <td>
-                    <Popover menu={{ actions, data: donnee }}>
+                    <Popover menu={{ actions, rows: row }}>
                         <Button taille="s" icone="solid/ellipsis-h" />
                     </Popover>
                 </td>
@@ -168,9 +169,9 @@ export default function Liste<TDonnee extends TDonneeInconnue>({
                                 <Checkbox
                                     nom="toutSelectionner"
                                     label={false}
-                                    valeur={selection.length >= data.length}
+                                    valeur={selection.length >= rows.length}
                                     onChange={(status: boolean) => {
-                                        setSelection(status ? Object.keys(data) : []);
+                                        setSelection(status ? Object.keys(rows) : []);
                                     }}
                                 />
                             </th>
@@ -193,18 +194,18 @@ export default function Liste<TDonnee extends TDonneeInconnue>({
                     <div className="card pdv-05 row inline pos_bottom">
                         <strong>{selection.length} selected items</strong>
 
-                        {actions.map((action: TAction<TDonnee>) => {
+                        {actions.map((action: TAction<TRow>) => {
 
                             if (!action.multi)
                                 return;
 
-                            const donneesSelection = selection.map((index: number) => data[index]);
+                            const donneesSelection = selection.map((index: number) => rows[index]);
 
                             return (
                                 <Button
                                     {...(action.bouton ? (action.multi
-                                        ? action.bouton([donnee], [iDonnee])
-                                        : action.bouton(donnee, iDonnee)
+                                        ? action.bouton([row], [iDonnee])
+                                        : action.bouton(row, iDonnee)
                                     ) : {})}
                                     icone={action.icone}
                                     onClick={() => action.onClick && action.onClick(donneesSelection, selection)}
