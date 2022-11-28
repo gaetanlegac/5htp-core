@@ -32,6 +32,9 @@ type AppBugInfos = {
 }
 
 export type ServerBug = {
+
+    type: 'server',
+
     // Context
     hash: string,
     date: Date, // Timestamp
@@ -42,11 +45,15 @@ export type ServerBug = {
     ip: string | null | undefined,
     
     // Error
+    error: Error,
     stacktrace: string,
-    logs: string
+    logs: string,
 }
 
 export type ApplicationBug = {
+
+    type: 'application',
+
     // Context
     hash: string,
     date: Date,
@@ -146,6 +153,9 @@ export default class BugReporter {
         );
 
         const bugReport: ServerBug = {
+
+            type: 'server',
+
             // Context
             hash: hash,
             date: now,
@@ -155,6 +165,7 @@ export default class BugReporter {
             user: request?.user?.name,
             ip: request?.ip,
             // Error
+            error,
             stacktrace: error.stack || error.message,
             logs: logsHtml
         }
@@ -192,6 +203,8 @@ export default class BugReporter {
         const hash = uuid();
 
         const bugReport: ApplicationBug = {
+
+            type: 'application',
 
             // Context
             hash: hash,

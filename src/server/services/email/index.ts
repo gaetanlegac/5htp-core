@@ -11,7 +11,6 @@ import app, { $ } from '@server/app';
 //import templates from './templates';
 const templates = {} as {[template: string]: (data: any) => string}
 import { jsonToHtml } from './utils';
-import greetings from '@common/data/chaines/greetings';
 
 /*----------------------------------
 - SERVICE CONFIG
@@ -20,10 +19,10 @@ import greetings from '@common/data/chaines/greetings';
 export type EmailServiceConfig = {
     debug: boolean,
     default: {
-        transporter: TransporterName,
+        transporter: string,
         from: string
     },
-    transporters: Core.Config.EmailTransporters
+    transporters: Core.EmailTransporters
 }
 
 declare global {
@@ -67,31 +66,14 @@ export type TCompleteEmail = With<THtmlEmail, {
 - TYPES: OPTIONS
 ----------------------------------*/
 
-type TransporterName = keyof Core.Config.EmailTransporters;
-
 export abstract class Transporter {
     public abstract send( emails: TCompleteEmail[] ): Promise<void>;
 }
 
 type TOptions = {
-    transporter?: TransporterName,
+    transporter?: string,
     testing?: boolean
 }
-
-// TODO: to normalize
-export const userMail = (username: string, content: string) => `
-    ${greetings(username)}<br/><br/>
-
-    ${content}
-
-    <br/><br/>
-
-    If you need any help, send me an email at <a href="mailto:contact@gaetan-legac.fr">contact@gaetan-legac.fr</a>, and I will reply to as soon as I can.
-
-    <br/><br/>
-    Peace,<br/>
-    <a href="https://www.linkedin.com/in/ga%C3%ABtanlegac/">Gaëtan Le Gac</a>
-`
 
 const config = app.config.email;
 
@@ -100,16 +82,16 @@ const config = app.config.email;
 ----------------------------------*/
 export default class Email {
 
-    private transporters = {} as {[name in TransporterName]: Transporter};
-    public register( name: TransporterName, transporter: (new () => Transporter) ) {
+    private transporters = {} as {[name: string]: Transporter};
+    public register( name: string, transporter: (new () => Transporter) ) {
         console.log(`[email] registering email transporter: ${name}`);
         this.transporters[ name ] = new transporter();
     }
 
     public load() {
-        $.console.bugReport.addTransporter('email', (report, error) => this.send({
+        $.console.bugReport.addTransporter('email', (report) => this.send(report.type === 'server' ? {
             to: app.identity.author.email,
-            subject: "Server bug: " + error.message,
+            subject: "Bug on server: " + (report.error.message),
             html: `
                 <a href="${app.env.url}/admin/activity/requests/${report.channelId}">
                     View Request details & console
@@ -117,6 +99,12 @@ export default class Email {
                 <br/>
                 ${report.logs}
             `
+        } : {
+            to: app.identity.author.email,
+            subject: "Bug on application " + (report.action),
+            html: {
+                ...report
+            }
         }));
         
     }
