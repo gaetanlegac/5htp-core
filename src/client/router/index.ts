@@ -63,7 +63,10 @@ class Router extends BaseRouter {
     /*----------------------------------
     - HOOKS
     ----------------------------------*/
-    private hooks: {[hookname in THookName]?: THookCallback[]} = {}
+    private hooks: {
+        [hookname in THookName]?: (THookCallback | null)[]
+    } = {}
+    
     public on( hookName: THookName, callback: THookCallback ) {
 
         debug && console.info(LogPrefix, `Register hook ${hookName}`);
@@ -89,7 +92,8 @@ class Router extends BaseRouter {
         const callbacks = this.hooks[hookName];
         if (callbacks)
             for (const callback of callbacks)
-                callback(request);
+                // callback can be null since we use delete to unregister
+                callback && callback(request);
     }
 
     /*----------------------------------
