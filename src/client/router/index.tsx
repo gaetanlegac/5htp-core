@@ -86,6 +86,8 @@ export type TFrontRenderer<TControllerData extends TFetcherList = {}> = (
     context: ClientContext
 ) => ComponentChild
 
+export type THookCallback = (request: ClientRequest) => void;
+
 // Simple link
 export const Link = ({ to, ...props }: { 
     to: string,
@@ -112,6 +114,7 @@ export const Link = ({ to, ...props }: {
 }
 
 const debug = true;
+const LogPrefix = '[router]'
 
 /*----------------------------------
 - ROUTER
@@ -121,6 +124,28 @@ class Router extends BaseRouter {
     public disableResolver = false;
 
     public routes: (TClientRoute | TUnresolvedRoute)[] = [];
+
+    private hooks: {[hookname: string]: THookCallback[]} = {}
+    public on( hookName: string, callback: THookCallback ) {
+
+        debug && console.info(LogPrefix, `Register hook ${hookName}`);
+
+        let cbIndex: number;
+        if (!( hookName in this.hooks )) {
+            cbIndex = 0;
+            this.hooks[ hookName ] = [callback]
+        } else {
+            cbIndex = this.hooks[ hookName ].length;
+            this.hooks[ hookName ].push(callback);
+        }
+
+        // Listener remover
+        return () => {
+            debug && console.info(LogPrefix, `De-register hook ${hookName} (index ${cbIndex})`);
+            delete this.hooks[ hookName ][ cbIndex ];
+        }
+
+    }
 
     public set(data: TObjetDonnees) {
         throw new Error(`router.set was not attached to the router component.`);
@@ -170,6 +195,9 @@ class Router extends BaseRouter {
 
     public async resolve( request: ClientRequest, context: ClientContext ): Promise<PageResponse | undefined | null> {
         debug && console.log('Resolving request', request.path, Object.keys(request.data));
+
+        for (const callbacks of this.hooks.onLocationChange)
+            callbacks(request);
 
         for (let iRoute = 0; iRoute < this.routes.length; iRoute++) {
 
