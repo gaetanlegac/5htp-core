@@ -29,7 +29,7 @@ export type Props = {
     cover?: {
         color?: string,
         title?: string,
-        logo?: string
+        logo?: ComponentChild
     },
     metas: TMeta[],
     class?: string,
