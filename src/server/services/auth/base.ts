@@ -10,7 +10,7 @@ import { OAuth2Client, LoginTicket } from 'google-auth-library';
 import { Forbidden } from '@common/errors';
 
 // App Libs
-import { IP } from '@models';
+import { IP } from '@server/models';
 import app, { $ } from '@server/app';
 
 // Serbices
@@ -21,6 +21,8 @@ import '@server/services/database';
 ----------------------------------*/
 
 import type ServerRequest from '@server/services/router/request';
+
+export type TUserRole = typeof UserRoles[number]
 
 type AuthResponse = {
     token: string,
@@ -35,6 +37,12 @@ type AuthResponse = {
 const config = app.config.auth;
 
 const LogPrefix = '[auth]'
+
+export const UserRoles = ['USER', 'ADMIN', 'TEST', 'DEV'] as const
+
+/*----------------------------------
+- SERVICE CONVIG
+----------------------------------*/
 
 export type AuthConfig = {
     debug: boolean,

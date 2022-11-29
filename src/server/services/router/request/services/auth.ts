@@ -10,13 +10,11 @@ import jwt from 'jsonwebtoken';
 // Cre
 import app, { $ } from '@server/app';
 import { InputError, AuthRequired, Forbidden } from '@common/errors';
-import { TUserRole } from '@common/models';
+import type { TUserRole } from '@server/services/auth/base';
 
 /*----------------------------------
 - TYPES
 ----------------------------------*/
-
-import { User } from '@models';
 
 import type ServerRequest from '@server/services/router/request'
 

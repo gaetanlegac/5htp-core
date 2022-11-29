@@ -14,7 +14,6 @@ import router from '@client/router';
 import { location } from '@client/router/request/history';
 import coreRoutes from '@client/pages/**/*.tsx';
 import appRoutes from '@/client/pages/**/*.tsx';
-import { GuestUser } from '@common/models';
 
 import ClientResponse from './router/response';
 import ClientRequest from './router/request';
@@ -99,7 +98,7 @@ try {
             if (!route)
                 throw new Error(`Route ${ssrResponse.page.id} was not found in ssr routes list.`);
 
-            context.user = request.user = ssrResponse.user || { ...GuestUser };
+            context.user = request.user = ssrResponse.user || null;
 
             request.data = ssrResponse.request.data;
 

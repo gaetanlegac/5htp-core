@@ -19,7 +19,6 @@ import SocketClient from './socket';
 /*----------------------------------
 - TYPES
 ----------------------------------*/
-import { User, GuestUser } from '@common/models';
 
 import type { Layout } from '@common/router';
 
@@ -63,7 +62,7 @@ export const useState = <TData extends TObjetDonnees>(initial: TData): [
 export class ClientContext {
 
     public context = this; // To access to the full nstance within a destructuration
-    public user: User | typeof GuestUser;
+    public user: User | null;
 
     public id = Date.now();
     public bridges: { [name: string]: Function } = {};
@@ -109,7 +108,7 @@ export class ClientContext {
     ) {
        
         this.request = request;
-        this.user = this.request.user || { ...GuestUser };
+        this.user = this.request.user || null;
 
     }
 
@@ -120,7 +119,7 @@ export class ClientContext {
         // Actions on the native app 
         reloadDaemon: () => { },
         reloadGui: () => {
-            this.request.response?.redirect('/');
+            this.page?.go('/');
         },
         optimize: () => {},
 
