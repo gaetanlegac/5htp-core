@@ -4,148 +4,101 @@
 
 // Npm
 import React from 'react';
-import type { ComponentChild } from 'preact';
-import type { Location } from 'history';
 
 // Core: libs
 import ClientRequest from './request';
 import ClientResponse from './response';
-import { history } from './request/history';
 
 // Core: types
-import BaseRouter, { TBaseRoute, TRouteOptions, defaultOptions, } from '@common/router'
+import BaseRouter, { defaultOptions, } from '@common/router'
 import { PageResponse } from '@common/router/response';
-import { TFetcher, TFetcherList } from '@common/router/request';
-import type { TSsrData, default as ServerResponse } from '@server/services/router/response';
+import type { TSsrData } from '@server/services/router/response';
 import type { ClientContext } from '@client/context';
 
 // Type xports
 export type { default as ClientResponse } from "./response";
+export { Link } from './Link';
+import type { 
+    TClientRoute,
+    TUnresolvedRoute,
+    TSsrUnresolvedRoute,
+    TRoutesLoaders,
+    TRouteCallback,
+    TFetchedRoute,
+    TRegisterPageArgs
+} from './route';
+
+// Temporary
+// TODO: Import these types directly from router/routes
+export type { 
+    TClientRoute,
+    TUnresolvedRoute,
+    TSsrUnresolvedRoute,
+    TRoutesLoaders,
+    TRouteCallback,
+    TFetchedRoute,
+    TRegisterPageArgs
+} from './route';
 
 /*----------------------------------
-- TYPES: PARTIAL ROUTES
+- CONFIG
 ----------------------------------*/
-
-export type TSsrUnresolvedRoute = Pick<TClientRoute, 'type' | 'keys'> & {
-    regex: string,
-    chunk: string,
-}
-
-export type TUnresolvedRoute = Pick<TClientRoute, 'type' | 'keys'> & {
-    regex: RegExp,
-    chunk: string,
-    load: TRouteLoader,
-}
-
-type TFetchedRoute = Pick<TClientRoute, 'path' | 'options' | 'controller' | 'renderer' | 'method'>
-
-/*----------------------------------
-- TYPES: REGISTER
-----------------------------------*/
-
-type TRouteLoader = () => Promise<{ default: TFetchedRoute }>;
-
-export type TRoutesLoaders = {
-    [chunkId: string]: /* Preloaded via require() */TFetchedRoute | /* Loader via import() */TRouteLoader/* | undefined*/
-}
-
-type TRouteCallback = (route?: TClientRoute) => void;
-
-export type TRegisterPageArgs<TControllerData extends TFetcherList = {}> = [
-    path: string,
-    options: Partial<TRouteOptions>,
-    controller: TFrontController<TControllerData> | null,
-    renderer: TFrontRenderer<TControllerData>
-];
-
-/*----------------------------------
-- TYPES: COMPLETE ROUTES
-----------------------------------*/
-
-export type TClientRoute = TBaseRoute & {
-    type: 'PAGE',
-    method: 'GET',
-    controller: TFrontController | null,
-    renderer: TFrontRenderer
-}
-
-// https://stackoverflow.com/questions/44851268/typescript-how-to-extract-the-generic-parameter-from-a-type
-type TypeWithGeneric<T> = TFetcher<T>
-type extractGeneric<Type> = Type extends TypeWithGeneric<infer X> ? X : never
-
-export type TFrontController<TControllerData extends TFetcherList = {}> = 
-    (urlParams: TObjetDonnees, context: ClientContext) => TControllerData
-
-export type TFrontRenderer<TControllerData extends TFetcherList = {}> = (
-    data: {
-        [Property in keyof TControllerData]: undefined | (extractGeneric<TControllerData[Property]> extends ((...args: any[]) => any) 
-            ? ThenArg<ReturnType< extractGeneric<TControllerData[Property]> >>
-            : extractGeneric<TControllerData[Property]>
-        )
-    },
-    context: ClientContext
-) => ComponentChild
-
-export type THookCallback = (request: ClientRequest) => void;
-
-// Simple link
-export const Link = ({ to, ...props }: { 
-    to: string,
-    children?: ComponentChild,
-    class?: string,
-    className?: string
-}) => {
-
-    // External = open in new tab by default
-    if (to[0] !== '/' || to.startsWith('//'))
-        props.target = '_blank';
-    // Otherwise, propagate to the router
-    else 
-        props.onClick = (e) => {
-            history?.push(to);
-            e.preventDefault();
-            return false
-        }
-
-    return (
-        <a {...props} href={to} />
-    )
-
-}
 
 const debug = true;
 const LogPrefix = '[router]'
+
+/*----------------------------------
+- TYPES
+----------------------------------*/
+
+export type THookCallback = (request: ClientRequest) => void;
+
+type THookName = 'locationChange'
 
 /*----------------------------------
 - ROUTER
 ----------------------------------*/
 class Router extends BaseRouter {
 
-    public disableResolver = false;
-
-    public routes: (TClientRoute | TUnresolvedRoute)[] = [];
-
-    private hooks: {[hookname: string]: THookCallback[]} = {}
-    public on( hookName: string, callback: THookCallback ) {
+    /*----------------------------------
+    - HOOKS
+    ----------------------------------*/
+    private hooks: {[hookname in THookName]?: THookCallback[]} = {}
+    public on( hookName: THookName, callback: THookCallback ) {
 
         debug && console.info(LogPrefix, `Register hook ${hookName}`);
 
         let cbIndex: number;
-        if (!( hookName in this.hooks )) {
+        let callbacks = this.hooks[ hookName ];
+        if (!callbacks) {
             cbIndex = 0;
-            this.hooks[ hookName ] = [callback]
+            callbacks = this.hooks[ hookName ] = [callback]
         } else {
-            cbIndex = this.hooks[ hookName ].length;
-            this.hooks[ hookName ].push(callback);
+            cbIndex = callbacks.length;
+            callbacks.push(callback);
         }
 
         // Listener remover
         return () => {
             debug && console.info(LogPrefix, `De-register hook ${hookName} (index ${cbIndex})`);
-            delete this.hooks[ hookName ][ cbIndex ];
+            delete (callbacks as THookCallback[])[ cbIndex ];
         }
 
     }
+    private runHook( hookName: THookName, request: ClientRequest ) {
+        const callbacks = this.hooks[hookName];
+        if (callbacks)
+            for (const callback of callbacks)
+                callback(request);
+    }
+
+    /*----------------------------------
+    - ROUTES MANAGEMENT
+    ----------------------------------*/
+
+    public disableResolver = false;
+
+    public routes: (TClientRoute | TUnresolvedRoute)[] = [];
 
     public set(data: TObjetDonnees) {
         throw new Error(`router.set was not attached to the router component.`);
@@ -196,8 +149,7 @@ class Router extends BaseRouter {
     public async resolve( request: ClientRequest, context: ClientContext ): Promise<PageResponse | undefined | null> {
         debug && console.log('Resolving request', request.path, Object.keys(request.data));
 
-        for (const callbacks of this.hooks.onLocationChange)
-            callbacks(request);
+        this.runHook('locationChange', request);
 
         for (let iRoute = 0; iRoute < this.routes.length; iRoute++) {
 
