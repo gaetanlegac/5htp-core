@@ -1,3 +1,10 @@
+.white-card() {
+    background: white;
+    box-shadow: 0 3px 2px fade(#000, 10%);
+    border: solid 1px fade(#000, 10%);
+    border-radius: @radius;
+}
+
 .card,
 .input.text,
 .btn,
@@ -7,10 +14,7 @@ i.solid {
     .build-theme-bg( #fff, #8E8E8E);
 
     &:not(.bg) {
-        background: white;
-        box-shadow: 0 3px 2px fade(#000, 10%);
-        border: solid 1px fade(#000, 10%);
-        border-radius: @radius;
+        .white-card;
     }
 
     .bg & {
