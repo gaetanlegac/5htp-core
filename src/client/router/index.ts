@@ -37,7 +37,8 @@ export type {
     TRoutesLoaders,
     TRouteCallback,
     TFetchedRoute,
-    TRegisterPageArgs
+    TRegisterPageArgs,
+    TFrontController
 } from './route';
 
 /*----------------------------------
@@ -66,7 +67,7 @@ class Router extends BaseRouter {
     private hooks: {
         [hookname in THookName]?: (THookCallback | null)[]
     } = {}
-    
+
     public on( hookName: THookName, callback: THookCallback ) {
 
         debug && console.info(LogPrefix, `Register hook ${hookName}`);

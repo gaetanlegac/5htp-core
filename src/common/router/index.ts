@@ -13,11 +13,13 @@ import type {
     TFrontRenderer 
 } from '@client/router';
 
-import type { TApiServerRoute } from '@server/services/router';
+import type { ClientContext } from '@client/context';
 
 import type { TSchema } from '@common/data/input/validate';
 
-import { TUserRole } from '@common/models';
+import type { TApiServerRoute } from '@server/services/router';
+
+import type { TUserRole } from '@server/services/auth/base';
 
 /*----------------------------------
 - TYPES: layouts
@@ -25,7 +27,7 @@ import { TUserRole } from '@common/models';
 
 import layouts from '@/client/pages/**/_layout/index.tsx';
 
-type LayoutComponent = ({ context: ClientContext }) => ComponentChild;
+type LayoutComponent = (attributes: { context: ClientContext }) => ComponentChild;
 export type Layout = { path: string, Component: LayoutComponent }
 const getLayout = (routePath: string | undefined): Layout | undefined => {
     
@@ -84,7 +86,7 @@ export type TRouteOptions = {
 
 }
 
-export const defaultOptions: TRouteOptions = {
+export const defaultOptions = {
     priority: 0,
 }
 
