@@ -1,7 +1,7 @@
 {
 	"name": "5htp-core",
 	"description": "5-HTP, scientifically called 5-Hydroxytryptophan, is the precursor of happiness neurotransmitter.",
-	"version": "0.1.1-6",
+	"version": "0.1.2",
 	"author": "Gaetan Le Gac (https://github.com/gaetanlegac)",
 	"repository": "git://github.com/gaetanlegac/5htp-core.git",
 	"license": "MIT",
