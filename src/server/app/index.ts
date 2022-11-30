@@ -74,7 +74,7 @@ export class App {
         get: (container, serviceId, receiver) => {
 
             if (!( serviceId in container ) && typeof serviceId === 'string')
-                throw new Error(`Service not loaded: ${serviceId}`);
+                throw new Error(`The following service is required as a dependancy: ${serviceId}`);
 
             return container[serviceId];
         }
