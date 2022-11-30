@@ -8,6 +8,20 @@ img.img,
 .bg.img {
     .build-theme-bg(#000, #fff);
     text-shadow: 0 0 10px fade(#000, 20%);
+
+    --cTxtDiscret: fade(#fff, 40%)
+    --cTxtDesc: fade(#fff, 60%);
+    --cTxtBase: fade(#fff, 80%);
+    --cTxtImportant: fade(#fff, 100%);
+    --cTxtAccent: fade(#fff, 20%);
+
+    &.light {
+        --cTxtDiscret: fade(#000, 40%)
+        --cTxtDesc: fade(#000, 60%);
+        --cTxtBase: fade(#000, 80%);
+        --cTxtImportant: fade(#000, 100%);
+        --cTxtAccent: fade(#000, 20%);
+    }
 }
 
 img {
