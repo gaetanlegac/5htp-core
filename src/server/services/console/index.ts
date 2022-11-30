@@ -19,8 +19,15 @@ import BugReporter from "./bugReporter";
 
 export type TReportTransport = keyof typeof $
 
+type TLogProfile = 'silly' | 'info' | 'warn' | 'error'
+
 export type ConsoleConfig = {
-  
+    dev: {
+        level: TLogProfile,
+    },
+    prod: {
+        level: TLogProfile
+    }
 }
 
 declare global {
@@ -120,6 +127,8 @@ export class Console {
    ----------------------------------*/
     public load() {
 
+        const envConfig = app.config.console[ app.env.profile ];
+
         this.logger = new Logger({
             overwriteConsole: true,
             //type: app.env.profile === 'dev' ? 'pretty' : 'hidden',
@@ -138,7 +147,7 @@ export class Console {
             warn: this.log.bind(this),
             error: this.log.bind(this),
             fatal: this.log.bind(this),
-        }, app.env.level);
+        }, envConfig.level);
 
         setInterval(() => this.clean(), 60000);
 

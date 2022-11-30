@@ -11,9 +11,6 @@ import path from 'path';
 import cors from 'cors';
 //var serveStatic = require('serve-static')
 
-// Npm: Autres
-import fs from 'fs-extra';
-
 // Middlewares (npm)
 import morgan from 'morgan';
 import hpp from 'hpp'; // Protection contre la pollution des reuqtees http
@@ -38,13 +35,18 @@ import { MiddlewareFormData } from './multipart';
 ----------------------------------*/
 
 export type HttpServiceConfig = {
-    port: number
-    ssl: boolean,
 
+    // Access
+    domain: string,
+    port: number,
+    ssl: number,
+
+    // Limitations / Load restriction
     upload: {
         maxSize: string // Expression package bytes
     },
 
+    // Protections against bots
     security: {
         recaptcha: {
             prv: string,
@@ -75,35 +77,19 @@ export default class HttpServer {
     public router: Router;
 
     public config: HttpServiceConfig;
-    public url: string;
+    public publicUrl: string;
 
     public constructor() {
 
         // Init
         this.config = app.config.http;
-        this.url = (this.config.ssl ? 'https' : 'http') + '://' + app.env.domain;
-        this.express = express();
+        this.publicUrl = app.env.name === 'local'
+            ? 'http://localhost:' + this.config.port
+            : ((this.config.ssl ? 'https' : 'http') + '://' + this.config.domain);
 
         // Configure HTTP server
-        if (!this.config.ssl) {
-
-            this.http = http.createServer(this.express);
-
-        } /*else if ('ssh' in app.env) {
-
-            const ssh = app.env.ssh;
-
-            console.log("Création du serveur https pour le socket:", '/home/' + ssh.login + '/ssl.*');
-            this.http = https.createServer({
-                key: fs.readFileSync('/home/' + ssh.login + '/ssl.key'),
-                cert: fs.readFileSync('/home/' + ssh.login + '/ssl.cert'),
-                ca: fs.readFileSync('/home/' + ssh.login + '/ssl.ca'),
-                requestCert: true,
-                rejectUnauthorized: false
-            }, this.express);
-            
-        }*/ else
-            throw new Error(`SSL was enabled, but no ssh config was specified in app.env (required to load ssl certificate files)`);
+        this.express = express();
+        this.http = http.createServer(this.express);
 
         // Start HTTP Server
         this.router = app.services.router;
@@ -248,7 +234,7 @@ export default class HttpServer {
         // Impossible donc de créer un serveur http ici, on le fera dans start.js
         console.info("Lancement du serveur web");
         this.http.listen(this.config.port, () => {
-            console.info(`Serveur web démarré sur https://${app.env.domain}:${this.config.port}/`);
+            console.info(`Serveur web démarré sur ${this.publicUrl}`);
         });
 
     }

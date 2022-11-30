@@ -89,15 +89,21 @@ export default abstract class UserAuthBase {
     public abstract beforeSignup(user: User): Promise< void >;
     public abstract afterSignup(user: User): Promise<{ redirect: string }>;
     
-    private googleClient = app.config.auth.google
-        ? new OAuth2Client(
-            app.config.auth.google.web.clientId, // Google Client ID
-            app.config.auth.google.web.secret, // Private key
-            "https://" + app.env.domain + "/auth/google/response" // Redirect url
-        )
-        : undefined;
+    private googleClient: OAuth2Client | undefined;
 
     public async load() {
+
+        // Google auth client
+        if (app.config.auth.google) {
+
+            const httpConfig = app.services.http.publicUrl;
+
+            this.googleClient = new OAuth2Client(
+                app.config.auth.google.web.clientId, // Google Client ID
+                app.config.auth.google.web.secret, // Private key
+                httpConfig + "/auth/google/response" // Redirect url
+            );
+        }
 
     }
 
@@ -145,7 +151,8 @@ export default abstract class UserAuthBase {
         request: ServerRequest,
     ): Promise<AuthResponse> {
 
-        if (!this.googleClient)
+        const googleConfig = app.config.auth.google;
+        if (!this.googleClient || !googleConfig)
             throw new Forbidden(`Authentication method disabled.`);
 
         if (codeOrToken === undefined)
@@ -156,15 +163,15 @@ export default abstract class UserAuthBase {
             return this.GoogleResponse('token', r.tokens.id_token, request);
         }
 
-        config.debug && console.log(LogPrefix, "Auth via google", app.config.auth.google);
+        config.debug && console.log(LogPrefix, "Auth via google", googleConfig);
 
         let ticket: LoginTicket;
         try {
             ticket = await this.googleClient.verifyIdToken({
                 idToken: codeOrToken,
                 audience: [
-                    app.config.auth.google.web.clientId,
-                    app.config.auth.google.android.clientId,
+                    googleConfig.web.clientId,
+                    googleConfig.android.clientId,
                 ]
             });
         } catch (error) {

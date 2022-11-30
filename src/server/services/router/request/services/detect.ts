@@ -80,6 +80,8 @@ export default class ProtectService {
 
         return conflict;*/
 
+        return false;
+
     }
 
     public async captcha(token?: string) {

@@ -98,7 +98,7 @@ export default class Email {
             to: config.bugReport.to,
             subject: "Bug on server: " + (report.error.message),
             html: `
-                <a href="${app.env.url}/admin/activity/requests/${report.channelId}">
+                <a href="${app.services.http.publicUrl}/admin/activity/requests/${report.channelId}">
                     View Request details & console
                 </a>
                 <br/>

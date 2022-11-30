@@ -34,7 +34,7 @@ export default ({ page, children: html, request, ssrData }: {
 
     const routesForClient = JSON.stringify( services.router.ssrRoutes );
 
-    const fullUrl = services.http.url + request.path;
+    const fullUrl = services.http.publicUrl + request.path;
 
     let attrsBody = {
         className: [...page.bodyClass].join(' '),

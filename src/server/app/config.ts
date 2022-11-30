@@ -30,14 +30,8 @@ declare global {
 
 export type TEnvName = TEnvConfig["name"];
 export type TEnvConfig = {
-
     name: 'local' | 'server',
     profile: 'dev' | 'prod',
-    level: 'silly' | 'info' | 'warn' | 'error',
-
-    localIP: string,
-    domain: string,
-    url: string,
 }
 
 type AppIdentityConfig = {
@@ -93,20 +87,10 @@ export default class ConfigParser {
         console.log("Using environment:", process.env.NODE_ENV);
         return process.env.NODE_ENV === 'development' ? {
             name: 'local',
-            profile: 'dev',
-            level: 'silly',
-        
-            localIP: '86.76.176.80',
-            domain: 'localhost:3010',
-            url: 'http://localhost:3010',
+            profile: 'dev'
         } : {
             name: 'server',
             profile: 'prod',
-            level: 'silly',
-        
-            localIP: '86.76.176.80',
-            domain: 'megacharger.io',
-            url: 'https://megacharger.io',
         }
     }
 

@@ -96,8 +96,6 @@ export default class ServerRequest extends BaseRequest {
         this.cookies = res.req.cookies;
 
         this.ip = res.req.ip;
-        if (this.ip === '::1' && app.env.localIP)
-            this.ip = app.env.localIP;
 
         this.data = data || {};
 
