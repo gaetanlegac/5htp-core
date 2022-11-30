@@ -20,7 +20,7 @@ import BugReporter from "./bugReporter";
 export type TReportTransport = keyof typeof $
 
 export type ConsoleConfig = {
-    bugReport: TReportTransport[]
+  
 }
 
 declare global {

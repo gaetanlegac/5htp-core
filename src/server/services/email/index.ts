@@ -22,7 +22,11 @@ export type EmailServiceConfig = {
         transporter: string,
         from: string
     },
-    transporters: Core.EmailTransporters
+    transporters: Core.EmailTransporters,
+    bugReport: {
+        from: string,
+        to: string
+    }
 }
 
 declare global {
@@ -90,7 +94,8 @@ export default class Email {
 
     public load() {
         $.console.bugReport.addTransporter('email', (report) => this.send(report.type === 'server' ? {
-            to: app.identity.author.email,
+            from: config.bugReport.from,
+            to: config.bugReport.to,
             subject: "Bug on server: " + (report.error.message),
             html: `
                 <a href="${app.env.url}/admin/activity/requests/${report.channelId}">
@@ -100,7 +105,8 @@ export default class Email {
                 ${report.logs}
             `
         } : {
-            to: app.identity.author.email,
+            from: config.bugReport.from,
+            to: config.bugReport.to,
             subject: "Bug on application " + (report.action),
             html: {
                 ...report
