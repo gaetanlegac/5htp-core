@@ -245,6 +245,12 @@ export default class BugReporter {
             return false;
         }
 
+        // Don't send if we're in local (avoid to use credits: ex: email, sms)
+        if (app.env.name === 'local'){
+            console.warn(LogPrefix, `Error report sending aborted since we're local.`);
+            return false;
+        }
+
         // Send report to trabporters
         await Promise.all( 
             this.transporters.map( transport => {
