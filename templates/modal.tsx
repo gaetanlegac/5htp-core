@@ -8,7 +8,7 @@
 import React from 'react';
 
 // Cre libs
-import useContext from '@client/context';
+import useContext from '@/client/context';
 
 // Core components
 import Card, { Props as CardProps } from '@client/components/Dialog/card';

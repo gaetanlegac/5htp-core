@@ -7,11 +7,10 @@ import React from 'react';
 import { ComponentChild } from 'preact';
 
 // Libs
-import useContext, { ClientContext } from '@client/context';
-import { ClientResponse } from '@client/router';
-import { initStateAsync, execFetchersState } from '@client/hooks/useState/fetchers';
+import useContext from '@/client/context';
 
 // Métier
+import type Application from '../../app';
 import Card, { Props as CardInfos } from './card';
 import Button from '../button';
 
@@ -43,11 +42,34 @@ export type TDialogControls = {
     then: (cb: TOnCloseCallback<any>) => any
 }
 
+type DialogActions = {
+
+    setToasts: ( setter: (old: ComponentChild[]) => ComponentChild[]) => void,
+
+    show: (
+        // On utilise une fonction pour pouvoir accéder aux fonctions (close, ...) lors de la déclaration des infos de la toast
+        Content: ComposantToast | Promise<{ default: ComposantToast }> | TOptsToast,
+        paramsInit?: TParams
+    ) => TDialogControls,
+
+    confirm: (title: string, content: string | ComponentChild, defaultBtn: 'Yes'|'No') => TDialogControls,
+
+    loading: (title: string) => TDialogControls,
+
+    info: (...[title, content, boutons, options]: TToastShortcutArgs) => TDialogControls,
+
+    success: (...[title, content, boutons, options]: TToastShortcutArgs) => TDialogControls,
+
+    warning: (...[title, content, boutons, options]: TToastShortcutArgs) => TDialogControls,
+
+    error: (...[title, content, boutons, options]: TToastShortcutArgs) => TDialogControls,
+}
+
 /*----------------------------------
 - SERVICE CONTEXTE
 ----------------------------------*/
 let idA: number = 0;
-export const createDialog = (ctx: ClientContext, isToast: boolean) => {
+export const createDialog = (app: Application, isToast: boolean): DialogActions => {
 
     const show = <TReturnType extends any = true>(
         // On utilise une fonction pour pouvoir accéder aux fonctions (close, ...) lors de la déclaration des infos de la toast
@@ -60,7 +82,7 @@ export const createDialog = (ctx: ClientContext, isToast: boolean) => {
 
         const close = (retour: TReturnType) => {
 
-            ctx.bridges.setToasts(q => q.filter(m => m.id !== id))
+            instance.setToasts(q => q.filter(m => m.id !== id))
 
             if (onClose !== undefined)
                 onClose(retour);
@@ -105,7 +127,7 @@ export const createDialog = (ctx: ClientContext, isToast: boolean) => {
             // Chargeur de données
             /*if (('data' in ComposantCharge) && typeof ComposantCharge.data === 'function') {
      
-                propsRendu.data = await ComposantCharge.data(ctx, paramsInit);
+                propsRendu.data = await ComposantCharge.data(app, paramsInit);
      
                 const { fetchersStateA } = initStateAsync(propsRendu.data, {}, false);
      
@@ -125,7 +147,7 @@ export const createDialog = (ctx: ClientContext, isToast: boolean) => {
 
             render["id"] = id;
 
-            ctx.bridges.setToasts(q => [...q, render]);
+            instance.setToasts(q => [...q, render]);
         });
 
         return {
@@ -134,8 +156,11 @@ export const createDialog = (ctx: ClientContext, isToast: boolean) => {
         }
     };
 
-    return {
+    const instance: DialogActions = {
+
         show: show,
+
+        setToasts: undefined as unknown as DialogActions["setToasts"],
 
         confirm: (title: string, content: string | ComponentChild, defaultBtn: 'Yes'|'No' = 'No') => show<boolean>(({ close }) => (
             <div class="col">
@@ -156,7 +181,7 @@ export const createDialog = (ctx: ClientContext, isToast: boolean) => {
             </div>
         )),
 
-        loading: (title: string) => ctx.loadIndicator = show({
+        loading: (title: string) => app.loadIndicator = show({
             title: title,
             type: 'loading'
         }),
@@ -193,6 +218,8 @@ export const createDialog = (ctx: ClientContext, isToast: boolean) => {
             ...options
         }),
     }
+
+    return instance;
 }
 
 /*----------------------------------
@@ -201,12 +228,12 @@ export const createDialog = (ctx: ClientContext, isToast: boolean) => {
 import './index.less';
 export default () => {
 
-    const ctx = useContext();
+    const app = useContext();
 
     const [rendered, setRendered] = React.useState<ComponentChild[]>([]);
 
-    ctx.bridges.setToasts = setRendered;
-    //ctx.register({}, { setToasts: setRendered });
+    if (app.side === 'client')
+        app.modal.setToasts = app.toast.setToasts = setRendered;
 
     React.useEffect(() => {
 

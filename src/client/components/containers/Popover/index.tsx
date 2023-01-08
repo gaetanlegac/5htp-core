@@ -15,7 +15,7 @@ import Bouton, { Props as PropsBouton } from '@client/components/button';
 // Libs
 import getPosition, { TSide } from './getPosition';
 import { blurable, deepContains } from '@client/utils/dom';
-import useContexte from '@client/context';
+import useContexte from '@/client/context';
 
 /*----------------------------------
 - TYPES

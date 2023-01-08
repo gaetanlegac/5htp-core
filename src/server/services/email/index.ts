@@ -7,39 +7,38 @@
 */
 
 // Core
-import app, { $ } from '@server/app';
-//import templates from './templates';
-const templates = {} as {[template: string]: (data: any) => string}
+import Application, { Service } from '@server/app';
 import { jsonToHtml } from './utils';
+
+const templates = {} as {[template: string]: (data: any) => string}
 
 /*----------------------------------
 - SERVICE CONFIG
 ----------------------------------*/
 
-export type EmailServiceConfig = {
+export type Config = {
     debug: boolean,
     default: {
         transporter: string,
         from: string
     },
-    transporters: Core.EmailTransporters,
+    transporters: Config.EmailTransporters,
     bugReport: {
         from: string,
         to: string
     }
 }
 
+export type Hooks = {
+
+}
+
 declare global {
-    namespace Core {
+    namespace Config {
         interface EmailTransporters { }
-        namespace Config {
-            interface Services {
-                email: EmailServiceConfig
-            }
-        }
     }
 }
-    
+
 /*----------------------------------
 - TYPES: EMAILS
 ----------------------------------*/
@@ -79,40 +78,23 @@ type TOptions = {
     testing?: boolean
 }
 
-const config = app.config.email;
-
 /*----------------------------------
 - FONCTIONS
 ----------------------------------*/
-export default class Email {
+export default class Email extends Service<Config, Hooks, Application> {
 
-    private transporters = {} as {[name: string]: Transporter};
-    public register( name: string, transporter: (new () => Transporter) ) {
-        console.log(`[email] registering email transporter: ${name}`);
-        this.transporters[ name ] = new transporter();
+    public async register() {
+
     }
 
-    public load() {
-        $.console.bugReport.addTransporter('email', (report) => this.send(report.type === 'server' ? {
-            from: config.bugReport.from,
-            to: config.bugReport.to,
-            subject: "Bug on server: " + (report.error.message),
-            html: `
-                <a href="${app.services.http.publicUrl}/admin/activity/requests/${report.channelId}">
-                    View Request details & console
-                </a>
-                <br/>
-                ${report.logs}
-            `
-        } : {
-            from: config.bugReport.from,
-            to: config.bugReport.to,
-            subject: "Bug on application " + (report.action),
-            html: {
-                ...report
-            }
-        }));
+    public async start() {
         
+    }
+
+    private transporters = {} as {[name: string]: Transporter};
+    public addTransporter( name: string, transporter: (new () => Transporter) ) {
+        console.log(`[email] registering email transporter: ${name}`);
+        this.transporters[ name ] = new transporter();
     }
 
     public async send(
@@ -124,12 +106,12 @@ export default class Email {
         if (!Array.isArray( emails ))
             emails = [emails];
 
-        config.debug && console.log(`Preparing to send ${emails.length} emails ...`);
+        this.config.debug && console.log(`Preparing to send ${emails.length} emails ...`);
 
         const emailsToSend: TCompleteEmail[] = emails.map(email => {
 
             const from = email.from === undefined
-                ? config.default.from
+                ? this.config.default.from
                 : email.from;
 
             const to = typeof email.to === 'string'
@@ -170,7 +152,7 @@ export default class Email {
             
         });
 
-        const transporterName = options.transporter || app.config.email.default.transporter;
+        const transporterName = options.transporter || this.config.default.transporter;
         if (transporterName === undefined)
             throw new Error(`Please define at least one mail transporter.`);
 
@@ -191,17 +173,5 @@ export default class Email {
         const Transporter = this.transporters[ transporterName ];
         await Transporter.send(emailsToSend);
 
-    }
-}
-
-/*----------------------------------
-- REGISTER SERVICE
-----------------------------------*/
-app.register('email', Email);
-declare global {
-    namespace Core {
-        interface Services {
-            email: Email;
-        }
     }
 }

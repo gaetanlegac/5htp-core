@@ -9,7 +9,7 @@ import React from 'react';
 
 // Core
 import route from '@router';
-import { useState } from '@client/context';
+import { useState } from '@/client/context';
 
 // Core components
 import Button from '@client/components/button';

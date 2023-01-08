@@ -118,3 +118,28 @@ export const chemin = {
         
     }
 }
+
+export const callableInstance = <TInstance extends object, TCallableName extends keyof TInstance>(
+    instance: TInstance, 
+    funcName: TCallableName
+): TInstance[TCallableName] & TInstance => {
+
+    const callableFunc = instance[funcName];
+    if (typeof callableFunc !== 'function')
+        throw new Error(`instance[funcName] isn't callable.`);
+
+    const callable = callableFunc.bind(instance);
+
+    const methods = [
+        ...Object.getOwnPropertyNames( Object.getPrototypeOf( instance )),
+        ...Object.getOwnPropertyNames( instance )
+    ];
+
+    for (const method of methods)
+        if (method !== 'constructor')
+            callable[ method ] = typeof instance[ method ] === 'function'
+                ? instance[ method ].bind( instance )
+                : instance[ method ];
+
+    return callable as TInstance[TCallableName] & TInstance;
+}

@@ -7,8 +7,11 @@ import fs from 'fs-extra';
 import type mysql from 'mysql2/promise';
 
 // Core
-import { mysqlToJs } from './datatypes';
-import app from '@server/app';
+import Application from '@server/app';
+
+// Database
+import type DatabaseConnection from './connection';
+import { mysqlToJs, TMySQLTypeName, TJsTypeName, js as jsTypes } from './datatypes';
 
 /*----------------------------------
 - TYPES: DATABASE
@@ -25,6 +28,7 @@ type TDatabaseColumn = {
     type: string,
     cle: string,
     extra: string,
+    comment: string | null,
 
     assoTable: string,
     assoCol: string,
@@ -42,195 +46,302 @@ export type TDatabasesList = {
 
 export type TMetasTable = {
 
+    // Table
+    database: string,
+    chemin: string, // database + name
     nom: string,
+    alias: string,
     loaded: true,
 
-    database: string,
-    chemin: string, // database + nom
-
-    alias: string,
-
-    pk: { 0: string } & string[], // Au moins une pk doit être renseignée
+    // Columns
     colonnes: TListeMetasColonnesTable,
+    pk: string[], // Au moins une pk doit être renseignée
+    columnNamesButPk: string[]
 }
 
 export type TListeMetasColonnesTable = { [nom: string]: TMetasColonne }
 
 export type TMetasColonne = {
-    attached: boolean, // Si les métadonnées ont bien été enrichies avec celles provenant de MySQL
 
+    // Column
     table: TMetasTable,
     nom: string,
-    type: TTypeColonne,
-    typeParams: string[],
+    attached: boolean, // Si les métadonnées ont bien été enrichies avec celles provenant de MySQL
     primary: boolean,
-    api?: TMetasApi,
+
+    // Type
+    type: TColumnTypes,
     nullable: boolean,
+
+    // Value
     defaut?: any, // ATTENTION: Valeur déjà sérialisée
     autoIncrement: boolean,
+
+    // Extra
+    comment?: string
+}
+
+export type TColumnTypes = {
+    sql: TMySQLType,
+    js: TJsType
+}
+
+export type TMySQLType = {
+    name: TMySQLTypeName,
+    params: string[] 
+}
+
+export type TJsType = {
+    name: TJsTypeName,
+    params: string[],
 }
 
 /*----------------------------------
-- LIB
+- CONFIG
 ----------------------------------*/
 
-const regParamsTypeSql = /\'([^\']+)\'\,?/gi;
+const LogPrefix = '[database][meta]';
 
-export default async function loadMetadata( toLoad: string[], connection: mysql.Pool ) {
-    
-    console.info(`${toLoad.length} databases to load`);
-    if (toLoad.length === 0)
-        return {};
+const sqlTypeParamsReg = /\'([^\']+)\'\,?/gi;
+const typeViaCommentReg = /^\[type=([a-z]+)\]/g;
 
-    const dbNames = Array.from(toLoad);
-    const dbColumns = await queryMetadatas(dbNames, connection);
+const modelsTypesPath = process.cwd() + '/src/server/models.ts';
 
-    const metas = importTables(dbColumns);
+/*----------------------------------
+- FUNCTIONS
+----------------------------------*/
+export default class MySQLMetasParser {
 
-    // Update the models typings
-    if (app.env.profile === 'dev')
-        genTypes(metas);
-
-    console.log(`Databases are loaded.`);
-    return metas;
-}
-
-async function queryMetadatas( databases: string[], connection: mysql.Pool ) {
-    console.log(`Loading tables metadatas for the following databases: ${databases.join(', ')} ...`);
-    return (await connection.query(`
-        SELECT
-
-            /* Provenance */
-            col.TABLE_SCHEMA as 'database',
-            col.TABLE_NAME as 'table',
-            col.COLUMN_NAME as 'colonne',
-
-            /* Options */
-            col.COLUMN_DEFAULT as 'defaut',
-            col.IS_NULLABLE as 'nullable',
-            col.COLUMN_TYPE as 'type',
-            col.COLUMN_KEY as 'cle',
-            col.EXTRA as 'extra'
-
-        /* Colonnes */
-        FROM information_schema.COLUMNS col
-
-        WHERE col.TABLE_SCHEMA IN(${databases.map(d => '"' + d + '"').join(', ')})
-    `))[0] as TDatabaseColumn[];
-}
-
-function importTables(dbColumns: TDatabaseColumn[]): TDatabasesList {
-
-    console.log(`Processing ${dbColumns.length} rows of metadatas`);
-
-    const metas: TDatabasesList = {};
-
-    for (const {
-        database, table: nomTable, colonne: nomColonne,
-        defaut, nullable, type, cle, extra
-    } of dbColumns) {
-
-        if (metas[database] === undefined)
-            metas[database] = {}
-
-        // Indexage de la table si pas déjà fait
-        if (metas[database][nomTable] === undefined)
-            metas[database][nomTable] = {
-                loaded: true,
-                database: database,
-                alias: nomTable.toLowerCase(),
-                nom: nomTable,
-                chemin: '`' + database + '`.`' + nomTable + '`',
-                colonnes: {},
-                pk: [],
-                default: false,
-                modele: undefined
-            }
-
-        // Extraction des informations
-        const table = metas[database][nomTable];
-        const { nomType, paramsType } = parseColType(type);
-
-        // Indexage clés primaires
-        const primaire = cle === 'PRI';
-        if (primaire && !table.pk.includes(nomColonne))
-            table.pk.push(nomColonne);
-
-        // Indexage de la colonne
-        table.colonnes[nomColonne] = {
-            attached: true,
-            table: metas[database][nomTable],
-            nom: nomColonne,
-            primary: primaire,
-            autoIncrement: extra.includes('auto_increment'),
-            nullable: nullable === 'YES',
-            defaut: defaut === null ? undefined : defaut,
-
-            type: nomType,
-            typeParams: paramsType
-        }
+    public constructor( 
+        private database: DatabaseConnection,
+        public app = database.app,
+    ) {
 
     }
 
-    return metas;
-    
-}
+    public async load( toLoad: string[] ) {
+        
+        console.info(`${toLoad.length} databases to load`);
+        if (toLoad.length === 0)
+            return {};
 
-function parseColType(brut: string) {
+        const dbNames = Array.from(toLoad);
+        const dbColumns = await this.query(dbNames);
 
-    let nomType: TMetasColonne["type"];
-    let paramsType: TMetasColonne["typeParams"] = [];
+        const metas = this.importTables(dbColumns);
 
-    const posParenthese = brut.indexOf('(');
-    if (posParenthese === -1)
-        nomType = brut.toUpperCase() as TMetasColonne["type"];
-    else {
-        nomType = brut.substring(0, posParenthese).toUpperCase() as TMetasColonne["type"];
+        // Update the models typings
+        if (this.app.env.profile === 'dev')
+            this.genTypesDef(metas);
 
-        // Extraction paramètres du type entre les parentheses
-        const paramsStr = brut.substring(posParenthese + 1, brut.length - 1)
-        let m;
-        do {
-            m = regParamsTypeSql.exec(paramsStr);
-            if (m)
-                paramsType.push(m[1]);
-        } while (m);
+        console.log(`Databases are loaded.`);
+        return metas;
     }
 
-    return { nomType, paramsType }
+    private async query( databases: string[] ) {
+        console.log(`Loading tables metadatas for the following databases: ${databases.join(', ')} ...`);
+        return (await this.database.connection.query(`
+            SELECT
 
-}
+                /* Provenance */
+                col.TABLE_SCHEMA as 'database',
+                col.TABLE_NAME as 'table',
+                col.COLUMN_NAME as 'colonne',
 
-function genTypes( databases: TDatabasesList ) {
+                /* Options */
+                col.COLUMN_COMMENT as 'comment',
+                col.COLUMN_DEFAULT as 'defaut',
+                col.IS_NULLABLE as 'nullable',
+                col.COLUMN_TYPE as 'type',
+                col.COLUMN_KEY as 'cle',
+                col.EXTRA as 'extra'
 
-    const types: string[] = [];
+            /* Colonnes */
+            FROM information_schema.COLUMNS col
 
-    for (const db in databases) {
-        for (const tableName in databases[db]) {
+            WHERE col.TABLE_SCHEMA IN(${databases.map(d => '"' + d + '"').join(', ')})
+        `))[0] as TDatabaseColumn[];
+    }
 
-            const table = databases[db][tableName];
+    private importTables( dbColumns: TDatabaseColumn[] ): TDatabasesList {
 
-            const colsDecl: string[] = [];
-            for (const colName in table.colonnes) {
+        console.log(`Processing ${dbColumns.length} rows of metadatas`);
 
-                const col = table.colonnes[colName];
-                let jsType = mysqlToJs[col.type];
-                if (jsType === undefined) {
-                    console.warn(`The mySQL data type « ${col.type} » has not been associated with a JS equivalent in mysqlToJs. Using any instead.`);
-                    jsType = mysqlToJs['UNKNOWN'];
+        const tablesIndex: TDatabasesList = {};
+
+        for (const {
+            database, table: nomTable, colonne: nomColonne,
+            defaut, nullable, type, cle, extra, comment
+        } of dbColumns) {
+
+            if (tablesIndex[database] === undefined)
+                tablesIndex[database] = {}
+
+            // Indexage de la table si pas déjà fait
+            if (tablesIndex[database][nomTable] === undefined)
+                tablesIndex[database][nomTable] = {
+
+                    // Table
+                    chemin: '`' + database + '`.`' + nomTable + '`',
+                    database: database,
+                    nom: nomTable,
+                    alias: nomTable.toLowerCase(),
+                    loaded: true,
+
+                    // Columns
+                    colonnes: {},
+                    pk: [],
+                    columnNamesButPk: []
                 }
 
-                colsDecl.push('\t' + col.nom + (col.nullable ? '?' : '') + ': ' + jsType.typescript);
+            // Extrct tablesIndex
+            const table = tablesIndex[database][nomTable];
+            const parsedTypes = this.parseColType(type, comment);
 
+            // Reference primary keys
+            const isPrimary = cle === 'PRI';
+            if (isPrimary && !table.pk.includes(nomColonne))
+                table.pk.push(nomColonne);
+
+            // Index column
+            table.colonnes[nomColonne] = {
+
+                // Column
+                table: tablesIndex[database][nomTable],
+                nom: nomColonne,
+                attached: true,
+                primary: isPrimary,
+
+                // Type
+                type: parsedTypes,
+                nullable: nullable === 'YES',
+
+                // Value
+                defaut: defaut === null ? undefined : defaut,
+                autoIncrement: extra.includes('auto_increment'),
+
+                // Extra
+                comment: comment || undefined
             }
-            
-            types.push('export type ' + table.nom + ' = {\n' + colsDecl.join(',\n') + '\n}');
-
         }
+
+        // Re-process every table
+        for (const databaseName in tablesIndex) {
+            for (const tableName in tablesIndex[ databaseName ]) {
+
+                const table = tablesIndex[ databaseName ][ tableName ];
+
+                table.columnNamesButPk = Object.keys(table.colonnes).filter( 
+                    colName => !table.pk.includes( colName )
+                )
+            }
+        }
+
+        return tablesIndex;
+        
     }
 
-    const modelsTypesPath = process.cwd() + '/src/server/models.ts';
-    fs.outputFileSync( modelsTypesPath, types.join('\n') );
-    console.log(`Wrote database types to ${modelsTypesPath}`);
-    
+    private parseColType( rawType: string, comment: string | null ): TColumnTypes {
+
+        const mysqlType = this.parseMySQLType(rawType);
+
+        const jsType = this.parseJsType(mysqlType, comment);
+
+        return {
+            sql: mysqlType,
+            js: jsType
+        }
+
+    }
+
+    private parseMySQLType( rawType: string ): TMySQLType {
+
+        let name: TMySQLType["name"];
+        let params: TMySQLType["params"] = [];
+
+        // Via native MySQL type: parse type expression + params
+        const posParenthese = rawType.indexOf('(');
+        if (posParenthese === -1)
+            name = rawType.toUpperCase() as TMySQLType["name"];
+        else {
+            name = rawType.substring(0, posParenthese).toUpperCase() as TMySQLType["name"];
+
+            // Extraction paramètres du type entre les parentheses
+            const paramsStr = rawType.substring(posParenthese + 1, rawType.length - 1)
+            let m;
+            do {
+                m = sqlTypeParamsReg.exec(paramsStr);
+                if (m)
+                    params.push(m[1]);
+            } while (m);
+        }
+
+        return { name, params }
+
+    }
+
+    private parseJsType( mysqlType: TMySQLType, comment: string | null ): TJsType {
+
+        // Via comment
+        if (comment) {
+            // Exract via comments: [type=array]
+            const foundTypeExpression = typeViaCommentReg.exec( comment );
+            if (foundTypeExpression !== null) {
+
+                const typeNameViaComment = foundTypeExpression[1];
+                if (!(typeNameViaComment in jsTypes))
+                    console.warn(`Invalid type "${typeNameViaComment}" found in column comments.`);
+                else
+                    return { 
+                        name: typeNameViaComment as TJsTypeName, 
+                        params: []
+                    }
+            }
+        }
+
+        // Via mysql Type
+        let jsTypeName = mysqlToJs[ mysqlType.name ];
+        if (jsTypeName === undefined) {
+            console.warn(`The mySQL data type « ${mysqlType.name} » has not been associated with a JS equivalent in mysqlToJs. Using any instead.`);
+            jsTypeName = mysqlToJs['UNKNOWN'];
+        }
+
+        return { 
+            name: jsTypeName,  
+            params: [],
+        }
+
+    }
+
+    private genTypesDef( databases: TDatabasesList ) {
+
+        const types: string[] = [];
+
+        for (const db in databases) {
+            for (const tableName in databases[db]) {
+
+                const table = databases[db][tableName];
+
+                const colsDecl: string[] = [];
+                for (const colName in table.colonnes) {
+
+                    const col = table.colonnes[colName];
+                    const jsTypeUtils = jsTypes[ col.type.js.name ];
+                    if (!jsTypeUtils) {
+                        console.warn(`Unable to find the typescript print funvction for js type "${col.type.js.name}"`);
+                        continue;
+                    }
+
+                    colsDecl.push('\t' + col.nom + (col.nullable ? '?' : '') + ': ' + jsTypeUtils.print( col ));
+                }
+                
+                types.push('export type ' + table.nom + ' = {\n' + colsDecl.join(',\n') + '\n}');
+
+            }
+        }
+
+        fs.outputFileSync( modelsTypesPath, types.join('\n') );
+        console.log(LogPrefix, `Wrote database types to ${modelsTypesPath}`);
+        
+    }
 }

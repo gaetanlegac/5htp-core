@@ -3,68 +3,75 @@
 ----------------------------------*/
 
 // Npm
-import { Server as WebSocketServer } from 'ws';
+import { Server as WebSocketServer, ServerOptions } from 'ws';
 import { v4 as uuidv4 } from 'uuid';
 import { IncomingMessage } from 'http';
 import cookie from 'cookie';
 
 // Core
-import SocketScope from './scope';
-import app from '@server/app';
-
-// Services
-import '@server/services/http';
-
-/*----------------------------------
-- SERVICE CONFIG
-----------------------------------*/
-
-export type SocketServiceConfig = {
-    port: number
-}
-
-declare global {
-    namespace Core {
-        namespace Config {
-            interface Services {
-                socket: SocketServiceConfig
-            }
-        }
-    }
-}
+import Application, { Service } from '@server/app';
+import SocketScope, { WebSocket } from './scope';
+export type { WebSocket, default as SocketScope } from './scope';
+import type UsersManagementService from '../users';
 
 /*----------------------------------
 - TYPES
 ----------------------------------*/
 
-export type { WebSocket, default as SocketScope } from './scope';
+
+export type Config<TUser extends {}> = {
+    server: ServerOptions["server"],
+    users: UsersManagementService<TUser>,
+    port: number,
+}
+
+export type Hooks = {
+
+}
 
 /*----------------------------------
 - MANAGER
 ----------------------------------*/
-export class WebSocketCommander {
+export default class WebSocketCommander<
+    TUser extends {},
+    TConfig extends Config<TUser>= Config<TUser>
+> extends Service<TConfig, Hooks, Application> {
 
+    // Services
     public ws!: WebSocketServer;
+    public users: UsersManagementService<TUser>;
 
-    public scopes: {[path: string]: SocketScope} = {}
+    // Context
+    public scopes: {[path: string]: SocketScope<TUser>} = {}
 
-    public constructor() {
-        app.on('cleanup', async () => {
+    public constructor( app: Application, config: TConfig ) {
+        super(app, config);
+
+        this.users = config.users;
+    }
+
+    public async register() {
+
+        this.app.on('cleanup', async () => {
             this.closeAll();
+        });
+
+
+        this.users.on('disconnect', async (userId: string) => {
+            this.disconnect(userId, 'Logout');
         });
     }
 
-
     public loading: Promise<void> | undefined = undefined;
-    public async load() {
+    public async start() {
 
         console.info(`Loading socket commander`);
-        this.ws = new WebSocketServer({ server: app.services.http.http })
+        this.ws = new WebSocketServer({ server: this.config.server })
             .on('connection', (socket: WebSocket, req: IncomingMessage) => {
 
                 // Resolve scope
                 const path = req.url;
-                let scope: SocketScope | undefined;
+                let scope: SocketScope<TUser> | undefined;
                 for (const scopePath in this.scopes)
                     if (path === scopePath) {
                         scope = this.scopes[path];
@@ -105,7 +112,7 @@ export class WebSocketCommander {
         if (!(path in this.scopes)) {
 
             console.info("Registering socket scope:", path);
-            this.scopes[path] = new SocketScope(path);
+            this.scopes[path] = new SocketScope(path, this);
 
         }
 
@@ -134,17 +141,5 @@ export class WebSocketCommander {
         console.log("Closing All connections");
         for (const path in this.scopes)
             this.scopes[path].close();
-    }
-}
-
-/*----------------------------------
-- REGISTER SERVICE
-----------------------------------*/
-app.register('socket', WebSocketCommander);
-declare global {
-    namespace Core {
-        interface Services {
-            socket: WebSocketCommander;
-        }
     }
 }

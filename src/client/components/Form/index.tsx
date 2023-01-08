@@ -13,7 +13,7 @@ import { propsDefautChampForm, TBasePropsChamp } from '@client/components/input/
 import { TSchema, TRetourValidation, initDonnees, validate as validerSchema, TSchemaChampComplet } from '@common/data/input/validate';
 import { simpleDeepCopy, chemin } from '@common/data/objets';
 import { ContexteOnglets } from '@client/components/containers/tabs';
-import useContext from '@client/context';
+import useContext from '@/client/context';
 
 /*----------------------------------
 - TYPES ENTREE

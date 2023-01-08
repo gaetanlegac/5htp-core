@@ -2,7 +2,7 @@
 // INSPIRATION: 
 // https://adonisjs.com/docs/4.1/routing
 // https://laravel.com/docs/8.x/routing
-// https://github.com/adonisjs/http-server/blob/develop/src/Router/indexApi.ts
+// https://github.com/adonisjs/http-server/blob/develop/src/ServerRouter/indexApi.ts
 // https://github.com/expressjs/express/blob/06d11755c99fe4c1cddf8b889a687448b568472d/lib/response.js#L1016
 
 /*----------------------------------
@@ -12,137 +12,242 @@
 // Npm
 import type express from 'express';
 import { v4 as uuid } from 'uuid';
+import type { GlobImportedWithMetas } from 'babel-plugin-glob-import';
 
-// Core: Router
+// Core
+import Application, { Service } from '@server/app';
 import context from '@server/context';
-import ServerRequest from "./request";
-import ServerResponse from './response';
-import AuthService from './request/services/auth';
-import TrackingService from './request/services/tracking';
-
-// Core: libs
-import app, { $ } from '@server/app';
-import { NotFound } from '@common/errors';
-
-// Core: types
-import type { TSsrUnresolvedRoute, TRegisterPageArgs } from '@client/router';
-import BaseRouter, { 
-    TBaseRoute, TRoute, TErrorRoute,
+import { Erreur, NotFound } from '@common/errors';
+import BaseRouter, {
+    TRoute, TErrorRoute,
     TRouteOptions, defaultOptions
 } from '@common/router';
-import { TFetcherArgs } from '@common/router/request';
+import { buildRegex, getRegisterPageArgs } from '@common/router/register';
+import { layoutsList } from '@common/router/layouts';
+import { TFetcherArgs } from '@common/router/request/api';
+import type { TFrontRenderer } from '@common/router/response/page';
+import type { TSsrUnresolvedRoute, TRegisterPageArgs } from '@client/services/router';
+
+// Specific
+import RouterService from './service';
+import ServerRequest from "./request";
+import ServerResponse, { TRouterContext } from './response';
+import Page from './response/page';
+import HTTP, { Config as HttpServiceConfig } from './http';
+import DocumentRenderer from './response/page/document';
+
+/*----------------------------------
+- TYPES
+----------------------------------*/
+
+export { default as RouterService } from './service';
+export { default as RequestService } from './request/service';
+export type { default as Request } from "./request";
+export type { default as Response, TRouterContext } from "./response";
+export type { TRoute } from '@common/router';
+
+export type TApiRegisterArgs<TRouter extends ServerRouter> = ([
+    path: string,
+    controller: TServerController<TRouter>
+] | [
+    path: string,
+    options: Partial<TRouteOptions>,
+    controller: TServerController<TRouter>
+])
+
+export type TServerController<TRouter extends ServerRouter> = (context: TRouterContext<TRouter>) => any;
+
+export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'OPTIONS'
+export type TRouteHttpMethod = HttpMethod | '*';
+
+export type TApiResponseData = {
+    data: any,
+    triggers?: { [cle: string]: any }
+}
+
+export type HttpHeaders = { [cle: string]: string }
 
 /*----------------------------------
 - SERVICE CONFIG
 ----------------------------------*/
 
-export type RouterServiceConfig = {
-    // Routes to systematically preload
-    
+const LogPrefix = '[router]';
+
+export type TRouterServicesList = {
+    [serviceName: string]: RouterService<ServerRouter>
 }
 
-declare global {
-    namespace Core {
-        namespace Config {
-            interface Services {
-                router: RouterServiceConfig
-            }
-        }
-    }
+export type Config<
+    TServiceList extends TRouterServicesList = TRouterServicesList,
+    TAdditionnalSsrData extends {} = {}
+> = {
+
+    debug: boolean,
+
+    http: HttpServiceConfig
+
+    // Set it as a function, so when we instanciate the services, we can callthis.router to pass the router instance in roiuter services
+    services: TServiceList,
+
+    ssrData: (request: ServerRequest<ServerRouter>) => Promise<TAdditionnalSsrData>,
+
+    // Protections against bots
+    // TODO: move to Protection service
+    /*security: {
+        recaptcha: {
+            prv: string,
+            pub: string
+        },
+        iphub: string
+    },*/
 }
 
-/*----------------------------------
-- TYPES: REGISTER
-----------------------------------*/
+export type Hooks = {
 
-export type { default as Request } from "./request";
-export type { default as Response } from "./response";
-
-export type TApiRegisterArgs = ([ 
-    path: string, 
-    controller: TServerController
-] | [ 
-    path: string, 
-    options: Partial<TRouteOptions>, 
-    controller: TServerController
-])
-
-/*----------------------------------
-- TYPES: ROUTE
-----------------------------------*/
-
-export type TServerController = (request: With<ServerRequest, 'response'>, data: TObjetDonnees) => any;
-
-export type HttpHeaders = {[cle: string]: string}
-
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'OPTIONS'
-export type TRouteHttpMethod = HttpMethod | '*';
-
-export type TApiServerRoute = TBaseRoute & {
-    controller: TServerController,
-    type: 'API',
-    method: TRouteHttpMethod
-}
-
-export type TApiResponseData = {
-    data: any,
-    triggers?: {[cle: string]: any}
 }
 
 /*----------------------------------
 - CLASSE
 ----------------------------------*/
-export class Router extends BaseRouter {
+export default class ServerRouter<
+    TConfig extends Config = Config,
+    TApplication extends Application = Application
+> extends Service<TConfig, Hooks, TApplication> implements BaseRouter {
 
-    public app = app;
+    // Services
+    public http: HTTP;
+    public services: TConfig["services"];
+    public render: DocumentRenderer;
 
+    // Indexed
     public routes: TRoute[] = []; // API + pages front front
-
+    public errors: { [code: number]: TErrorRoute } = {};
     public ssrRoutes: TSsrUnresolvedRoute[] = [];
 
     /*----------------------------------
     - SERVICE
     ----------------------------------*/
 
-    public constructor() {
-        super();
-        app.on('ready', () => this.afterRegister());
+    public constructor(app: TApplication, config: TConfig) {
+
+        super(app, config);
+
+        this.http = new HTTP(config.http, this);
+        this.render = new DocumentRenderer(this);
+        this.services = config.services;
+
     }
 
-    public async load() {
+    public async register() {
 
+        // Since route registering requires all services to be ready,
+        // We load routes only when all services are ready
+        this.app.on('ready', async () => {
+
+            // Use require to avoid circular references
+            this.registerRoutes([
+                ...require("metas:@/server/routes/**/*.ts"),
+                ...require("metas:@/client/pages/**/*.tsx"),
+                ...require("metas:@client/pages/**/*.tsx")
+            ]);
+        })
+    }
+
+    public async start() {
+        this.startServices();
+    }
+
+    private async startServices() {
+        console.log(LogPrefix, `Starting router services`);
+
+        for (const serviceId in this.services) {
+            const service = this.services[serviceId];
+            service.attach(this);
+            await service.register();
+        }
+    }
+
+    private registerRoutes(defModules: GlobImportedWithMetas<TRouteModule>) {
+        for (const routeModule of defModules) {
+
+            const register = routeModule.exports.__register;
+            if (!register)
+                continue;
+
+            console.log(LogPrefix, `Register file:`, routeModule.matches.join('/'));
+            register(this.app);
+        }
+
+        this.afterRegister();
     }
 
     /*----------------------------------
-    - INDEXING
+    - REGISTER
     ----------------------------------*/
 
-    public all = (...args: TApiRegisterArgs) => this.registerApi('*', ...args);
-    public options = (...args: TApiRegisterArgs) => this.registerApi('OPTIONS', ...args);
-    public get = (...args: TApiRegisterArgs) => this.registerApi('GET', ...args);
-    public post = (...args: TApiRegisterArgs) => this.registerApi('POST', ...args);
-    public put = (...args: TApiRegisterArgs) => this.registerApi('PUT', ...args);
-    public delete = (...args: TApiRegisterArgs) => this.registerApi('DELETE', ...args)
+    public page(...args: TRegisterPageArgs) {
 
-    protected registerApi(method: TRouteHttpMethod, ...args: TApiRegisterArgs): TRoute {
+        const { path, options, controller, renderer } = getRegisterPageArgs(...args);
+
+        const { regex, keys } = buildRegex(path);
+
+        const route: TRoute = {
+            method: 'GET',
+            path,
+            regex,
+            keys,
+            controller: (context: TRouterContext<this>) => new Page(controller, renderer, context),
+            options: {
+                ...defaultOptions,
+                accept: 'html', // Les pages retournent forcémment du html
+                ...options
+            },
+        }
+
+        this.routes.push(route);
+
+        return this;
+
+    }
+
+    public error(
+        code: number,
+        options: TRoute["options"],
+        renderer: TFrontRenderer<{}, { message: string }>
+    ) {
+        this.errors[code] = {
+            code,
+            controller: (context: TRouterContext<this>) => new Page(null, renderer, context),
+            options
+        };
+    }
+
+    public all = (...args: TApiRegisterArgs<this>) => this.registerApi('*', ...args);
+    public options = (...args: TApiRegisterArgs<this>) => this.registerApi('OPTIONS', ...args);
+    public get = (...args: TApiRegisterArgs<this>) => this.registerApi('GET', ...args);
+    public post = (...args: TApiRegisterArgs<this>) => this.registerApi('POST', ...args);
+    public put = (...args: TApiRegisterArgs<this>) => this.registerApi('PUT', ...args);
+    public delete = (...args: TApiRegisterArgs<this>) => this.registerApi('DELETE', ...args)
+
+    protected registerApi(method: TRouteHttpMethod, ...args: TApiRegisterArgs<this>): this {
 
         let path: string;
         let options: Partial<TRouteOptions> = {};
-        let controller: TServerController;
+        let controller: TServerController<this>;
 
         if (args.length === 2)
             ([path, controller] = args)
         else
             ([path, options, controller] = args)
 
-        const { regex, keys } = this.buildRegex(path);
+        const { regex, keys } = buildRegex(path);
 
         const route: TRoute = {
-            type: 'API',
+
             method: method,
             path: path,
             regex,
-            keys: keys.map(k => k.name),
+            keys: keys,
             options: {
                 ...defaultOptions,
                 ...options
@@ -152,39 +257,13 @@ export class Router extends BaseRouter {
 
         this.routes.push(route);
 
-        return route;
-    }
-
-    protected registerPage( ...args: TRegisterPageArgs ) {
-
-        const { path, options, controller, renderer } = this.getRegisterPageArgs(...args);
-
-        const { regex, keys } = this.buildRegex(path);
-
-        this.routes.push({
-            type: 'PAGE',
-            method: 'GET',
-            path,
-            regex,
-            keys: keys.map(k => k.name),
-            options: {
-                ...defaultOptions,
-                accept: 'html', // Les pages retournent forcémment du html
-                ...options
-            },
-            controller,
-
-            renderer
-        });
-
         return this;
-
     }
 
     private async afterRegister() {
 
         console.info("Pre-Loading request services");
-        await TrackingService.LoadCache();
+        //await TrackingService.LoadCache();
 
         console.info("Loading routes ...");
 
@@ -206,19 +285,19 @@ export class Router extends BaseRouter {
         console.info(`Registered routes:`);
         for (const route of this.routes) {
 
+            const chunkId = route.options["id"];
+
             console.info('-',
-                route.type,
                 route.method,
                 route.path,
                 ' :: ', JSON.stringify(route.options)
             );
 
-            if ('renderer' in route)
+            if (route.options["id"])
                 this.ssrRoutes.push({
-                    type: route.type,
                     regex: route.regex.source,
                     keys: route.keys,
-                    chunk: route.options["id"]
+                    chunk: chunkId
                 });
 
         }
@@ -227,13 +306,24 @@ export class Router extends BaseRouter {
         for (const code in this.errors) {
 
             const route = this.errors[code];
-            console.info('-', code);
+            const chunkId = route.options["id"];
+
+            console.info('-', code,
+                ' :: ', JSON.stringify(route.options)
+            );
 
             this.ssrRoutes.push({
-                type: route.type,
-                chunk: route.options["id"],
-                code
+                code: parseInt(code),
+                chunk: chunkId,
             });
+        }
+
+        console.info(`Registered layouts:`);
+        for (const layoutId in layoutsList) {
+
+            const layout = layoutsList[layoutId];
+
+            console.info('-', layoutId, layout);
         }
 
         console.info(this.routes.length + " routes where registered.");
@@ -257,6 +347,7 @@ export class Router extends BaseRouter {
         let requestId = uuid();
         const request = new ServerRequest(
             requestId,
+
             req.method as HttpMethod,
             req.path, // url sans params
             // Exclusion de req.files, car le middleware multipart les a normalisé dans req.body
@@ -267,7 +358,11 @@ export class Router extends BaseRouter {
             this
         );
 
-        const now = new Date;
+        // Hook
+        this.runHook('request', request);
+
+        // TODO: move to tracking
+        /*const now = new Date;
 
         // Identify Guest & create log entry
         const username = request.user?.name;
@@ -280,16 +375,13 @@ export class Router extends BaseRouter {
 
         const keepLogs = request.ip !== '86.76.176.80';
         if (!keepLogs)  
-            requestId = 'admin';
+            requestId = 'admin';*/
 
         // Create request context so we can access request context across all the request-triggered libs
         context.run({ channelType: 'request', channelId: requestId }, async () => {
 
-            let response: ServerResponse;
+            let response: ServerResponse<this>;
             try {
-                
-                // Auth
-                request.user = await AuthService.decode(req, true);
 
                 // Bulk API Requests
                 if (request.path === '/api' && typeof request.data.fetchers === "object") {
@@ -330,8 +422,8 @@ export class Router extends BaseRouter {
             // Data
             res.send(response.data);
 
-            if (newClient)
-                $.console.client({
+            /*if (newClient)
+                console.client({
                     id: clientId,
                     ip: request.ip,
                     user: username,
@@ -340,7 +432,7 @@ export class Router extends BaseRouter {
                     activity: now,
                 });
 
-            $.console.request({
+            console.request({
 
                 id: requestId,
                 date: now,
@@ -355,12 +447,12 @@ export class Router extends BaseRouter {
 
                 statusCode: response.statusCode,
                 time: Date.now() - now.valueOf()
-            });
+            });*/
         });
 
     }
 
-    private async handleError(e: Error, request: ServerRequest) {
+    private async handleError(e: Erreur, request: ServerRequest<ServerRouter>) {
 
         const code = 'http' in e ? e.http : 500;
         const route = this.errors[code];
@@ -372,17 +464,14 @@ export class Router extends BaseRouter {
         // Rapport / debug
         if (code === 500) {
 
-            for (const callback of app.hooks.error)
-                callback(e);
+            this.app.runHook('error', e, request);
 
-            $.console.bugReport.server(e, request);
-
-        // Pour déboguer les erreurs HTTP
-        } else if (app.env.profile === "dev")
+            // Pour déboguer les erreurs HTTP
+        } else if (this.app.env.profile === "dev")
             console.warn(e);
 
         if (request.accepts("html"))
-            await response.runController( route, { message: e.message });
+            await response.runController(route, { message: e.message });
         else if (request.accepts("json"))
             await response.json(e.message);
         else
@@ -392,48 +481,42 @@ export class Router extends BaseRouter {
 
     }
 
-    public async resolve( request: ServerRequest ): Promise<ServerResponse> {
+    public async resolve(request: ServerRequest<ServerRouter>): Promise<ServerResponse<this>> {
 
         console.info(request.ip, request.method, request.domain, request.path);
 
-        const response = new ServerResponse(request);
+        const response = new ServerResponse<this>(request);
 
-        request.tracking.event('pageview');
+        this.runHook('resolve', request);
 
         for (const route of this.routes) {
 
-            // Method
+            // Match Method
             if (request.method !== route.method && route.method !== '*')
                 continue;
 
-            // Response format
+            // Match Response format
             if (!request.accepts(route.options.accept))
                 continue;
 
-            // URL
+            // Match Path
             const match = route.regex.exec(request.path);
             if (!match)
                 continue;
 
-            // Testing = must be admin
-            if (route.options.TESTING === true && !(request.user && request.user.email === "Decentraliseur"))
-                break;
-
-            // Auth
-            if (route.options.auth !== undefined)
-                request.auth.check(route.options.auth);
-
-            //console.log('Resolved route:', route.regex.source);
-            
+            // Extract URL params
             for (let iKey = 0; iKey < route.keys.length; iKey++) {
                 const nomParam = route.keys[iKey];
                 if (typeof nomParam === 'string') // number = sans nom
                     request.data[nomParam] = match[iKey + 1]
             }
 
+            // Run on resolution hooks. Ex: authentication check
+            await this.runHook('resolved', route);
+
             // Create response
             await response.runController(route);
-            if (response.wasProvided) 
+            if (response.wasProvided)
                 // On continue l'itération des routes, sauf si des données ont été fournie dans la réponse (.json(), .html(), ...)
                 return response;
         }
@@ -442,19 +525,3 @@ export class Router extends BaseRouter {
     }
 
 }
-
-/*----------------------------------
-- REGISTER SERVICE
-----------------------------------*/
-app.register('router', Router);
-declare global {
-    namespace Core {
-        interface Services {
-            router: Router;
-        }
-    }
-}
-
-// Exceptionnally, we export the @router module
-// Bacause import router from '@router'; need to be available both on client and sevrer side.
-export default app.services.router;

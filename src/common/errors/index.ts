@@ -162,3 +162,5 @@ export const instancierViaCode = (
         default: return new Anomaly( message, details);
     }
 }
+
+export default Erreur;

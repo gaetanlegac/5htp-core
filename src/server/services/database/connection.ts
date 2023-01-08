@@ -6,46 +6,97 @@
 import mysql from 'mysql2/promise';
 
 // Core: general
-import app from '@server/app';
-import loadMetadata, { TDatabasesList } from './metas';
-import { seconds } from '@common/utils';
+import Application from '@server/app';
+import { SqlError } from '@server/error';
+import Service from '@server/app/service';
+
+// Core: specific
+import type Console from '../console';
+import MetadataParser, { TDatabasesList, TMetasTable, TColumnTypes } from './metas';
+import { TMySQLTypeName, mysqlToJs, js as jsTypes } from './datatypes';
+import Bucket from './bucket';
 
 /*----------------------------------
-- DEFINITIONS TYPESSQL
+- CONFIG
 ----------------------------------*/
 
+const LogPrefix = '[database][connection]';
+
+/*----------------------------------
+- SERVICE CONFIG
+----------------------------------*/
+
+export type DatabaseServiceConfig = {
+    list: string[],
+    dev: {
+        host: string,
+        port: number,
+        login: string,
+        password: string,
+    },
+    prod: {
+        host: string,
+        port: number,
+        login: string,
+        password: string,
+    }
+}
+
+export type THooks = {
+
+}
+
+/*----------------------------------
+- TYPES
+----------------------------------*/
+
+type TBasicQueryOptions = {
+    bucket?: Bucket,
+    simulate?: boolean,
+    log?: boolean,
+    returnQuery?: boolean,
+}
+
+export type TQueryOptions<TOmitValues extends keyof TBasicQueryOptions = never, TRequireValues extends keyof TBasicQueryOptions = never> = (
+    Omit<TBasicQueryOptions, TOmitValues> 
+    & 
+    Required<Pick<TBasicQueryOptions, TRequireValues>>
+)
+
+export type TQueryResult = TSelectQueryResult;
+
+// TODO: specifiy return type of every mysql query type
+type TSelectQueryResult = any;
 
 /*----------------------------------
 - SERVICES
 ----------------------------------*/
-export default class FastDatabase {
+export default class FastDatabase extends Service<DatabaseServiceConfig, THooks, Application> {
 
     private initialized = false;
     public connection!: mysql.Pool;
-    public tables: TDatabasesList = {};
 
-    public config = app.config.database;
+    public tables: TDatabasesList = {};
+    public metas = new MetadataParser(this);
 
     /*----------------------------------
     - HOOKS
     ----------------------------------*/
-    public constructor() {
 
-        app.on('cleanup', () => this.cleanup());
+    public async register() {
 
     }
-
+    
     public loading: Promise<void> | undefined = undefined;
-    public async load() {
-
-        // Wait for database service to be ready
-        //await seconds(5);
+    public async start() {
 
         this.initialized = false;
 
+        this.app.on('cleanup', () => this.cleanup());
+
         this.connection = await this.connect();
 
-        this.tables = await loadMetadata( app.config.database.list, this.connection);
+        this.tables = await this.metas.load( this.config.list );
 
         this.initialized = true;
 
@@ -60,9 +111,9 @@ export default class FastDatabase {
     ----------------------------------*/
     public async connect() {
 
-        console.info(`Connecting to databases ...`);
+        console.info(LogPrefix, `Connecting to databases ...`);
 
-        const creds = this.config[ app.env.profile ];
+        const creds = this.config[ this.app.env.profile ];
 
         return await mysql.createPool({
 
@@ -93,102 +144,181 @@ export default class FastDatabase {
             multipleStatements: true,
 
             queryFormat: function (query, values) {
-                //console.info('queryFormat', query);
+                //console.info(LogPrefix, 'queryFormat', query);
                 return query;
             }
         });
     }
 
-    private typeCast(field, next) {
+    private typeCast( field: mysql.Field, next: Function ) {
 
-        // Metadata must be loaded
+        // Wait for the connection to be initialized
         if (!this.initialized)
             return next();
 
-        let type = field.type;
-        if (field.db) {
-
-            // TODO: A revoir, car les infos passées peuvent être des alias
+        // Normal column
+        let type: TColumnTypes;
+        if (field.db && field.table && field.name) {
 
             const db = this.tables[ field.db ];
             if (db === undefined) {
-                return next();
                 console.error("Field infos:", field);
                 throw new Error(`Database metadatas for ${field.db} were not loaded.`);
             }
 
             const table = db[field.table];
             if (table === undefined) {
-                return next();
                 console.error("Field infos:", field);
                 throw new Error(`Table metadatas for ${field.db}.${field.table} were not loaded.`);
             }
 
             const column = table.colonnes[field.name];
             if (column === undefined) {
-                return next();
                 console.error("Field infos:", field);
                 throw new Error(`Column metadatas for ${field.db}.${field.table}.${field.name} were not loaded.`);
             }
 
             type = column.type;
 
-        } 
+        // Custom column (computed or aliased)
+        } else {
 
-        const val = field.string();
+            const mysqlType = {
+                name: field.type as TMySQLTypeName,
+                params: []
+            }
+
+            let jsTypeName = mysqlToJs[ mysqlType.name ];
+            if (jsTypeName === undefined) {
+                console.warn(`The mySQL data type « ${mysqlType.name} » has not been associated with a JS equivalent in mysqlToJs. Using any instead.`);
+                jsTypeName = mysqlToJs['UNKNOWN'];
+            }
+
+            const jsType = jsTypes[ mysqlType.name ];
+
+            type = {
+                sql: mysqlType,
+                js: jsType
+            }
+        }
+
+        // Retrieve value
+        let val = field.string();
         if (val === null)   
             return undefined;
 
-        // https://www.w3schools.com/sql/sql_datatypes.asp  
-        switch (type) {
-
-            case 'SET':
-                return val.split(',');
-
-            case 'DECIMAL':
-            case 'FLOAT':
-            case 'NEWDECIMAL':
-            case 'DOUBLE':
-                return parseFloat(val);
-                
-            case 'INT':
-            case 'LONG':
-            case 'LONGLONG':
-            case 'TINYINT':
-            case 'SMALLINT':
-            case 'MEDIUMINT':
-                return parseInt(val);
-
-            case 'DATE':
-            case 'DATETIME':
-                return new Date(val);
-
-            case 'VARCHAR':
-            case 'CHAR':
-            case 'VAR_STRING':
-            case 'LONGTEXT':
-            case 'TEXT':
-            case 'ENUM':
-                return val;
-
-            case 'JSON':
-                return JSON.parse(val);
-            
-        }
-
-        console.warn("/!\\ UNHANDLED TYPE " + type + " for field " + field.name);
-        return val;
+        // Cast value
+        const jsTypeParser = jsTypes[ type.js.name ];
+        const castedVal = jsTypeParser.parse(val);
+        //console.log(LogPrefix, `type cast`, val, `(${type.sql.name}) =>`, castedVal, `(${type.js.name})`);
+        
+        return castedVal;
     }
-}
 
-/*----------------------------------
-- REGISTER SERVICE
-----------------------------------*/
-app.register('database', FastDatabase);
-declare global {
-    namespace Core {
-        interface Services {
-            database: FastDatabase;
+    /*----------------------------------
+    - METADATA
+    ----------------------------------*/
+
+    public getTable( path: string ): TMetasTable {
+
+        // Parse path
+        let db: string, table: string;
+        if (path.includes('.'))
+            ([db, table] = path.split('.'));
+        else {
+            // Only the table = use the main database (first of the list in the config)
+            db = this.config.list[0];
+            table = path;
         }
+            
+        // Retrieve table info
+        if (this.tables[db] === undefined)
+            throw new Error(`Database "${db}" not loaded. Did you add it in the database config ?`);
+        if (this.tables[db][table] === undefined)
+            throw new Error(`Table "${db}.${table}" not loaded.`);
+
+        return this.tables[db][table];
+
+    }
+
+    /*----------------------------------
+    - QUERY
+    ----------------------------------*/
+    public bucket(
+        queryOptions: TQueryOptions<'bucket'> = {},
+        queriesList: string[] = [], 
+    ) {
+        return new Bucket(queryOptions, queriesList);
+    }
+
+    public async query<TResult extends TQueryResult>(
+        query: string,
+        opts: TQueryOptions<'bucket', 'bucket'>
+    ): Promise<Bucket>;
+
+    public async query<TResult extends TQueryResult>(
+        query: string,
+        opts: TQueryOptions<'returnQuery', 'returnQuery'>
+    ): Promise<string>;
+
+    public async query<TResult extends TQueryResult>(
+        query: string,
+        opts: TQueryOptions<'simulate', 'simulate'>
+    ): Promise<void>;
+
+    public async query<TResult extends TQueryResult>(
+        query: string,
+        opts?: TQueryOptions
+    ): Promise<TResult>;
+
+    public async query<TResult extends TQueryResult>(
+        query: string,
+        opts: TQueryOptions = {}
+    ): Promise<TResult | Bucket | string | void> {
+
+        if (opts.bucket) 
+            return opts.bucket.add(query);
+
+        if (opts.returnQuery === true)
+            return query;
+
+        if (opts.log === true)
+            console.log(`[database][query]`, query);
+
+        if (opts.simulate === true)
+            return;
+
+        try {
+
+            const startTime = Date.now();
+
+            // Lancement de la requête
+            const [rows, fields] = await this.connection.query(query);
+
+            if (opts.log !== false)
+                this.log(query, startTime);
+
+            return rows as unknown as TResult;
+            
+        } catch (error) {
+
+            throw new SqlError(error, query);
+        }
+    }
+
+    private log( query: string, startTime: number ) {
+
+        const console = this.app.use<Console>('console');
+        if (!console) return;
+
+        const { channelType, channelId } = console.getChannel();
+        if (channelId !== 'admin')
+            console.sqlQueries.push({
+                channelType,
+                channelId,
+                date: new Date(),
+                query: query.trim(),
+                time: Date.now() - startTime,
+            });
     }
 }

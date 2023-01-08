@@ -6,7 +6,7 @@
 import React from 'react';
 
 // Core
-import route from '@router';
+import { router } from '@app';
 import Button from '@client/components/button';
 
 // App
@@ -15,7 +15,7 @@ import useHeader from '@client/pages/useHeader';
 /*----------------------------------
 - CONTROLEUR
 ----------------------------------*/
-route.error( 404, {}, ({ message }, { modal }) => {
+router.error( 404, {}, ({ message }, { modal }) => {
 
     if (!message)
         message = "The content you asked for was not found.";

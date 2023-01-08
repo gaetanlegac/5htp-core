@@ -1,5 +1,5 @@
 import type { RefObject } from 'preact';
-import { history } from '@client/router/request/history';
+import { history } from '@client/services/router/request/history';
 
 type ElementOrSelector = HTMLElement | string;
 export const deepContains = (

@@ -8,34 +8,30 @@ import ISO6391 from 'iso-639-1';
 import accepts from 'accepts';
 import Bowser from "bowser";
 
-// Core libs
-import validateurs from '@server/data/input';
-import { TSchema, validate as validerSchema, TDonneesValidees } from '@common/data/input/validate';
-import app from '@server/app';
+// Core
+import BaseRequest from '@common/router/request';
 
-// Core libs: router
+// Specific
 import ServerResponse from '../response';
-import BaseRequest, { TFetcherArgs, TFetcher, TFetcherList } from '@common/router/request';
-
-// Extensions
-import AuthService from './services/auth';
-import SecurityService from './services/detect';
-import TrackingService from './services/tracking';
-
-const debug = true;
+import ApiClient from './api';
 
 /*----------------------------------
 - TYPES
 ----------------------------------*/
 
-import type { default as Router, HttpMethod, HttpHeaders } from '@server/services/router';
+import type { 
+    default as Router, Config as RouterConfig, 
+    HttpMethod, HttpHeaders
+} from '@server/services/router';
 
 const localeFilter = (input: any) => typeof input === 'string' && ISO6391.validate(input) ? input : undefined;
 
 /*----------------------------------
 - CONTEXTE
 ----------------------------------*/
-export default class ServerRequest extends BaseRequest {
+export default class ServerRequest<
+    TRouter extends Router
+> extends BaseRequest {
 
     /*----------------------------------
     - PROPRIÉTÉS
@@ -53,15 +49,15 @@ export default class ServerRequest extends BaseRequest {
     public cookies: TObjetDonnees = {};
 
     // reponse
-    public response?: ServerResponse;
-    public router: Router;
+    public response?: ServerResponse<TRouter>;
+    public router: TRouter;
 
     // Origin
     public req: express.Request;
     public res: express.Response;
 
     // Services
-    //public analytics?: ua.Visitor;
+    public api: ApiClient;
 
     /*----------------------------------
     - INITIALISATION
@@ -75,7 +71,7 @@ export default class ServerRequest extends BaseRequest {
         headers: HttpHeaders | undefined,
 
         res: express.Response, 
-        router: Router ,
+        router: TRouter,
         isVirtual: boolean = false
     ) {
 
@@ -87,6 +83,7 @@ export default class ServerRequest extends BaseRequest {
         this.req = res.req;
         this.res = res
         this.router = router;
+        this.api = new ApiClient(this);
 
         this.host = this.req.get('host') as string;
         this.method = method;
@@ -98,12 +95,6 @@ export default class ServerRequest extends BaseRequest {
         this.ip = res.req.ip;
 
         this.data = data || {};
-
-        // FIX: L'utilisation du sprad sur la classe Servercontext fait perdre le contexte this à ses méthodes
-        this.schema.validate = this.schema.validate.bind(this);
-        
-        //this.url = this.url.bind(this);
-
     }
 
     public children(method: HttpMethod, path: string, data: TObjetDonnees | undefined, headers?: HttpHeaders) {
@@ -161,74 +152,4 @@ export default class ServerRequest extends BaseRequest {
         const { os, browser } = info;
         return (os.name || 'Unknown OS') + ' ' + (os.versionName || os.version || '') + ' / ' + (browser.name || 'Unknown browser') + ' ' + (browser.version || '');
     }
-
-    /*----------------------------------
-    - SERVICES
-    ----------------------------------*/
-    public schema = {
-        ...validateurs,
-        // shortcut pour validation données requete
-        validate: async <TSchemaA extends TSchema>(schema: TSchemaA): Promise<TDonneesValidees<TSchemaA>> => {
-
-            console.log("Validate request data:", this.data);
-
-            // Les InputError seront propagées vers le middleware dédié à la gestion des erreurs
-            const { valeurs } = await validerSchema(
-                schema,
-                this.data, 
-                this.data, 
-                {}, 
-                {
-                    critique: true,
-                    validationComplete: true,
-                    avecDependances: false
-                },
-                []
-            );
-
-            return valeurs;
-        }
-    };
-
-    /*public url = (route: string, params: any = {}, absolu: boolean = true) =>
-        url(route, params, absolu);*/
-
-    public auth = new AuthService(this);
-
-    public tracking = new TrackingService(this);
-
-    public detect = new SecurityService(this);
-
-    public createFetcher(...[method, path, data, options]: TFetcherArgs) {
-        return { 
-            method, path, data, options,
-            then: () => { throw new Error("Async resolvers should not be run from server side."); },
-            run: () => { throw new Error("Async resolvers should not be run from server side."); },
-        } as TFetcher;
-    }
-
-    public async fetchSync(fetchers: TFetcherList): Promise<TObjetDonnees> {
-
-        const resolved: TObjetDonnees = {};
-
-        for (const id in fetchers) {
-
-            const { method, path, data, options } = fetchers[id];
-
-            debug && console.log(`[api] Resolving from internal api`, method, path, data);
-
-            const internalHeaders = { accept: 'application/json' }
-            const request = this.request.children(method, path, data, { ...internalHeaders/*, ...headers*/ });
-            resolved[id] = await request.router.resolve(request).then(res => res.data);
-
-        }
-
-        return resolved;
-
-    } 
-    
-    public fetchAsync(...args: TFetcherArgs): Promise<any> {
-        throw new Error("Async resolvers should not be run from server side.");
-    }
-
 }

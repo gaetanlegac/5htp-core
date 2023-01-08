@@ -12,7 +12,7 @@ import { TDialogControls } from '../Dialog/Manager';
 export type { TDialogControls } from '../Dialog/Manager';
 
 // Libs
-import useContexte from '@client/context';
+import useContexte from '@/client/context';
 
 /*----------------------------------
 - TYPES

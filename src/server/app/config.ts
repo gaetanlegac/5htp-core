@@ -16,15 +16,13 @@ import yaml from 'yaml';
 ----------------------------------*/
 
 declare global {
-    namespace Core {
-        namespace Config {
+    namespace Config {
 
-            type EnvName = TEnvConfig["name"];
+        type EnvName = TEnvConfig["name"];
 
-            type Env = TEnvConfig;
-            type Identity = AppIdentityConfig;
-            interface Services {}
-        }
+        type Env = TEnvConfig;
+        type Identity = AppIdentityConfig;
+        interface Services {}
     }
 }
 
@@ -59,8 +57,8 @@ type AppIdentityConfig = {
 }
 
 export type AppConfig = { 
-    env: Core.Config.Env, 
-    identity: Core.Config.Identity,
+    env: Config.Env, 
+    identity: Config.Identity,
 }
 
 /*----------------------------------
@@ -84,7 +82,7 @@ export default class ConfigParser {
     public env(): TEnvConfig {
         // We assume that when we run 5htp dev, we're in local
         // Otherwise, we're in production environment (docker)
-        console.log("Using environment:", process.env.NODE_ENV);
+        console.log("[app] Using environment:", process.env.NODE_ENV);
         return process.env.NODE_ENV === 'development' ? {
             name: 'local',
             profile: 'dev'

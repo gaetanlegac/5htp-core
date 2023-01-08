@@ -7,7 +7,7 @@ import ws from 'ws';
 import type { IncomingMessage } from 'http';
 
 // Core
-import AuthService from '@server/services/router/request/services/auth';
+import type SocketService from '.';
 import context from '@server/context';
 
 /*----------------------------------
@@ -33,7 +33,7 @@ const activityDelay = 10 * 1000; // Clearn broken connections veery 10s
 /*----------------------------------
 - SCOPE
 ----------------------------------*/
-export default class SocketScope {
+export default class SocketScope<TUser extends {}> {
 
     private connectEvent?: TConnectCallback;
     private disconnectEvent?: TConnectCallback;
@@ -41,7 +41,9 @@ export default class SocketScope {
     public users: { [username: string]: WebSocket[] } = {}
 
     public constructor(
-        public path: string
+        public path: string,
+        private socket: SocketService<TUser>,
+        private app = socket.app
     ) {
 
     }
@@ -74,7 +76,7 @@ export default class SocketScope {
         context.run({ channelType: 'socket', channelId: this.path }, async () => {
 
         // Auth
-        const username = await AuthService.decode(req);
+        const username = await this.socket.config.users.decode(req);
         if (!username) {
             console.log(`Rejecting connection on ${this.path} for client ${socket.ip} (${socket.id})}: Not authenticated`);
             socket.close(4004, "auth");

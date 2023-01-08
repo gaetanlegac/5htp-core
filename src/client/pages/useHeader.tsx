@@ -3,7 +3,7 @@
 ----------------------------------*/
 
 // Core
-import useContext from '@client/context';
+import useContext from '@/client/context';
 
 /*----------------------------------
 - TYPES

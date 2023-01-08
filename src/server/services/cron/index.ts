@@ -3,8 +3,8 @@
 ----------------------------------*/
 
 // Core
+import Application, { Service } from '@server/app';
 import { NotFound } from '@common/errors';
-import app from '@server/app';
 import context from '@server/context';
 
 /*----------------------------------
@@ -19,25 +19,19 @@ export { default as CronTask } from './CronTask';
 - SERVICE CONFIG
 ----------------------------------*/
 
-export type CronServiceConfig = {
+export type Config = {
    
 }
 
-declare global {
-    namespace Core {
-        namespace Config {
-            interface Services {
-                cron: CronServiceConfig
-            }
-        }
-    }
+export type Hooks = {
+
 }
 
 /*----------------------------------
 - CLASSE
 ----------------------------------*/
 
-export class CronManager {
+export default class CronManager extends Service<Config, Hooks, Application> {
 
     public static taches: { [nom: string]: CronTask } = {}
     public static timer: NodeJS.Timeout;
@@ -45,11 +39,15 @@ export class CronManager {
     /*----------------------------------
     - HOOKS
     ----------------------------------*/
-    public constructor() {
-        app.on('cleanup', () => this.cleanup());
+
+    public async register() {
+
     }
 
-    public async load() {
+    public async start() {
+        
+        this.app.on('cleanup', () => this.cleanup());
+
         clearInterval(CronManager.timer);
         CronManager.timer = setInterval(() => {
 
@@ -115,17 +113,5 @@ export class CronManager {
         if (cron === undefined)
             throw new Error(`L'instance de la tâche cron ${name} n'a pas été trouvée`);
         return cron;
-    }
-}
-
-/*----------------------------------
-- REGISTER SERVICE
-----------------------------------*/
-app.register('cron', CronManager);
-declare global {
-    namespace Core {
-        interface Services {
-            cron: CronManager;
-        }
     }
 }

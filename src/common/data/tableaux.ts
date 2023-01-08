@@ -40,6 +40,14 @@ export function arrayToObj<Ttbl extends {[cle: string]: any}, Tcle extends strin
 
 export const somme = (tbl: number[]) => tbl.reduce((a: number, b: number) => a + b);
 
+export const arrayChunks = <TArray extends any[]>(array: TArray, size: number) => {
+
+    const arrays: TArray[] = [];
+    while (array.length > 0)
+        arrays.push( array.splice(0, size) as TArray );
+
+    return arrays;
+}
 
 export function array_sum( tbl: number[] ): number {
     return tbl.reduce((a: number, b: number) => a + b);

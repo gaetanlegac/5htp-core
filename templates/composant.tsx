@@ -8,7 +8,7 @@
 import React from 'react';
 
 // Core libs
-import useContext from '@client/context';
+import useContext from '@/client/context';
 
 // Core components
 import Button from '@client/components/button';

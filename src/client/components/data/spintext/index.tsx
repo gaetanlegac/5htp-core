@@ -7,7 +7,7 @@ import React from 'react';
 import { ComponentChild } from 'preact';
 
 // Core
-import { useState } from '@client/context';
+import { useState } from '@/client/context';
 
 /*----------------------------------
 - TYPES

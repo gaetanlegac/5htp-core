@@ -9,47 +9,51 @@ import fs from 'fs-extra';
 
 // Core
 import ConfigParser, { TEnvConfig } from './config';
+import { default as Service, AnyService } from './service';
+export { default as Service } from './service';
+import type { default as Router, Request as ServerRequest } from '@server/services/router';
 
 /*----------------------------------
 - TYPES
 ----------------------------------*/
 
-type THookName = 'ready' | 'cleanup' | 'error'
-type THook = () => Promise<void>;
+type Config = {
 
-type TServiceOptions = {
-    instanciate: boolean
 }
 
-abstract class AsyncService {
-    public abstract loading: Promise<void> | undefined;
-    public abstract load: () => Promise<void>;
-}
-abstract class Service {
-    public abstract load: () => void;
-}
-
-interface TServiceClass {
-    new(): AsyncService | Service;
+type Hooks = {
+    ready: {
+        args: [],
+    },
+    cleanup: {
+        args: [],
+    },
+    error: {
+        args: [error: Error, request?: ServerRequest<Router>],
+    }
 }
 
 declare global {
-    namespace Core {
-        interface Services { }
+
+    //interface Services { }    
+
+    interface AppHooks {
+       
     }
+
     interface User { }
 }
-
-const servicesObj = {}
 
 /*----------------------------------
 - FUNCTIONS
 ----------------------------------*/
-export class App {
+export default abstract class Application extends Service<Config, Hooks, /* TODO: this ? */Application> {
 
     /*----------------------------------
     - PROPERTIES
     ----------------------------------*/
+
+    public side = 'server' as 'server';
 
     // Context
     public hmr: __WebpackModuleApi.Hot | undefined = module.hot;
@@ -65,143 +69,101 @@ export class App {
 
     // Status
     public launched: boolean = false;
-    public loading: Promise<void>[] = [];
     public status = {
         services: false
     }
 
-    public services: Core.Services = new Proxy( servicesObj, {
-        get: (container, serviceId, receiver) => {
-
-            if (!( serviceId in container ) && typeof serviceId === 'string')
-                throw new Error(`The following service is required as a dependancy: ${serviceId}`);
-
-            return container[serviceId];
-        }
-    }) as Core.Services;
-
-    public hooks: {[name in THookName]: THook[]} = {
-        ready: [],
-        cleanup: [],
-        error: []
-    }
+    private servicesList: AnyService[] = []
 
     /*----------------------------------
     - INIT
     ----------------------------------*/
 
+    public env: TEnvConfig;
+    public abstract identity: Config.Identity;
+
     public constructor() {
+
+        // @ts-ignore: can't pass this to super
+        super();
 
         // Gestion crash
         process.on('unhandledRejection', (error: any, promise: any) => {
 
             console.error("Unhandled promise rejection:", error);
-
-            // Send email report
-            if (this.isLoaded('console'))
-                $.console.bugReport.server(error);
-            else
-                console.error(`Unable to send bug report: console service not loaded.`);
+            this.runHook('error', error);
 
         });
 
         // Load config files
         const configParser = new ConfigParser( this.path.root );
         this.env = configParser.env();
-        this.identity = configParser.identity();
     }
 
-    // Configs
-    public config!: Core.Config.Services;
-    public identity: Core.Config.Identity;
-    public env: TEnvConfig;
-    public configure( config: Core.Config.Services) {
-        this.config = config;
-        console.log("Configure services with", this.config);
-    }
+    /*----------------------------------
+    - REGISTER
+    ----------------------------------*/
 
-    // Register a service
-    public register<TServiceName extends keyof Core.Services>( 
-        id: TServiceName, 
-        Service: TServiceClass, 
-        options: Partial<TServiceOptions> = {}
-    ) {
-
-        // Pas d'export default new Service pour chaque fichier de service,
-        //  dissuaded'importer ms service sn'importe où, ce qui créé des références circulaires
-        console.log(`[services] Registering service ${id} ...`);
-        const service = options.instanciate !== false ? new Service() : Service;
-        this.services[id as string] = service;
-
-        if ('load' in service) {
-
-            console.log(`[services] Starting service ${id} ...`);
-
-            // Lorsque service.load est async, une propriété loading doit etre présente 
-            //     De façon à ce que les autres services puissent savoir quand ce service est prêt
-            if ('loading' in service) {
-                
-                console.log(`[services] Waiting service ${id} to be fully loaded ...`);
-                service.loading = service.load().then(() => {
-                    console.info(`[service] Service ${id} successfully started.`);
-                }).catch(e => {
-                    // Bug report via email
-                    console.error(`[service] Error while starting the ${id} service:`, e);
-                    e.message = `Start ${id} service: ` + e.message;
-                    $.console.bugReport.server(e);
-                });;
-
-                this.loading.push(service.loading);
-                
-            } else
-                service.load();
-        }
-    }
-
-    // Test if a service was registered
-    public isLoaded( id: keyof Core.Services ) {
-        return id in this.services;
-    }
-
-    public on( name: THookName, callback: THook ) {
-        this.hooks[ name ].push( callback );
-        return this;
-    }
-
-    public runHook( hookName: THookName ) {
-        console.info(`[hook] Run all ${hookName} hook (${this.hooks.ready.length}).`);
-        return Promise.all( 
-            this.hooks.ready.map(
-                cb => cb().catch(e => {
-                    console.error(`[hook] Error while executing hook ${hookName}:`, e);
-                })
-            ) 
-        ).then(() => {
-            console.info(`[hook] Hooks ${hookName} executed with success.`);
-        })
+    // Require a service at file scope
+    //  Only use in files where a service is strictly required 
+    public use<ServiceType extends Service<{}, {}, this>>( serviceName: string ): ServiceType | undefined {
+        return this[ serviceName ];
     }
 
     /*----------------------------------
     - LAUNCH
     ----------------------------------*/
-    public async launch() {
+
+    public async register() {
+
+    }
+    
+    public async start() {
 
         console.info(`[boot] Waiting for all services to be ready ...`);
-        await Promise.all( this.loading );
+        await this.startServices()
 
         console.info(`[boot] Launching application ...`);
         await this.runHook('ready');
 
-        // NOTE: Useless ?
-        /*if (this.hmr)
-            this.activateHMR();*/
+        console.info(`[boot] Run application-specific boot instructions ...`);
+        await this.boot();
 
         console.info(`[boot] Application is ready.`);
-        
         this.launched = true;
 
     }
 
+    public registerService( service: AnyService ) {
+        console.log(`[app] Register service`, service.constructor?.name);
+        this.servicesList.push(service);
+    }
+
+    public async startServices() {
+
+        console.log(`[app] Sorting ${this.servicesList.length} services by priority`);
+        this.servicesList.sort((s1, s2) => s2.priority - s1.priority);
+
+        console.log(`[app] Starting ${this.servicesList.length} services.`);
+        for (const service of this.servicesList) {
+            const serviceClassName = service.constructor?.name;
+            console.log(`[app] Start service`, serviceClassName);
+
+            if (service.register)
+                service.register();
+
+            if (service.start) {
+                service.started = service.start();
+                await service.started;
+            }
+        }
+
+        console.log(`[app] All ${this.servicesList.length} services were started.`);
+    }
+
+    public abstract boot(): Promise<void>;
+
+    // TODO: make it work
     private activateHMR() {
 
         if (!module.hot) return;
@@ -216,17 +178,16 @@ export class App {
             console.info(`Cleaning application ...`);
 
             // Services hooks
-            for (const id in this.services) {
+            /*for (const id in this.services) {
                 const service = this.services[id]
                 if (service.cleanup) {
                     console.info(`Cleaning ${id} service ...`);
                     service.cleanup();
                 }
-            }
+            }*/
 
             // Application specific hooks
-            for (const callback of this.hooks.cleanup)
-                callback();
+            this.runHook('cleanup');
 
             /*
             console.log("[nettoyage] Arrêt serveur socket ...");
@@ -240,8 +201,3 @@ export class App {
     }
 
 }
-
-const app = new App;
-export const services = app.services;
-export const $ = app.services;
-export default app;

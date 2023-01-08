@@ -6,7 +6,7 @@
 import { useState as reactUseState, useEffect as reactUseEffect } from 'preact/hooks';
 
 // Libs
-import useContexte from '@client/context';
+import useContexte from '@/client/context';
 
 // Libs spécifiques
 import { execFetchersState, initStateAsync } from './fetchers';
@@ -18,7 +18,7 @@ import { execFetchersState, initStateAsync } from './fetchers';
 
 import TRequeteApi, { TOptionsRequete } from '@common/api';
 
-import { TDataResolved } from '@client/router';
+import { TDataResolved } from '@client/services/router';
 
 /*----------------------------------
 - TYPES: DEFINITIONS

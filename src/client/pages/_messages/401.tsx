@@ -6,7 +6,7 @@
 import React from 'react';
 
 // Core
-import route from '@router';
+import { router } from '@app';
 import Button from '@client/components/button';
 
 // App
@@ -18,7 +18,7 @@ import Button from '@client/components/button';
 /*----------------------------------
 - CONTROLEUR
 ----------------------------------*/
-route.error(401, {  }, ({ }, { api, toast, modal, request, page }) => {
+router.error(401, {  }, ({ }, { api, toast, modal, request, page }) => {
 
     request.response?.redirect('/');
 

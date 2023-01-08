@@ -8,7 +8,7 @@ import type { ComponentChild } from 'preact';
 
 // Core components
 import Button from '@client/components/button';
-import { Link } from '@client/router';
+import { Link } from '@client/services/router';
 
 // Resources
 import './index.less';

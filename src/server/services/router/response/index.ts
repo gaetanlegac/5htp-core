@@ -12,16 +12,16 @@ import fs from 'fs-extra';
 import express from 'express';
 
 // Core
-import { $ } from '@server/app';
-import { NotFound, Forbidden } from '@common/errors';
-
-// Libs métier
-import * as render from '../../../libs/pages/render';
-import filter from './filter';
+import Application from '@server/app';
+import type ServerRouter from '@server/services/router';
 import ServerRequest from '@server/services/router/request';
 import { TRoute } from '@common/router';
-import BaseResponse, { TResponseData, PageResponse } from '@common/router/response';
-import { ClientContext } from '@client/context';
+import { NotFound, Forbidden } from '@common/errors';
+import BaseResponse, { TResponseData } from '@common/router/response';
+import Page from './page';
+
+// To move into a new npm module: json-mask
+import jsonMask from './mask';
 
 /*----------------------------------
 - TYPES
@@ -29,98 +29,139 @@ import { ClientContext } from '@client/context';
 
 const debug = true;
 
-export type TSsrData = {
+export type TBasicSSrData = {
     request: { data: TObjetDonnees, id: string },
-    page: { id: string, data?: TObjetDonnees },
-    user: User | null
+    page: { chunkId: string, data?: TObjetDonnees },
+    //user: User | null
 }
+
+export type TRouterContext<TRouter extends ServerRouter = ServerRouter> = (
+    // Request context
+    {
+        app: Application,
+        context: TRouterContext<TRouter>, // = this
+        request: ServerRequest<TRouter>,
+        api: ServerRequest<TRouter>["api"],
+        response: ServerResponse<TRouter>,
+        route: TRoute,
+        page?: Page,
+        user: User
+    }
+    &
+    TRouterContextServices<TRouter>
+)
+
+type TRouterContextWithPage = With<TRouterContext, 'page'>
+
+export type TRouterContextServices<TRouter extends ServerRouter> = (
+    // Custom context via servuces
+    // For each roiuter service, return the request service (returned by roiuterService.requestService() )
+    {
+        [serviceName in keyof TRouter["services"]]: ReturnType< TRouter["services"][serviceName]["requestService"] >
+    }
+)
+
 
 /*----------------------------------
 - CLASSE
 ----------------------------------*/
-export default class ServerResponse<TData extends TResponseData = TResponseData> extends BaseResponse<TData, ServerRequest> {
+export default class ServerResponse<
+    TRouter extends ServerRouter,
+    TRequestContext = TRouterContext<ServerRouter>,
+    TData extends TResponseData = TResponseData
+> extends BaseResponse<TData, ServerRequest<TRouter>> {
 
+    // Services
+    public app: Application;
+    public router: ServerRouter;
+
+    // Response metadata
     public statusCode: number = 200;
     public headers: {[cle: string]: string} = {}
-    private triggers: {[cle: string]: any[]} = {}
     public cookie: express.Response["cookie"];
 
+    // If data was provided by at lead one controller
     public wasProvided = false;
 
-    public constructor( request: ServerRequest ) {
+    public constructor( request: ServerRequest<TRouter> ) {
 
         super(request);
 
         this.cookie = this.request.res.cookie.bind(this.request.res);
+
+        this.router = request.router;
+        this.app = this.router.app;
     }
 
-    public async runController( route: TRoute, additionnalData?: TObjetDonnees ) {
+    public async runController( route: TRoute, additionnalData: {} = {} ) {
 
         this.route = route;
 
-        if (this.route.type === 'PAGE') {
+        // Create response context for controllers
+        const context = this.createContext(route);
 
-            const context = new ClientContext(this.request);
+        // Run controller
+        const response = await this.route.controller( context );
 
-            // Prepare page & fetch data
-            const page = await context.createPage(this.route);
-            await page.fetchData();
-            if (additionnalData !== undefined) // Example: error message for error pages
-                page.data = { ...page.data, ...additionnalData }
+        // Handle response type
+        if (response === undefined)
+            return;
 
-            // Render page
-            const document = await render.page(page, this, context);
-            this.html(document);
-
-            // Never put html in the cache
-            // Because assets urls need to be updated when their hash has been changed by a release
-            this.request.res.setHeader("Expires", "0");
-
-        } else {
-
-            // Validate form data
-            if (this.route.options.form !== undefined) {
-                const formData = await this.request.schema.validate( this.route.options.form );
-                console.log("FORM DATA VIA RESPONSE", formData);
-                this.request.data = { ...this.request.data, ...formData }
-            }
-
-            const controllerData = additionnalData === undefined
-                ? this.request.data
-                // Example: error message for error pages
-                : { ...this.request.data, ...additionnalData }
-
-                // Run controller
-            const returnedData = await this.route.controller(this.request, controllerData);
-
-            // Default data type for `return <raw data>`
-            if (returnedData !== undefined && !(returnedData instanceof ServerResponse)) {
-                if (typeof returnedData === 'string' && this.route.options.accept === 'html')
-                    await this.html(returnedData);
-                else
-                    await this.json(returnedData);
-            }
-        }
+        // Default data type for `return <raw data>`
+        if (response instanceof Page)
+            await this.render(response, context, additionnalData);
+        else if (typeof response === 'string' && this.route.options.accept === 'html')
+            await this.html(response);
+        else
+            await this.json(response);
     }
 
     /*----------------------------------
     - INTERNAL
     ----------------------------------*/
 
-    public async forSsr(page: PageResponse): Promise<TSsrData> {
+    // Start controller services
+    private createContext( route: TRoute ): TRequestContext {
+
+        const contextServices: Partial<TRouterContextServices<TRouter>> = {}
+        for (const serviceName in this.router.services) {
+
+            const routerService = this.router.services[serviceName];
+            contextServices[ serviceName ] = routerService.requestService( this );
+
+        }
+
+        const context: TRequestContext = {
+            // Router context
+            app: this.app,
+            context: undefined as TRequestContext,
+            request: this.request,
+            response: this,
+            route: route,
+            api: this.request.api,
+            // Router services
+            ...(contextServices as TRouterContextServices<TRouter>),
+        }
+
+        context.context = context;
+
+        return context;
+    }
+
+    public async forSsr( page: Page<TRouter> ): Promise<TBasicSSrData> {
+
+        const customSsrData = await this.router.config.ssrData(this.request);
+
         return {
             request: {
                 id: this.request.id,
                 data: this.request.data,
             },
             page: {
-                id: page.id,
+                chunkId: page.chunkId,
                 data: page.data
             },
-
-            user: this.request.user
-                ? await filter(this.request.user, $.auth.SsrMask, this.request.user)
-                : null
+            ...customSsrData
         }
     }
 
@@ -138,13 +179,34 @@ export default class ServerResponse<TData extends TResponseData = TResponseData>
     - DATA RESPONSE
     ----------------------------------*/
 
+    public async render( page: Page, context: TRouterContext, additionnalData: {} ) {
+
+        // Set page in context for the client side
+        context.page = page;
+        
+        // Prepare page & fetch data
+        await page.fetchData();
+        if (additionnalData !== undefined) // Example: error message for error pages
+            page.data = { ...page.data, ...additionnalData }
+
+        // Render page
+        this.router.runHook('render', page);
+        const document = await page.render();
+        this.html(document);
+
+        // Never put html in the cache
+        // Because assets urls need to be updated when their hash has been changed by a release
+        this.request.res.setHeader("Expires", "0");
+
+    }
+
     public async json(data?: any, mask?: string) {
 
-        // RAPPEL: On filter aussi les requetes internes, car leurs données seront imprimées au SSR pour le contexte client
+        // RAPPEL: On jsonMask aussi les requetes internes, car leurs données seront imprimées au SSR pour le contexte client
         // filtreApi vérifie systèmatiquement si la donnée a été filtrée
         // NOTE: On évite le filtrage sans masque spécifié (performances + risques erreurs)
         if (mask !== undefined)
-            data = await filter(data, mask, this.request.user);
+            data = await jsonMask(data, mask, this.request.user);
 
         this.headers['Content-Type'] = 'application/json';
         this.data = this.request.isVirtual ? data : JSON.stringify(data);
@@ -170,17 +232,15 @@ export default class ServerResponse<TData extends TResponseData = TResponseData>
     // TODO: https://github.com/adonisjs/http-server/blob/develop/src/Response/index.ts#L430
     public file( fichier: string ) {
 
-        const app = this.request.router.app;
-
         // Securité
         if (fichier.includes('..'))
             throw new Forbidden("Disallowed");
 
         // Force absolute path
-        if (!fichier.startsWith( app.path.root ))
+        if (!fichier.startsWith( this.app.path.root ))
             fichier = fichier[0] === '/'
-                ? app.path.root + '/bin' + fichier
-                : app.path.data + '/' + fichier;
+                ? this.app.path.root + '/bin' + fichier
+                : this.app.path.data + '/' + fichier;
 
         console.log(`[response] Serving file "${fichier}"`);
 

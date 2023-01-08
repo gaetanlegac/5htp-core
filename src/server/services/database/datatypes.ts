@@ -1,74 +1,97 @@
+/*----------------------------------
+- DEPENDANCES
+----------------------------------*/
+import type { TMetasColonne } from './metas';
+
+/*----------------------------------
+- TYPES
+----------------------------------*/
+
 type JsType = {
     parse: (value: string) => any,
-    typescript: string
+    print: (col: TMetasColonne) => string
 }
 
-const js: {
-    [type: string]: JsType
-} = {
+export type TJsTypeName = keyof typeof js;
+export type TMySQLTypeName = keyof typeof mysqlToJs;
+
+/*----------------------------------
+- LISTS
+----------------------------------*/
+export const js = {
     array: {
         parse: (val: string) => val.split(','),
-        typescript: 'string[]'
+        print: (col) => (col.type.sql.params.length 
+            ? '(' + col.type.sql.params.map( param => "'" + param + "'").join(' | ') + ')'
+            : 'string'
+        ) + '[]'
+    },
+    enum: {
+        parse: (val: string) => val,
+        print: (col) => col.type.sql.params.map( param => "'" + param + "'").join(' | ')
     },
     float: {
         parse: (val: string) => parseFloat(val),
-        typescript: 'number'
+        print: (col) => 'number'
     },
     int: {
         parse: (val: string) => parseFloat(val),
-        typescript: 'number'
+        print: (col) => 'number'
     },
     date: {
         parse: (val: string) => new Date(val),
-        typescript: 'Date'
+        print: (col) => 'Date'
     },
     string: {
         parse: (val: string) => val,
-        typescript: 'string'
+        print: (col) => 'string'
     },
     object: {
         parse: (val: string) => JSON.parse(val),
-        typescript: 'object'
+        print: (col) => 'object'
     },
     
     // When we were not able to find an equivalent
     unknown: {
         parse: (val: any) => val,
-        typescript: 'any'
+        print: (col) => 'any'
     },
-}
+} as const
 
-export const mysqlToJs: {
-    [type: string]: JsType
-} = {
-
-    'SET': js.array,
-
-    'DECIMAL': js.float,
-    'FLOAT': js.float,
-    'NEWDECIMAL': js.float,
-    'DOUBLE': js.float,
+// https://www.w3schools.com/sql/sql_datatypes.asp  
+export const mysqlToJs = {
+    // Float
+    'DECIMAL': 'float',
+    'FLOAT': 'float',
+    'NEWDECIMAL': 'float',
+    'DOUBLE': 'float',
+    'POINT': 'float',
         
-    'INT': js.int,
-    'BIGINT': js.int,
-    'LONG': js.int,
-    'LONGLONG': js.int,
-    'TINYINT': js.int,
-    'SMALLINT': js.int,
-    'MEDIUMINT': js.int,
+    // Integres
+    'INT': 'int',
+    'BIGINT': 'int',
+    'LONG': 'int',
+    'LONGLONG': 'int',
+    'TINYINT': 'int',
+    'SMALLINT': 'int',
+    'MEDIUMINT': 'int',
 
-    'DATE': js.date,
-    'DATETIME': js.date,
+    // Dates
+    'DATE': 'date',
+    'DATETIME': 'date',
 
-    'VARCHAR': js.string,
-    'CHAR': js.string,
-    'VAR_STRING': js.string,
-    'LONGTEXT': js.string,
-    'TEXT': js.string,
-    'ENUM': js.string,
+    // Strings
+    'VARCHAR': 'string',
+    'CHAR': 'string',
+    'VAR_STRING': 'string',
+    'LONGTEXT': 'string',
+    'TEXT': 'string',
+    'ENUM': 'enum',
 
-    'JSON': js.object,
+    // Objects
+    'SET': 'array',
+    'JSON': 'object',
 
     // When we were not able to find an equivalent
-    'UNKNOWN': js.unknown,
-}
+    'UNKNOWN': 'unknown',
+} as const

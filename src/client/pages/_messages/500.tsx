@@ -6,7 +6,7 @@
 import React from 'react';
 
 // Core
-import route from '@router';
+import { router } from '@app';
 import Button from '@client/components/button';
 
 // App
@@ -15,7 +15,7 @@ import useHeader from '@client/pages/useHeader';
 /*----------------------------------
 - CONTROLEUR
 ----------------------------------*/
-route.error( 500, {}, ({ message }) => {
+router.error( 500, {}, ({ message }) => {
 
     if (!message)
         message = "A technical error occurred.";

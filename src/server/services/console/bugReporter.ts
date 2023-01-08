@@ -6,8 +6,8 @@
 import { v4 as uuid } from 'uuid';
 
 // Core
-import app, { $ } from '@server/app';
-import type { Console } from '.';
+import { SqlError } from '@server/error';
+import type Console from '.';
 
 // Types
 import type ServerRequest from '@server/services/router/request';
@@ -72,8 +72,6 @@ export type ApplicationBug = {
     stacktrace: string
 }
 
-const config = app.config.console;
-
 /*----------------------------------
 - CONFIG
 ----------------------------------*/
@@ -110,7 +108,8 @@ export default class BugReporter {
     private sentBugs: {[bugId: string]: number} = {};
 
     public constructor(
-        private console: Console
+        private console: Console,
+        public app = console.app,
     ) {
 
     }
@@ -133,7 +132,16 @@ export default class BugReporter {
 
     public async server( error: Error, request?: ServerRequest ) {
 
-        // error should be printed in the console, so they're acccessible from logs
+        // Print the error so it's accessible via logs
+        if (error instanceof SqlError)  {
+            let printedQuery: string;
+            try {
+                printedQuery = this.console.printSql( error.query );
+            } catch (error) {
+                printedQuery = 'Failed to print query:' + (error || 'unknown error');
+            }
+            console.error(`Error caused by this query:`, printedQuery);
+        }
         console.error(LogPrefix, `Sending bug report for the following error:`, error);
 
         // Prevent duplicates
@@ -172,6 +180,7 @@ export default class BugReporter {
 
         await this.sendToTransporters(bugReport);
 
+        // TODO: Move on App side
         /*if (app.isLoaded('sql'))
             // Memorize
             $.sql.insert('BugServer', {
@@ -192,7 +201,7 @@ export default class BugReporter {
         error.message = "A bug report has been sent to my personal mailbox. Sorry for the inconvenience.";
     }
 
-    public async app( report: AppBugInfos ) {
+    public async application( report: AppBugInfos ) {
 
         // Prevent duplicates
         if (!this.shouldSendReport(report.side, report.user, report.action, report.message))
@@ -224,17 +233,12 @@ export default class BugReporter {
             stacktrace: report.stacktrace,
         }
 
-        await this.sendToTransporters(bugReport);
 
-        /* // Send notification
-        $.email.send({
-            to: app.identity.author.email,
-            subject: "Bug app: " + report.message,
-            html: report
-        });
-
+        // TODO: 
         // Memorize
-        $.sql.insert('BugApp', );*/
+        //$.sql.insert('BugApp', );
+
+        await this.sendToTransporters(bugReport);
     }
 
     private async sendToTransporters( bugReport: Bug, error?: Error ) {
@@ -246,7 +250,7 @@ export default class BugReporter {
         }
 
         // Don't send if we're in local (avoid to use credits: ex: email, sms)
-        if (app.env.name === 'local'){
+        if (this.app.env.name === 'local'){
             console.warn(LogPrefix, `Error report sending aborted since we're local.`);
             return false;
         }

@@ -2,70 +2,74 @@
 - DEPENDANCES
 ----------------------------------*/
 
-// Npm
-import { pathToRegexp, Key } from 'path-to-regexp';
-import type { ComponentChild } from 'preact';
+import { Layout } from './layouts';
 
 // types
 import type {
-    TRegisterPageArgs,
-    TClientRoute, 
-    TFrontRenderer 
-} from '@client/router';
+    default as ClientRouter,
+    TRouterContext as ClientRouterContext,
+    TRegisterPageArgs
+} from '@client/services/router';;
 
-import type { ClientContext } from '@client/context';
+import type { 
+    default as ServerRouter, 
+    TRouterContext as ServerRouterContext,
+    TRouteHttpMethod 
+} from '@server/services/router';
 
-import type { TSchema } from '@common/data/input/validate';
+import type { TUserRole } from '@server/services/users';
 
-import type { TApiServerRoute } from '@server/services/router';
+import type { TAppArrowFunction } from '@common/app';
 
-import type { TUserRole } from '@server/services/auth/base';
-
-/*----------------------------------
-- TYPES: layouts
-----------------------------------*/
-
-import layouts from '@/client/pages/**/_layout/index.tsx';
-
-type LayoutComponent = (attributes: { context: ClientContext }) => ComponentChild;
-export type Layout = { path: string, Component: LayoutComponent }
-const getLayout = (routePath: string | undefined): Layout | undefined => {
-    
-    let layout: Layout | undefined = layouts[''];
-    if (routePath) {
-        for (const layoutPath in layouts)
-            if (routePath === layoutPath || routePath.startsWith( layoutPath + '/' ))
-                layout = { path: layoutPath, Component: layouts[layoutPath] };
-    }
-    //layout && console.log(`${routePath}: Using Layout: ${layout.path}`);
-    return layout;
-}
+// Specfic
+import type ApiClient from './request/api';
+import type Request from './request';
+import type Response from './response';
+import type { default as Page, TFrontRenderer } from './response/page';
 
 /*----------------------------------
 - TYPES: ROUTES
 ----------------------------------*/
 
-export type TBaseRoute = {
-    path: string,
+export type { Layout } from './layouts';
 
+export type { default as Request } from './request';
+export type { default as Response } from './response';
+
+export type ClientOrServerRouter = ClientRouter | ServerRouter;
+
+export type TRoute<RouterContext = TClientOrServerContext> = {
+
+    // Match
+    method: TRouteHttpMethod,
+    path: string,
     regex: RegExp,
     keys: (number | string)[],
 
+    // Execute
+    controller: TRouteController<RouterContext>,//TServerController<TRouter> | TFrontRenderer<TRouter>,
     options: TRouteOptions
 }
 
-export type TRoute = TApiServerRoute | TClientRoute;
-
-export type TErrorRoute = {
-    type: 'PAGE',
-    renderer: TFrontRenderer,
-    options: {}
+export type TErrorRoute<RouterContext = TClientOrServerContext> = {
+    code,
+    controller: TRouteController<RouterContext>,
+    options: TRouteOptions
 }
+
+export type TClientOrServerContext = (
+    ClientRouterContext<ClientRouter, ClientRouter["app"]>
+    | 
+    ServerRouterContext<ServerRouter>
+)
+
+export type TRouteController<RouterContext = TClientOrServerContext> = 
+    (context: RouterContext) => /* Page to render */Page | /* Any data (html, json) */Promise<any>
 
 export type TRouteOptions = {
 
     // Injected by the page plugin
-    filepath: string,
+    filepath?: string,
 
     // Indexing
     bodyId?: string,
@@ -78,12 +82,17 @@ export type TRouteOptions = {
 
     // Access Restriction
     auth?: TUserRole | boolean,
-    form?: TSchema,
+    //form?: TSchema,
     layout?: false | Layout,
 
     TESTING?: boolean,
     logging?: boolean,
 
+}
+
+export type TRouteModule<TRegisteredRoute = any> = { 
+    // exporing __register is a way to know we axport a TAppArrowFunction
+    __register?: TAppArrowFunction<TRegisteredRoute> 
 }
 
 export const defaultOptions = {
@@ -94,55 +103,10 @@ export const defaultOptions = {
 - BASE ROUTER
 ----------------------------------*/
 
-export default abstract class BaseRouter {
+export default abstract class RouterInterface {
 
-    public page = <TControllerData extends TObjetDonnees = {}>(...args: TRegisterPageArgs<TControllerData>) =>
-        this.registerPage(...args);
+    public abstract page<TControllerData extends TObjetDonnees = {}>(...args: TRegisterPageArgs<TControllerData>);
 
-    public error = (code: number, options, renderer: TFrontRenderer<{ message: string }>) =>
-        this.registerErrorPage(code, options, renderer);
-
-    protected abstract registerPage(...page: TRegisterPageArgs ): any;
-
-    public errors: { [code: number]: TErrorRoute } = {};
-    protected registerErrorPage( code: number, options, renderer: TFrontRenderer ) {
-        return this.errors[code] = {
-            type: 'PAGE',
-            renderer,
-            options
-        };
-    }
-
-    protected getRegisterPageArgs(...args: TRegisterPageArgs) {
-
-        const [path, options, controller, renderer] = args;
-
-        // S'il s'agit d'une page, son id doit avoir été injecté via le plugin babel
-        if (options["id"] === undefined)
-            throw new Error(`ID not found for the following page route: ${path}`);
-
-        // Bind layout
-        if (options.layout !== false)
-            options.layout = getLayout(options.filepath);
-
-        return { path, options, controller, renderer }
-
-    }
-
-    protected buildRegex( path: string ) {
-
-        // pathToRegexp ne supporte plus les wildcards depuis 4.0
-        if (path.endsWith('*'))
-            path = path.substring(0, path.length - 1) + '(.*)';
-
-        // path => regex
-        const keys: Key[] = []
-        const regex = pathToRegexp(path, keys, {
-            sensitive: true
-        }); 
-
-        return { keys, regex }
-
-    }
+    public abstract error(code: number, options, renderer: TFrontRenderer<{}, { message: string }>);
 
 }

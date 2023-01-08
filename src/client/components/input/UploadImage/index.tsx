@@ -9,7 +9,7 @@ import { ComponentChild } from 'preact';
 import Bouton from '@client/components/button';
 
 // Libs
-import useContext, { useState } from '@client/context';
+import useContext, { useState } from '@/client/context';
 import NormalisedFile from '@common/data/file';
 
 // Ressources

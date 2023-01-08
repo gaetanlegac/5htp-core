@@ -7,8 +7,8 @@ import React from 'react';
 import { VNode, RefObject,ComponentChild } from 'preact';
 
 // Core
-import { history } from '@client/router/request/history';
-import useContext from '@client/context';
+import { history } from '@client/services/router/request/history';
+import useContext from '@/client/context';
 
 /*----------------------------------
 - TYPES

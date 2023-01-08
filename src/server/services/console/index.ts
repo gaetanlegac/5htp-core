@@ -8,20 +8,21 @@ import { format as formatSql } from 'sql-formatter';
 import highlight from 'cli-highlight';
 
 // Core libs
-import app, { $ } from '@server/app';
-import logToHTML from './html';
+import Application, { Service, TPriorityLevel } from '@server/app';
 import context from '@server/context';
+import type ServerRequest from '@server/services/router/request';
+
+// Specific
+import logToHTML from './html';
 import BugReporter from "./bugReporter";
 
 /*----------------------------------
 - SERVICE CONFIG
 ----------------------------------*/
 
-export type TReportTransport = keyof typeof $
-
 type TLogProfile = 'silly' | 'info' | 'warn' | 'error'
 
-export type ConsoleConfig = {
+export type Config = {
     dev: {
         level: TLogProfile,
     },
@@ -30,15 +31,8 @@ export type ConsoleConfig = {
     }
 }
 
-declare global {
-    namespace Core {
-        interface EmailTransporters { }
-        namespace Config {
-            interface Services {
-                console: ConsoleConfig
-            }
-        }
-    }
+export type Hooks = {
+
 }
 
 /*----------------------------------
@@ -110,7 +104,10 @@ const logFields = [
 /*----------------------------------
 - LOGGER
 ----------------------------------*/
-export class Console {
+export default class Console extends Service<Config, Hooks, Application> {
+
+    // Load before all
+    public priority: TPriorityLevel = 2;
 
     // Services
     public logger!: Logger;
@@ -122,36 +119,50 @@ export class Console {
     public requests: TRequestLogs[] = [];
     public sqlQueries: TQueryLogs[] = [];
 
-    /*----------------------------------
-   - INSTANCE
-   ----------------------------------*/
-    public load() {
+    // Adapters
+    public log = console.log;
+    public warn = console.warn;
+    public info = console.info;
+    public error = console.error;
 
-        const envConfig = app.config.console[ app.env.profile ];
+    /*----------------------------------
+    - INSTANCE
+    ----------------------------------*/
+    public async register() {
+
+    }
+
+    public async start() {
+
+        const envConfig = this.config[ this.app.env.profile ];
 
         this.logger = new Logger({
             overwriteConsole: true,
-            //type: app.env.profile === 'dev' ? 'pretty' : 'hidden',
+            //type: this.app.env.profile === 'dev' ? 'pretty' : 'hidden',
             requestId: (): string => {
                 const { channelType, channelId } = this.getChannel();
                 return channelId === undefined ? channelType : channelType + ':' + channelId;
             },
             displayRequestId: false,
+            prettyInspectOptions: {
+                depth: 2
+            }
         });
 
         this.logger.attachTransport({
-            silly: this.log.bind(this),
-            debug: this.log.bind(this),
-            trace: this.log.bind(this),
-            info: this.log.bind(this),
-            warn: this.log.bind(this),
-            error: this.log.bind(this),
-            fatal: this.log.bind(this),
+            silly: this.logEntry.bind(this),
+            debug: this.logEntry.bind(this),
+            trace: this.logEntry.bind(this),
+            info: this.logEntry.bind(this),
+            warn: this.logEntry.bind(this),
+            error: this.logEntry.bind(this),
+            fatal: this.logEntry.bind(this),
         }, envConfig.level);
 
         setInterval(() => this.clean(), 60000);
 
-        return this.logger;
+        // Send email report
+        this.app.on('error', (error: Error, request?: ServerRequest) => this.bugReport.server(error, request));
     }
 
     private clean() {
@@ -169,7 +180,7 @@ export class Console {
         }
     }
 
-    private log(entry: ILogObject) {
+    private logEntry(entry: ILogObject) {
 
         const [channelType, channelId] = entry.requestId?.split(':') || ['master'];
         if (entry.requestId === 'admin')
@@ -184,10 +195,10 @@ export class Console {
         // remove webpack path
         if (miniLog.filePath !== undefined) {
 
-            const appPrefix = '/webpack:/' + app.pkg.name + '/src/';
+            const appPrefix = '/webpack:/' + this.app.pkg.name + '/src/';
             const appPrefixIndex = miniLog.filePath.indexOf(appPrefix);
 
-            const corePrefix = '/webpack:/' + app.pkg.name + '/node_modules/5htp-core/src/';
+            const corePrefix = '/webpack:/' + this.app.pkg.name + '/node_modules/5htp-core/src/';
             const corePrefixIndex = miniLog.filePath.indexOf(corePrefix);
 
             if (appPrefixIndex !== -1)
@@ -216,8 +227,8 @@ export class Console {
     - READ
     ----------------------------------*/
 
-    public getClients() {
-        return $.sql`
+    /*public getClients() {
+        return sql`
             SELECT * FROM logs.Clients
             ORDER BY activity DESC
             LIMIT 100
@@ -228,7 +239,7 @@ export class Console {
         return (
             this.clients.find(c => c.id === clientId)
             ||
-            await $.sql`
+            await sql`
                 SELECT * FROM logs.Clients
                 WHERE id = ${clientId}
             `.first()
@@ -236,7 +247,7 @@ export class Console {
     }
 
     public getRequests(clientId?: string) {
-        return $.sql`
+        return sql`
             SELECT * FROM logs.Requests
             ORDER BY date DESC
             LIMIT 100
@@ -247,7 +258,7 @@ export class Console {
         return (
             this.requests.find(r => r.id === requestId)
             ||
-            await $.sql`
+            await sql`
                 SELECT * FROM logs.Requests
                 WHERE id = ${requestId}
             `.first()
@@ -260,13 +271,13 @@ export class Console {
         if (channelId !== undefined)
             filters.channelId = channelId;
 
-        return $.sql`
+        return sql`
             SELECT * FROM logs.Queries
             WHERE :${filters} 
             ORDER BY date DESC
             LIMIT 100
         `.all();
-    }
+    }*/
 
     public async getLogs( channelType: ChannelInfos["channelType"], channelId?: string ) {
 
@@ -283,7 +294,7 @@ export class Console {
  
     public printHtml(logs: TLog[], full: boolean = false): string {
 
-        let html = logs.map( log => logToHTML( log, this )).join('\n');
+        let html = logs.map( logEntry => logToHTML( logEntry, this )).join('\n');
 
         if (full) {
             const consoleCss = `background: #000; padding: 20px; font-family: 'Fira Mono', 'monospace', 'Monaco'; font-size: 12px; line-height: 20px;`
@@ -298,16 +309,4 @@ export class Console {
         { language: 'sql', ignoreIllegals: true }
     )
 
-}
-
-/*----------------------------------
-- REGISTER SERVICE
-----------------------------------*/
-app.register('console', Console);
-declare global {
-    namespace Core {
-        interface Services {
-            console: Console;
-        }
-    }
 }

@@ -6,8 +6,6 @@
 import React from 'react';
 
 // Core
-import route from '@router';
-import { useState } from '@client/context';
 
 // Core components
 import Button, { Props as ButtonProps } from '@client/components/button';

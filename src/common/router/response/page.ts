@@ -2,19 +2,38 @@
 - DEPENDANCES
 ----------------------------------*/
 
-import type { ComponentChild } from 'preact';
+import type { ComponentChild, FunctionComponent } from 'preact';
 
 // Core libs
-import { TClientRoute, TFrontRenderer } from '@client/router';
-import { TFetcherList } from '@common/router/request';
-import { history } from '@client/router/request/history';
-import { ClientContext } from '@client/context';
+import { ClientOrServerRouter, TClientOrServerContext } from '@common/router';
+import { TFetcherList, TDataReturnedByFetchers } from '@common/router/request/api';
+import { history } from '@client/services/router/request/history';
 
 /*----------------------------------
 - TYPES
 ----------------------------------*/
 
-type TResource = {
+// The function that fetch data from the api before to pass them as context to the renderer
+export type TDataProvider<TProvidedData extends TFetcherList = {}> = 
+    (context: TClientOrServerContext/* & TUrlData */) => TProvidedData
+
+
+
+// The function that renders routes
+export type TFrontRenderer<
+    TProvidedData extends TFetcherList = {}, 
+    TAdditionnalData = {},
+    TRouter = ClientOrServerRouter,
+> = FunctionComponent<(
+    TClientOrServerContext 
+    & 
+    TDataReturnedByFetchers<TProvidedData>
+    &
+    TAdditionnalData
+)>;
+
+// Script or CSS resource
+export type TPageResource = {
     id: string,
     attrs?: TObjetDonnees
 } & ({
@@ -27,70 +46,35 @@ type TResource = {
 /*----------------------------------
 - CLASS
 ----------------------------------*/
-export default class PageResponse {
-
-    // Render
-    public id: string;
-    public data: TObjetDonnees = {};
-    public loading: ComponentChild = false;
-    public component: TFrontRenderer;
+export default class PageResponse<TRouter extends ClientOrServerRouter = ClientOrServerRouter> {
 
     // Metadata
+    public chunkId: string;
     public title?: string;
     public description?: string;
     public bodyClass: Set<string> = new Set<string>();
     public bodyId?: string;
 
-    // resources
+    // Resources
     public amp?: boolean;
-    public scripts: TResource[] = [];
-    public style: TResource[] = [];
+    public scripts: TPageResource[] = [];
+    public style: TPageResource[] = [];
 
-    // State
-    public hash?: string; // Element id to scroll to
-
-    public constructor( 
-        public context: ClientContext,
-        public route: TClientRoute,
-        data: TObjetDonnees = {},
-    ) {
-        this.id = route.options.id; // Binded by the pages babel plugin
-        this.bodyId = route.options.bodyId;
-        this.component = route.renderer;
-        this.data = data;
-        this.hash = context.request.hash;
-    }
-
-    // API data fetchers
+    // Data
     public fetchers: TFetcherList = {};
+    public data: TObjetDonnees = {};
 
-    // Should be called AFTER rendering the page
-    public updateClient() {
+    public constructor(
+        public dataProvider: TDataProvider | null,
+        public renderer: TFrontRenderer,
+        public context: TClientOrServerContext
+    ) {
 
-        document.body.id = this.bodyId || this.id;
-        document.title = this.title || APP_NAME;
-        document.body.className = [...this.bodyClass].join(' ');
-        
+        this.chunkId = context.route.options["id"];
+       
     }
     
-
     public async fetchData() {
-        this.isDataLoaded = true;
-        this.data = await this.context.request.fetchSync(this.fetchers);
-        return this.data;
-    }
-
-    public setAllData( callback: (data: {[k: string]: any}) => void) { 
-        console.warn(`page.setAllData not yet attached to the page Reatc component.`); 
-    }
-    public setData( key: string, value: ((value: any) => void) | any ) {
-        this.setAllData(old => ({ 
-            ...old, 
-            [key]: typeof value === 'function' ? value(old[key]) : value 
-        }));
-    }
-
-    public go( url: string ) {
-        history?.replace(url);
+        return await this.context.request.api.fetchSync( this.fetchers );
     }
 }

@@ -26,13 +26,9 @@
         "baseUrl": "./src",
         "paths": {
             
-            "@root/*": ["./*"],
             "@client/*": ["./client/*"],
             "@common/*": ["./common/*"],
             "@server/*": ["./server/*"],
-
-            "@errors": ["./common/errors"],
-            "@models": ["./common/models"],
 
             "react": ["preact/compat"],
             "react-dom": ["preact/compat"],

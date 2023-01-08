@@ -10,7 +10,7 @@ import Textarea from '@client/components/input/Textarea';
 import Card, { Props as CardProps } from '@client/components/Dialog/card';
 
 // Core libs
-import useContext from '@client/context';
+import useContext from '@/client/context';
 
 /*----------------------------------
 - TYPES
