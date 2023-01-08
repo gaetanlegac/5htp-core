@@ -71,7 +71,7 @@ type TSelectQueryResult = any;
 /*----------------------------------
 - SERVICES
 ----------------------------------*/
-export default class FastDatabase extends Service<DatabaseServiceConfig, THooks, Application> {
+export default class DatabaseConnection extends Service<DatabaseServiceConfig, THooks, Application> {
 
     private initialized = false;
     public connection!: mysql.Pool;
@@ -194,11 +194,12 @@ export default class FastDatabase extends Service<DatabaseServiceConfig, THooks,
                 jsTypeName = mysqlToJs['UNKNOWN'];
             }
 
-            const jsType = jsTypes[ mysqlType.name ];
-
             type = {
                 sql: mysqlType,
-                js: jsType
+                js: {
+                    name: jsTypeName,
+                    params: []
+                }
             }
         }
 
