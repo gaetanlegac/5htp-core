@@ -101,19 +101,19 @@ export default class SQL extends Service<Config, Hooks, Application> {
 
         const string = this.string(strings, ...data);
 
-        const query = (options: TSelectQueryOptions = {}) => this.select<TRowData>(string, options);
+        const query = (opts: TSelectQueryOptions = {}) => this.select<TRowData>(string, opts);
 
         query.all = query;
         query.run = (opts: TQueryOptions = {}) => this.database.query<TRowData[]>(string, opts);
         query.then = (cb: (data: any) => void) => query().then(cb);
 
-        query.first = <TRowData extends TObjetDonnees = {}>() => this.first<TRowData>(string);
-        query.firstOrFail = (message?: string) => this.firstOrFail<TRowData>(string, message);
+        query.first = <TRowData extends TObjetDonnees = {}>(opts: TSelectQueryOptions = {}) => this.first<TRowData>(string, opts);
+        query.firstOrFail = (message?: string, opts: TQueryOptions = {}) => this.firstOrFail<TRowData>(string, message, opts);
 
-        query.value = <TValue extends any = number>() => this.selectVal<TValue>(string);
+        query.value = <TValue extends any = number>(opts: TQueryOptions = {}) => this.selectVal<TValue>(string, opts);
         
-        query.count = () => this.count(string);
-        query.exists = () => this.exists(string);
+        query.count = (opts: TQueryOptions = {}) => this.count(string, opts);
+        query.exists = (opts: TQueryOptions = {}) => this.exists(string, opts);
 
         /*query.stats = (periodStr: string, intervalStr: string, columns: string[]) =>
             fetchStats(columns, string, periodStr, intervalStr)*/
