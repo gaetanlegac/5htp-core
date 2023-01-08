@@ -18,7 +18,7 @@ import Button from '@client/components/button';
 /*----------------------------------
 - CONTROLEUR
 ----------------------------------*/
-router.error(401, {  }, ({ }, { api, toast, modal, request, page }) => {
+router.error(401, {  }, ({ api, toast, modal, request, page }) => {
 
     request.response?.redirect('/');
 

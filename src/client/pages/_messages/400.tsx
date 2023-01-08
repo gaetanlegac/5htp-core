@@ -15,7 +15,7 @@ import useHeader from '@client/pages/useHeader';
 /*----------------------------------
 - CONTROLEUR
 ----------------------------------*/
-router.error(400, {}, ({ message }, { modal }) => {
+router.error(400, {}, ({ message, modal }) => {
 
     if (!message)
         message = "The request you made is incorrect.";

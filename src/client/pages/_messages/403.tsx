@@ -15,7 +15,7 @@ import useHeader from '@client/pages/useHeader';
 /*----------------------------------
 - CONTROLEUR
 ----------------------------------*/
-router.error( 403, {}, ({ message }, { modal }) => {
+router.error( 403, {}, ({ message, modal }) => {
 
     if (!message)
         message = "You do not have sufficient permissions to access this content.";

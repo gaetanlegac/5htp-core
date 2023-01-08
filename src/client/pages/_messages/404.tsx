@@ -15,7 +15,7 @@ import useHeader from '@client/pages/useHeader';
 /*----------------------------------
 - CONTROLEUR
 ----------------------------------*/
-router.error( 404, {}, ({ message }, { modal }) => {
+router.error( 404, {}, ({ message, modal }) => {
 
     if (!message)
         message = "The content you asked for was not found.";
