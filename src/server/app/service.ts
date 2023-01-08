@@ -20,7 +20,7 @@ type THookOptions = {
     args: any[]
 }
 
-type TPriority = -2 | -1 | 0 | 1 | 2
+export type TPriority = -2 | -1 | 0 | 1 | 2
 
 /*----------------------------------
 - CONFIG

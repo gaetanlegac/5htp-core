@@ -10,12 +10,13 @@ import fs from 'fs-extra';
 // Core
 import ConfigParser, { TEnvConfig } from './config';
 import { default as Service, AnyService } from './service';
-export { default as Service } from './service';
 import type { default as Router, Request as ServerRequest } from '@server/services/router';
 
 /*----------------------------------
 - TYPES
 ----------------------------------*/
+
+export { default as Service, TPriority } from './service';
 
 type Config = {
 
