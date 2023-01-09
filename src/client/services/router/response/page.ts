@@ -5,7 +5,6 @@
 // Core
 import type { TClientOrServerContext } from '@common/router';
 import PageResponse, { TDataProvider, TFrontRenderer } from "@common/router/response/page";
-import { history } from '@client/services/router/request/history';
 
 // Specific
 import type ClientRouter from '..';
@@ -80,10 +79,6 @@ export default class ClientPage<TRouter = ClientRouter> extends PageResponse<TRo
             ...old, 
             [key]: typeof value === 'function' ? value(old[key]) : value 
         }));
-    }
-
-    public go( url: string ) {
-        history?.replace(url);
     }
 
     public loadIndicator;
