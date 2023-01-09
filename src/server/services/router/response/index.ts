@@ -123,11 +123,12 @@ export default class ServerResponse<
     // Start controller services
     private createContext( route: TRoute ): TRequestContext {
 
+
         const contextServices: Partial<TRouterContextServices<TRouter>> = {}
         for (const serviceName in this.router.services) {
 
             const routerService = this.router.services[serviceName];
-            contextServices[ serviceName ] = routerService.requestService( this );
+            contextServices[ serviceName ] = routerService.requestService( this.request );
 
         }
 
@@ -190,7 +191,7 @@ export default class ServerResponse<
             page.data = { ...page.data, ...additionnalData }
 
         // Render page
-        this.router.runHook('render', page);
+        await this.router.runHook('render', page);
         const document = await page.render();
         this.html(document);
 

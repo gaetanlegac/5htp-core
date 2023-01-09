@@ -19,7 +19,7 @@ import Application, { Service } from '@server/app';
 import context from '@server/context';
 import { Erreur, NotFound } from '@common/errors';
 import BaseRouter, {
-    TRoute, TErrorRoute,
+    TRoute, TErrorRoute, TRouteModule,
     TRouteOptions, defaultOptions
 } from '@common/router';
 import { buildRegex, getRegisterPageArgs } from '@common/router/register';
@@ -359,7 +359,7 @@ export default class ServerRouter<
         );
 
         // Hook
-        this.runHook('request', request);
+        await this.runHook('request', request);
 
         // TODO: move to tracking
         /*const now = new Date;
@@ -386,27 +386,7 @@ export default class ServerRouter<
                 // Bulk API Requests
                 if (request.path === '/api' && typeof request.data.fetchers === "object") {
 
-                    const responseData: TObjetDonnees = {};
-                    for (const id in request.data.fetchers) {
-
-                        const [method, path, data] = request.data.fetchers[id] as TFetcherArgs;
-
-                        const response = await this.resolve(
-                            request.children(method, path, data)
-                        );
-
-                        responseData[id] = response.data;
-
-                        // TODO: merge response.headers ?
-
-                    }
-
-                    // Status
-                    res.status(200);
-                    // Data
-                    res.json(responseData);
-
-                    return;
+                    return await this.resolveApiBatch(request);
 
                 } else {
                     response = await this.resolve(request);
@@ -422,6 +402,7 @@ export default class ServerRouter<
             // Data
             res.send(response.data);
 
+            // TODO: move to tracking
             /*if (newClient)
                 console.client({
                     id: clientId,
@@ -449,45 +430,15 @@ export default class ServerRouter<
                 time: Date.now() - now.valueOf()
             });*/
         });
-
     }
 
-    private async handleError(e: Erreur, request: ServerRequest<ServerRouter>) {
+    public async resolve(request: ServerRequest<this>): Promise<ServerResponse<this>> {
 
-        const code = 'http' in e ? e.http : 500;
-        const route = this.errors[code];
-        if (route === undefined)
-            throw new Error(`No route for error code ${code}`);
-
-        const response = new ServerResponse(request).status(code).setRoute(route);
-
-        // Rapport / debug
-        if (code === 500) {
-
-            this.app.runHook('error', e, request);
-
-            // Pour déboguer les erreurs HTTP
-        } else if (this.app.env.profile === "dev")
-            console.warn(e);
-
-        if (request.accepts("html"))
-            await response.runController(route, { message: e.message });
-        else if (request.accepts("json"))
-            await response.json(e.message);
-        else
-            await response.text(e.message);
-
-        return response;
-
-    }
-
-    public async resolve(request: ServerRequest<ServerRouter>): Promise<ServerResponse<this>> {
-
-        console.info(request.ip, request.method, request.domain, request.path);
+        console.info(request.ip, request.method, request.domain, request.path, 'user =', request.user);
 
         const response = new ServerResponse<this>(request);
 
-        this.runHook('resolve', request);
+        await this.runHook('resolve', request);
 
         for (const route of this.routes) {
 
@@ -522,6 +473,58 @@ export default class ServerRouter<
         }
 
         throw new NotFound(`The requested endpoint was not found.`);
+    }
+
+    private async resolveApiBatch( request: ServerRequest<this> ) {
+
+        const responseData: TObjetDonnees = {};
+        for (const id in request.data.fetchers) {
+
+            const [method, path, data] = request.data.fetchers[id] as TFetcherArgs;
+
+            const response = await this.resolve(
+                request.children(method, path, data)
+            );
+
+            responseData[id] = response.data;
+
+            // TODO: merge response.headers ?
+
+        }
+
+        // Status
+        request.res.status(200);
+        // Data
+        request.res.json(responseData);
+    }
+
+    private async handleError(e: Erreur, request: ServerRequest<ServerRouter>) {
+
+        const code = 'http' in e ? e.http : 500;
+        const route = this.errors[code];
+        if (route === undefined)
+            throw new Error(`No route for error code ${code}`);
+
+        const response = new ServerResponse(request).status(code).setRoute(route);
+
+        // Rapport / debug
+        if (code === 500) {
+
+            await this.app.runHook('error', e, request);
+
+            // Pour déboguer les erreurs HTTP
+        } else if (this.app.env.profile === "dev")
+            console.warn(e);
+
+        if (request.accepts("html"))
+            await response.runController(route, { message: e.message });
+        else if (request.accepts("json"))
+            await response.json(e.message);
+        else
+            await response.text(e.message);
+
+        return response;
+
     }
 
 }
