@@ -9,7 +9,7 @@ import type {
     default as ClientRouter,
     TRouterContext as ClientRouterContext,
     TRegisterPageArgs
-} from '@client/services/router';;
+} from '@client/services/router';
 
 import type { 
     default as ServerRouter, 
@@ -38,7 +38,7 @@ export type { default as Response } from './response';
 
 export type ClientOrServerRouter = ClientRouter | ServerRouter;
 
-export type TRoute<RouterContext = TClientOrServerContext> = {
+export type TRoute<RouterContext extends TClientOrServerContext = TClientOrServerContext> = {
 
     // Match
     method: TRouteHttpMethod,
@@ -51,19 +51,34 @@ export type TRoute<RouterContext = TClientOrServerContext> = {
     options: TRouteOptions
 }
 
-export type TErrorRoute<RouterContext = TClientOrServerContext> = {
+export type TErrorRoute<RouterContext extends TClientOrServerContext = TClientOrServerContext> = {
     code,
     controller: TRouteController<RouterContext>,
     options: TRouteOptions
 }
 
-export type TClientOrServerContext = (
-    ClientRouterContext<ClientRouter, ClientRouter["app"]>
+export type TClientOrServerContext<
+    TClientOnlyContextKeys extends keyof ClientRouterContext = keyof (ClientRouterContext | ServerRouterContext)
+> = (
+    (
+        {[serverContextKey in keyof ServerRouterContext/*Omit<ClientRouterContext, TClientOnlyContextKeys>*/]: undefined} 
+        & 
+        ClientRouterContext
+    )
     | 
-    ServerRouterContext<ServerRouter>
+    (
+        // Tell that all the keys of client context are existing but undefined
+        //  This avoids errors: "Property 'page' is optional in type '{ app: Application; ..."
+        //  When we destructure the context from the page controller
+        //  While making reference to a key only available in client context
+        // So here, we put the
+        {[clientContextKey in keyof ClientRouterContext/*Omit<ClientRouterContext, TClientOnlyContextKeys>*/]: undefined} 
+        & 
+        ServerRouterContext
+    )
 )
 
-export type TRouteController<RouterContext = TClientOrServerContext> = 
+export type TRouteController<RouterContext extends TClientOrServerContext = TClientOrServerContext> = 
     (context: RouterContext) => /* Page to render */Page | /* Any data (html, json) */Promise<any>
 
 export type TRouteOptions = {
