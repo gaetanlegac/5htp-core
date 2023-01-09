@@ -8,7 +8,7 @@ import { format as formatSql } from 'sql-formatter';
 import highlight from 'cli-highlight';
 
 // Core libs
-import Application, { Service, TPriorityLevel } from '@server/app';
+import Application, { Service, TPriority } from '@server/app';
 import context from '@server/context';
 import type ServerRequest from '@server/services/router/request';
 
@@ -107,7 +107,7 @@ const logFields = [
 export default class Console extends Service<Config, Hooks, Application> {
 
     // Load before all
-    public priority: TPriorityLevel = 2;
+    public priority: TPriority = 2;
 
     // Services
     public logger!: Logger;
