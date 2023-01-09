@@ -10,14 +10,16 @@ import type http from 'http';
 // Core
 import Application from '@server/app';
 import Service from '@server/app/service';
+import { 
+    default as Router, Request as ServerRequest,
+} from '@server/services/router';
+import { InputError, AuthRequired, Forbidden } from '@common/errors';
 
 /*----------------------------------
 - TYPES
 ----------------------------------*/
 
 export type TUserRole = typeof UserRoles[number]
-
-export type TJwtSession = { email: string }
 
 export type THttpRequest = express.Request | http.IncomingMessage;
 
@@ -61,7 +63,9 @@ export type THooks = {
 ----------------------------------*/
 export default abstract class UsersManagementService<
     TUser extends {},
-    TApplication extends Application
+    TApplication extends Application,
+    TJwtSession extends {} = {},
+    TRequest extends ServerRequest<Router> = ServerRequest<Router>,
 > extends Service<TConfig, THooks, TApplication> {
 
     public async register() {
@@ -72,11 +76,15 @@ export default abstract class UsersManagementService<
 
     }
 
-    public abstract session( jwt: TJwtSession, req: THttpRequest ): Promise<TUser> ;
+    public abstract login( ...args: any[] ): Promise<{ user: TUser, token: string }>;
+    public abstract decodeSession( jwt: TJwtSession, req: THttpRequest ): Promise<TUser>;
+
+    protected abstract displayName(user: TUser): string;
+    protected abstract displaySessionName(session: TJwtSession): string;
 
     public async decode( req: THttpRequest, withData: true ): Promise<TUser | null>;
-    public async decode( req: THttpRequest, withData?: false ): Promise<string | null>;
-    public async decode( req: THttpRequest, withData: boolean = false ): Promise<string | TUser | null> {
+    public async decode( req: THttpRequest, withData?: false ): Promise<TJwtSession | null>;
+    public async decode( req: THttpRequest, withData: boolean = false ): Promise<TJwtSession | TUser | null> {
 
         this.config.debug && console.log(LogPrefix, 'Decode:', { cookie: req.cookies['authorization'] });
         
@@ -100,22 +108,17 @@ export default abstract class UsersManagementService<
             return this.unauthorized(req);
         }
 
-        // Not normal (could assume the JWT session is incompatible ??)
-        if (!session.email) {
-            console.warn(LogPrefix, "No email provided in JWT decrypted session:", session);
-            return this.unauthorized(req);
-        }
-
         // Return email only
+        const sessionName = this.displaySessionName(session);
         if (!withData) {
-            this.config.debug && console.log(LogPrefix, `Auth user ${session.email} successfull. Return email only`);
-            return session.email;
+            this.config.debug && console.log(LogPrefix, `Auth user ${sessionName} successfull. Return email only`);
+            return session;
         }
 
         // Deserialize full user data
-        this.config.debug && console.log(LogPrefix, `Deserialize user ${session.email}`);
-        const user = await this.session(session, req);
-        this.config.debug && console.log(LogPrefix, `Deserialized user ${session.email}:`, user);
+        this.config.debug && console.log(LogPrefix, `Deserialize user ${sessionName}`);
+        const user = await this.decodeSession(session, req);
+        this.config.debug && console.log(LogPrefix, `Deserialized user ${sessionName}:`, user);
 
         return user;    
     }
@@ -129,6 +132,72 @@ export default abstract class UsersManagementService<
         }
 
         return null;
+    }
+
+    protected createSession( session: TJwtSession, request: TRequest ): string {
+
+        this.config.debug && console.info(LogPrefix, `Creating new session:`, session);
+
+        const token = jwt.sign(session, this.config.jwt.key);
+
+        this.config.debug && console.info(LogPrefix, `Generated JWT token for session:` + token);
+
+        request.res.cookie('authorization', token);
+
+        return token;
+    }
+
+    public logout( request: TRequest ) {
+
+        const user = request.user;
+        if (!user) return;
+
+        this.config.debug && console.info(LogPrefix, `Logout ${this.displayName(user)}`);
+        request.res.clearCookie('authorization');
+    }
+
+    public check( request: TRequest, role: TUserRole, motivation?: string): TUser;
+    public check( request: TRequest, role: false, motivation?: string): null;
+    public check( request: TRequest, role: TUserRole | boolean = 'USER', motivation?: string): TUser | null {
+
+        const user = request.user;
+
+        this.config.debug && console.warn(LogPrefix, `Check auth, role = ${role}. Current user =`, user);
+
+        if (user === undefined) {
+
+            throw new Error(`request.user has not been decoded.`);
+
+        // Shortcut: { auth: true } <=> { auth: 'USER' }
+        } else if (role === true) {
+
+            role = 'USER';
+
+        // No auth needed
+        } else if (role === false) {
+
+            return user;
+
+        // Not connected
+        } else if (user === null) {
+
+            this.config.debug && console.warn(LogPrefix, "Refusé pour anonyme (" + request.ip + ")");
+            throw new AuthRequired(motivation);
+            
+        // Insufficient permissions
+        } else if (!user.roles.includes(role)) {
+
+            console.warn(LogPrefix, "Refusé: " + role + " pour " + this.displayName(user) + " (" + (user.roles ? user.roles.join(', ') : 'role inconnu') + ")");
+
+            throw new Forbidden("You do not have sufficient permissions to access this resource.");
+
+        } else {
+
+            console.warn(LogPrefix, "Autorisé " + role + " pour " + this.displayName(user) + " (" + user.roles.join(', ') + ")");
+
+        }
+
+        return user;
     }
 
 }

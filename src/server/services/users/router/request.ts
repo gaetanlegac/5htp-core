@@ -12,7 +12,7 @@ import { InputError, AuthRequired, Forbidden } from '@common/errors';
 
 // Specific
 import type AuthenticationRouterService from '.';
-import type { default as UsersManagementService, TUserRole, TJwtSession } from '..';
+import type { default as UsersManagementService, TUserRole } from '..';
 
 /*----------------------------------
 - TYPES
@@ -33,17 +33,17 @@ export default class UsersRequestService<
         super(request);
     }
 
-    public login( email: string ): string {
-        return this.auth.login( this.request, email );
+    public login( email: string ) {
+        return this.users.login( this.request, email );
     }
 
     public logout() {
-        return this.auth.logout( this.request );
+        return this.users.logout( this.request );
     }
 
     public check( role: TUserRole, motivation?: string): TUser;
     public check( role: false, motivation?: string): null;
     public check( role: TUserRole | boolean = 'USER', motivation?: string): TUser | null {
-        return this.auth.check( this.request, role, motivation );
+        return this.users.check( this.request, role, motivation );
     }
 }
