@@ -49,7 +49,7 @@ const LogPrefix = '[router]'
 
 // Client router can handle Client requests AND Server requests (for pages only)
 export type { default as ClientResponse, TRouterContext } from "./response";
-export { Link } from './Link';
+export { Link } from './components/Link';
 
 export type Router = ClientRouter | ServerRouter;
 

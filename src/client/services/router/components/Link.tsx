@@ -5,7 +5,7 @@
 // Npm
 import React from 'react';
 import type { ComponentChild } from 'preact';
-import { history } from './request/history';
+import { history } from '../request/history';
 
 /*----------------------------------
 - COMPONENT

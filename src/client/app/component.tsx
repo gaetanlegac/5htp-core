@@ -11,7 +11,7 @@ import { ReactClientContext } from '@/client/context';
 import DialogManager from '@client/components/Dialog/Manager'
 
 // Core components
-import Router from '@client/services/router/component';
+import Router from '@client/services/router/components/router';
 import type { TClientOrServerContext } from '@common/router';
 
 // Resources

@@ -4,15 +4,16 @@
 // Npm
 import React from 'react';
 
-// Libs
+// Core
 import useContext from '@/client/context';
-import type Router from '.';
-import ClientRequest from './request';
-//import initTooltips from '@client/components/Donnees/Tooltip';
-import type Page from './response/page';
 
-// Navigation
-import { history, location, Update } from './request/history';
+// Specific
+import type Router from '..';
+import PageComponent from './Page';
+import ClientRequest from '../request';
+import { history, location, Update } from '../request/history';
+//import initTooltips from '@client/components/Donnees/Tooltip';
+import type Page from '../response/page';
 
 /*----------------------------------
 - TYPES
@@ -27,47 +28,6 @@ export type PropsPage<TParams extends { [cle: string]: unknown }> = TParams & {
 ----------------------------------*/
 
 const LogPrefix = `[router][component]`
-
-/*----------------------------------
-- PAGE STATE
-----------------------------------*/
-
-const PageComponent = ({ page, isCurrent }: { page: Page, isCurrent?: boolean }) => {
-
-    const context = useContext();
-
-    const [data, setData] = React.useState<{[k: string]: any} | null>( 
-        page.loadIndicator ? null : page.data 
-    );
-    page.setAllData = setData;
- 
-    React.useEffect(() => {
-
-        // Fetch the data asynchronously for the first time
-        if (data === null && isCurrent)
-            page.fetchData().then( loadedData => {
-                page.loadIndicator = false;
-                setData(loadedData);
-            })
-
-    }, []);
-
-    return (
-        <div 
-            class={"page" + (isCurrent ? ' current' : '')} 
-            id={page.chunkId === undefined ? undefined : 'page_' + page.chunkId}
-        >
-
-            {/* Make request parameters and api data accessible from the page component */}
-            {page.renderer ? (
-
-                <page.renderer {...context} {...context.request.data} {...data} />
-                
-            ) : null}
-
-        </div>
-    )
-}
 
 /*----------------------------------
 - COMPONENT
