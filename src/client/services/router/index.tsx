@@ -28,7 +28,7 @@ import Service from '@client/app/service';
 
 // Specific
 import ClientRequest from './request';
-import { location } from './request/history';
+import { location, history } from './request/history';
 import ClientResponse from './response';
 import ClientPage from './response/page';
 
@@ -141,6 +141,10 @@ export default class ClientRouter<
         const currentRoute = await this.registerRoutes();
 
         this.initialRender(currentRoute);
+    }
+
+    public go( url: string ) {
+        history?.replace(url);
     }
 
     /*----------------------------------
