@@ -27,7 +27,7 @@ export type TPageResponse<TRouter extends ClientRouter> = (
     ServerResponse<ServerRouter, ClientPage>
 );
 
-export type TRouterContext<TRouter extends ClientRouter, TApplication extends ClientApplication> = (
+export type TRouterContext<TRouter extends ClientRouter = ClientRouter, TApplication extends ClientApplication = ClientApplication> = (
     // ClientPage context
     {
         app: TApplication,
