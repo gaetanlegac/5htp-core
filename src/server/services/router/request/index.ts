@@ -30,7 +30,7 @@ const localeFilter = (input: any) => typeof input === 'string' && ISO6391.valida
 - CONTEXTE
 ----------------------------------*/
 export default class ServerRequest<
-    TRouter extends Router
+    TRouter extends Router = Router
 > extends BaseRequest {
 
     /*----------------------------------
