@@ -19,20 +19,20 @@ export default ({ page, isCurrent }: { page: Page, isCurrent?: boolean }) => {
     const context = useContext();
 
     const [apiData, setApiData] = React.useState<{[k: string]: any} | null>( 
-        page.loadIndicator ? null : page.data 
+        page.loading  ? null : page.data 
     );
     page.setAllData = setApiData;
  
     React.useEffect(() => {
 
         // Fetch the data asynchronously for the first time
-        if (apiData === null && isCurrent)
+        if (/*apiData === null && */isCurrent)
             page.fetchData().then( loadedData => {
-                page.loadIndicator = false;
+                page.loading  = false;
                 setApiData(loadedData);
             })
 
-    }, []);
+    }, [page]);
 
     return (
         <div 

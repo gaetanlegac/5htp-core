@@ -127,35 +127,33 @@ export default class ApiClient implements ApiClientService {
         })
     }
 
-    public async fetchSync(fetchers: TFetcherList): Promise<TObjetDonnees> {
+    public async fetchSync(fetchers: TFetcherList, alreadyLoadedData: {}): Promise<TObjetDonnees> {
 
-        const ids = Object.keys(fetchers);
-        if (ids.length === 1) {
-            const id = ids[0];
-            const fetcher = fetchers[id];
-            return {
-                [id]: await this.fetch( fetcher.method, fetcher.path, fetcher.data, undefined )
-            };
-        }
+        // Pick the fetchers where the data is needed
+        const fetchersToRun: TFetcherList = {};
+        let fetchersCount: number = 0;
+        for (const fetcherId in fetchers)
+            if (!( fetcherId in alreadyLoadedData )) {
+                fetchersToRun[ fetcherId ] = fetchers[ fetcherId ]
+                fetchersCount++;
+            }
 
-        const fetchersArgs: {[id: string]: TFetcherArgs} = {};
-        for (const id in fetchers)
-            fetchersArgs[id] = [
-                fetchers[id].method,
-                fetchers[id].path,
-                fetchers[id].data,
-            ]
+        // Fetch all the api data thanks to one http request
+        const fetchedData = fetchersCount === 0
+            ? 0
+            : await this.fetch("POST", "/api", { 
+                fetchers: fetchersToRun 
+            }).then((res) => {
 
-        return await this.fetch("POST", "/api", { fetchers: fetchersArgs }, undefined).then((res) => {
+                const data: TObjetDonnees = {};
+                for (const id in res) 
+                    data[id] = res[id];
 
-            const data: TObjetDonnees = {};
-            for (const id in res) 
-                data[id] = res[id];
+                return data;
 
-            return data;
+            });
 
-        });
-
+        return { ...alreadyLoadedData, ...fetchedData }
     }
 
     public configure = (...[method, path, data, options]: TFetcherArgs): AxiosRequestConfig => {

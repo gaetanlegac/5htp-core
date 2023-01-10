@@ -62,8 +62,9 @@ export default ({ service: router }: { service: Router }) => {
             return;
         }
 
-        // Set.loadIndicator state
-        newpage.loadIndicator = <i src="spin" />
+        // Set.loading  state
+        newpage.isLoading = true;
+        newpage.loading  = <i src="spin" />
         // Add page container
         setPages( pages => {
 

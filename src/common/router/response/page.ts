@@ -75,6 +75,14 @@ export default class PageResponse<TRouter extends ClientOrServerRouter = ClientO
     }
     
     public async fetchData() {
-        return await this.context.request.api.fetchSync( this.fetchers );
+
+        // Load the fetchers list to load data if needed
+        if (this.dataProvider)
+            this.fetchers = this.dataProvider({ ...this.context, ...this.context.request.data });
+
+        // Execute the fetchers for missing data
+        console.log(`[router][page] Fetching api data:` + Object.keys(this.fetchers));
+        this.data = await this.context.request.api.fetchSync( this.fetchers, this.data );
+        return this.data;
     }
 }

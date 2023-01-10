@@ -2,6 +2,9 @@
 - DEPENDANCES
 ----------------------------------*/
 
+// Npm
+import type { ComponentChild } from 'preact';
+
 // Core
 import type { TClientOrServerContext } from '@common/router';
 import PageResponse, { TDataProvider, TFrontRenderer } from "@common/router/response/page";
@@ -22,6 +25,7 @@ import type ClientRouter from '..';
 export default class ClientPage<TRouter = ClientRouter> extends PageResponse<TRouter> {
 
     public isLoading: boolean = false;
+    public loading: false | ComponentChild;
     public scrollToId: string;
 
     public constructor(
@@ -38,23 +42,15 @@ export default class ClientPage<TRouter = ClientRouter> extends PageResponse<TRo
         this.scrollToId = context.request.hash;
     }
     
-    public async render( data?: TObjetDonnees ) {
+    public async preRender( data?: TObjetDonnees ) {
 
         // Add the page to the context
         this.context.page = this;
-         
-        // Load the fetchers list to load data if needed
-        if (this.dataProvider)
-            this.fetchers = this.dataProvider( this.context );
+        this.isLoading = true;
 
         // Data succesfully loaded
-        if (data !== undefined) {
-            this.isLoading = false;
-            this.data = data;
-        }
-
-        // Fetch data
-        this.data = await this.fetchData();
+        this.data = data || await this.fetchData();
+        this.isLoading = false;
 
         return this;
     }
@@ -81,8 +77,7 @@ export default class ClientPage<TRouter = ClientRouter> extends PageResponse<TRo
         }));
     }
 
-    public loadIndicator;
-    public loading(state: boolean) {
+    public setLoading(state: boolean) {
 
         if (state === true) {
             if (!document.body.classList.contains("loading"))

@@ -68,5 +68,5 @@ export default abstract class ApiClient {
 
     public abstract createFetcher<TData extends unknown = unknown>(...args: TFetcherArgs): TFetcher<TData>;
 
-    public abstract fetchSync(fetchers: TFetcherList): Promise<TObjetDonnees>;
+    public abstract fetchSync(fetchers: TFetcherList, alreadyLoadedData: {}): Promise<TObjetDonnees>;
 }
