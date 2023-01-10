@@ -163,9 +163,9 @@ export const createDialog = (app: Application, isToast: boolean): DialogActions 
         setToasts: undefined as unknown as DialogActions["setToasts"],
 
         confirm: (title: string, content: string | ComponentChild, defaultBtn: 'Yes'|'No' = 'No') => show<boolean>(({ close }) => (
-            <div class="col">
+            <div class="card col">
                 <header>
-                    <h1>{title}</h1>
+                    <h2>{title}</h2>
                 </header>
                 {typeof content === 'string' ? <p>{content}</p> : content}
                 <footer class="row fill">
@@ -181,7 +181,7 @@ export const createDialog = (app: Application, isToast: boolean): DialogActions 
             </div>
         )),
 
-        loading: (title: string) => app.loadIndicator = show({
+        loading: (title: string) => app.loading  = show({
             title: title,
             type: 'loading'
         }),
