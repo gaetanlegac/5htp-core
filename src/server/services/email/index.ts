@@ -8,9 +8,10 @@
 
 // Core
 import Application, { Service } from '@server/app';
-import { jsonToHtml } from './utils';
 
-const templates = {} as {[template: string]: (data: any) => string}
+// Speciic
+import { jsonToHtml } from './utils';
+import type { Transporter } from './transporter';
 
 /*----------------------------------
 - SERVICE CONFIG
@@ -22,7 +23,9 @@ export type Config = {
         transporter: string,
         from: string
     },
-    transporters: Config.EmailTransporters,
+    transporters: {
+        [transporterName: string]: Transporter
+    },
     bugReport: {
         from: string,
         to: string
@@ -33,15 +36,11 @@ export type Hooks = {
 
 }
 
-declare global {
-    namespace Config {
-        interface EmailTransporters { }
-    }
-}
-
 /*----------------------------------
 - TYPES: EMAILS
 ----------------------------------*/
+
+export { Transporter } from './transporter';
 
 export type TEmail = THtmlEmail | TTemplateEmail;
 
@@ -68,11 +67,6 @@ export type TCompleteEmail = With<THtmlEmail, {
 /*----------------------------------
 - TYPES: OPTIONS
 ----------------------------------*/
-
-export abstract class Transporter {
-    public abstract send( emails: TCompleteEmail[] ): Promise<void>;
-}
-
 type TOptions = {
     transporter?: string,
     testing?: boolean
@@ -82,6 +76,8 @@ type TOptions = {
 - FONCTIONS
 ----------------------------------*/
 export default class Email extends Service<Config, Hooks, Application> {
+    
+    private transporters = this.config.transporters;
 
     public async register() {
 
@@ -91,11 +87,6 @@ export default class Email extends Service<Config, Hooks, Application> {
         
     }
 
-    private transporters = {} as {[name: string]: Transporter};
-    public addTransporter( name: string, transporter: (new () => Transporter) ) {
-        console.log(`[email] registering email transporter: ${name}`);
-        this.transporters[ name ] = new transporter();
-    }
 
     public async send(
         emails: TEmail | TEmail[],
@@ -119,6 +110,7 @@ export default class Email extends Service<Config, Hooks, Application> {
                 : email.to;
 
             // Via template
+            // TODO: Restore templates feature
             if ('template' in email) {
 
                 const template = templates[email.template];
@@ -170,8 +162,8 @@ export default class Email extends Service<Config, Hooks, Application> {
             return;
         }
 
-        const Transporter = this.transporters[ transporterName ];
-        await Transporter.send(emailsToSend);
+        const transporter = this.transporters[ transporterName ];
+        await transporter.send(emailsToSend);
 
     }
 }
