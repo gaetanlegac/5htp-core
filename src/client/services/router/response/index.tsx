@@ -89,14 +89,12 @@ export default class ClientPageResponse<
 
     public async runController( additionnalData: {} = {} ): Promise<ClientPage> {
 
-        console.log('RUN CONTROLLER', this.route, additionnalData);
-
         // Run contoller
         const result = this.route.controller(this.context);
 
         // Default data type for `return <raw data>`
         if (result instanceof ClientPage)
-            await result.render();
+            await result.preRender(additionnalData);
         else
             throw new Error(`Unsupported response format: ${result.constructor?.name}`);
 
