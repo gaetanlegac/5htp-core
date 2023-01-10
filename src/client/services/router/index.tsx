@@ -343,6 +343,7 @@ export default class ClientRouter<
         const request = new ClientRequest(location, this);
 
         // Restituate SSR response
+        let apiData: {} = {}
         if (this.ssrData) {
 
             console.log("SSR Response restitution ...");
@@ -350,11 +351,15 @@ export default class ClientRouter<
             request.user = this.ssrData.user || null;
 
             request.data = this.ssrData.request.data;
+
+            apiData = this.ssrData.page.data || {};
         }
 
-        const response = await this.createResponse(route, request)
+        // Replacer api data par ssr data
 
-        ReactDOM.hydrate(<App context={response.context} />, document.body, () => {
+        const response = await this.createResponse(route, request, apiData)
+
+        ReactDOM.hydrate( <App context={response.context} />, document.body, () => {
 
             console.log(`Render complete`);
 
@@ -364,7 +369,7 @@ export default class ClientRouter<
     private async createResponse(
         route: TUnresolvedRoute | TRoute,
         request: ClientRequest<this>,
-        additionnalData: {} = {}
+        pageData: {} = {}
     ): Promise<ClientPage> {
 
         // Load if not done before
@@ -376,7 +381,7 @@ export default class ClientRouter<
         try {
 
             const response = new ClientResponse<this, ClientPage>(request, route);
-            return await response.runController(additionnalData);
+            return await response.runController(pageData);
 
         } catch (error) {
 
@@ -387,7 +392,7 @@ export default class ClientRouter<
     private async createErrorResponse(
         e: any,
         request: ClientRequest<this>,
-        additionnalData: {} = {}
+        pageData: {} = {}
     ): Promise<ClientPage> {
 
         const code = 'http' in e ? e.http : 500;
@@ -406,7 +411,7 @@ export default class ClientRouter<
             route = this.errors[code] = await this.load(route);
 
         const response = new ClientResponse<this, ClientPage>(request, route);
-        return await response.runController(additionnalData);
+        return await response.runController(pageData);
     }
 
     /*----------------------------------
