@@ -1,3 +1,4 @@
+
 /*----------------------------------
 - DEPENDANCES
 ----------------------------------*/
@@ -22,7 +23,7 @@ export type Props<TRow> = {
     columns: (row: TRow, rows: TRow[], index: number) => TColumn[];
 
     setData?: (rows: TRow[]) => void,
-    vide?: ComponentChild,
+    empty?: ComponentChild,
     className?: string,
 
     actions?: TAction<TRow>[]
@@ -39,7 +40,7 @@ export type TColumn = {
 - COMPOSANTS
 ----------------------------------*/
 export default function Liste<TRow extends TDonneeInconnue>({
-    data: rows, setData, vide ,
+    data: rows, setData, empty ,
     columns, actions, ...props
 }: Props<TRow>) {
 
