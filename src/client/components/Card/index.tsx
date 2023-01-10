@@ -72,9 +72,9 @@ export default ({ title, link, cover, metas, class: className = '' }: Props) => 
             )}
     
             {metas && (
-                <ul class="row fill">
+                <ul class="row fill al-top">
                     {metas.map(({ label, value, class: className }) => (
-                        <li class={"col al-left sp-05"}>
+                        <li class={"col al-left txt-left sp-05"}>
                             {label}
                             <strong class={className}>{value}</strong>
                         </li>
