@@ -1,0 +1,52 @@
+// Text
+@import './text/text.less';
+@import './text/icons.less';
+@import './text/icons.less';
+@import './text/titres.less';
+
+// Components
+@import './components/input.less';
+@import './components/button.less';
+@import './components/lists.less';
+@import './components/card.less';
+@import './components/logo.less';
+@import './components/table.less';
+@import './components/other.less';
+@import '@client/components/chart/chart.less';
+@import '@client/components/data/progressbar/index.less';
+
+// Les classes utilitaires override les classes de composant
+@import './utils/borders.less';
+@import './utils/layouts.less';
+
+.white-card() {
+    background: white;
+    box-shadow: 0 3px 2px fade(#000, 10%);
+    border: solid 1px fade(#000, 10%);
+    border-radius: @radius;
+}
+
+.card,
+.input.text,
+.btn,
+.table,
+i.solid {
+
+    .build-theme-bg( #fff, #8E8E8E);
+
+    &:not(.bg) {
+        .white-card();
+    }
+
+    .bg & {
+        box-shadow: none;
+        border: none;
+    }
+}
+
+//.card.clickable:hover,
+.btn:hover,
+.input.text.focus {
+    z-index: 5;
+    box-shadow: 0 10px 50px fade(#000, 15%);
+}

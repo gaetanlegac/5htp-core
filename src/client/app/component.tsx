@@ -14,9 +14,6 @@ import DialogManager from '@client/components/Dialog/Manager'
 import Router from '@client/services/router/components/router';
 import type { TClientOrServerContext } from '@common/router';
 
-// Resources
-import "@client/assets/css/core.less";
-
 /*----------------------------------
 - COMPOSANT
 ----------------------------------*/
