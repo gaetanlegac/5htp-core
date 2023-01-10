@@ -7,12 +7,12 @@ import mysql from 'mysql2/promise';
 
 // Core: general
 import Application from '@server/app';
-import { SqlError } from '@server/error';
 import Service from '@server/app/service';
 
 // Core: specific
+import { SqlError } from './debug';
 import type Console from '../console';
-import MetadataParser, { TDatabasesList, TMetasTable, TColumnTypes } from './metas';
+import MetadataParser, { TDatabasesList, TMetasTable, TColumnTypes, TMetasColonne } from './metas';
 import { TMySQLTypeName, mysqlToJs, js as jsTypes } from './datatypes';
 import Bucket from './bucket';
 
@@ -157,7 +157,7 @@ export default class DatabaseConnection extends Service<DatabaseServiceConfig, T
             return next();
 
         // Normal column
-        let type: TColumnTypes;
+        let databaseColumn: TMetasColonne | undefined;
         if (field.db && field.table && field.name) {
 
             const db = this.tables[ field.db ];
@@ -172,15 +172,17 @@ export default class DatabaseConnection extends Service<DatabaseServiceConfig, T
                 throw new Error(`Table metadatas for ${field.db}.${field.table} were not loaded.`);
             }
 
-            const column = table.colonnes[field.name];
-            if (column === undefined) {
-                console.error("Field infos:", field);
-                throw new Error(`Column metadatas for ${field.db}.${field.table}.${field.name} were not loaded.`);
-            }
+            databaseColumn = table.colonnes[field.name];
+        }
 
-            type = column.type;
 
-        // Custom column (computed or aliased)
+        let type: TColumnTypes;
+        if (databaseColumn !== undefined) {
+
+            type = databaseColumn.type;
+
+        // If the column name has not been found in the concerned table, 
+        //  We assume it's a computed column
         } else {
 
             const mysqlType = {
