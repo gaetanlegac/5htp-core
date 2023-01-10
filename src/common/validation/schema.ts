@@ -28,6 +28,7 @@ export type TValidationResult<TFields extends TSchemaFields> = {
 }
 
 export type TValidatedData<TFields extends TSchemaFields> = {
+    // For each field, the values returned by validator.validate()
     [name in keyof TFields]: ReturnType<TFields[name]["validate"]>
 }
 

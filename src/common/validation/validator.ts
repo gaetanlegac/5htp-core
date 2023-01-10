@@ -46,7 +46,14 @@ type TValidationArgs<TValue, TAllValues extends {}> = [
 
 type TValidationFunction<TValue, TAllValues extends {} = {}> = (
     ...args: TValidationArgs<TValue, TAllValues>
-    ) => TValue | typeof EXCLUDE_VALUE | undefined;
+    ) => TValue | typeof EXCLUDE_VALUE;
+
+type TValidateReturnType<
+    TOptions extends TValidator<TValue>, 
+    TValue extends any
+> = TOptions extends { opt: true } 
+    ? (undefined | TValue) 
+    : TValue
 
 /*----------------------------------
 - CONST
@@ -57,32 +64,32 @@ export const EXCLUDE_VALUE = "action:exclure" as const;
 /*----------------------------------
 - CLASS
 ----------------------------------*/
-export default class Validator<TValue> {
+export default class Validator<TValue, TOptions extends TValidator<TValue> = TValidator<TValue>> {
 
     public constructor( 
         public type: string,
         public validateType: TValidationFunction<TValue>, 
-        public options: TValidator<TValue>
+        public options: TOptions
     ) {
 
     }
 
     public isEmpty = (val: any) => val === undefined || val === '' || val === null
 
-    public validate(...[ val, input, output, correct ]: TValidationArgs<TValue, {}>) {
+    public validate(...[ val, input, output, correct ]: TValidationArgs<TValue, {}>): TValidateReturnType<TOptions, TValue> {
 
         // Required value
         if (this.isEmpty(val)) {
             // Optionnel, on skip
             if (this.options.opt === true)
-                return undefined;
+                return undefined as TValidateReturnType<TOptions, TValue>;
             // Requis
             else
                 throw new InputError("Please enter a value");
         }
 
         // Validate type
-        return this.validateType(val, input, output, correct);
+        return this.validateType(val, input, output, correct) as TValidateReturnType<TOptions, TValue>;
     }
 
 }
