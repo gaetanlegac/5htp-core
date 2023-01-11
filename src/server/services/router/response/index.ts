@@ -107,11 +107,16 @@ export default class ServerResponse<
         if (response === undefined)
             return;
 
-        // Default data type for `return <raw data>`
-        if (response instanceof Page)
+        // No need to process the response
+        if (response instanceof ServerResponse)
+            return;
+        // Render react page to html
+        else if (response instanceof Page)
             await this.render(response, context, additionnalData);
+        // Return HTML
         else if (typeof response === 'string' && this.route.options.accept === 'html')
             await this.html(response);
+        // Return JSON
         else
             await this.json(response);
     }
