@@ -7,7 +7,7 @@ import React from 'react';
 import type { ComponentChild } from 'preact';
 
 // Core components
-import Button from '@client/components/button';
+import { Logo } from '@client/components';
 import { Link } from '@client/services/router';
 
 // Resources
@@ -28,6 +28,7 @@ export type Props = {
     link?: string,
     cover?: {
         color?: string,
+        image?: string,
         title?: string,
         logo?: ComponentChild
     },
@@ -49,10 +50,15 @@ export default ({ title, link, cover, metas, class: className = '' }: Props) => 
     
             {cover && (
                 <header class="bg img row al-left cover pdb-1" style={{
-                    backgroundColor: cover.color
+                    backgroundColor: cover.color,
+                    backgroundImage: cover.image
+                        ? 'url(' + cover.image + ')'
+                        : undefined
                 }}>
         
-                    {cover?.logo}
+                    {typeof cover.logo === 'string' 
+                        ? <Logo src={cover.logo} size="xl" /> 
+                        : cover.logo}
         
                     {cover.title && (
                         <strong>
