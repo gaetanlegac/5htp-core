@@ -16,7 +16,8 @@ import type { default as Router, Request as ServerRequest } from '@server/servic
 - TYPES
 ----------------------------------*/
 
-export { default as Service, TPriority } from './service';
+export { default as Service } from './service';
+export type { TPriority } from './service';
 
 type Config = {
 
