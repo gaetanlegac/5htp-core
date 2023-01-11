@@ -162,7 +162,7 @@ export default abstract class UsersManagementService<
 
         const user = request.user;
 
-        this.config.debug && console.warn(LogPrefix, `Check auth, role = ${role}. Current user =`, user);
+        this.config.debug && console.warn(LogPrefix, `Check auth, role = ${role}. Current user =`, this.displayName(user));
 
         if (user === undefined) {
 
