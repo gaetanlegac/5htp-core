@@ -9,11 +9,15 @@ export { default as Logo } from './Logo';
 export { default as Input } from './input';
 export { default as Textarea } from './input/Textarea';
 export { default as Number } from './input/Number';
-export { default as Couleur } from './input/Couleur';
 export { default as Slider } from './input/Slider';
 export { default as Upload } from './input/Upload';
-export { default as Code } from './input/Code';
 export { default as Radio } from './input/Radio';
-export { default as Rte } from './input/Rte';
-export { default as Date } from './input/Date';
-export { default as Periode } from './input/Periode';
+
+// TOD: fix popover component
+//export { default as Date } from './input/Date';
+//export { default as Periode } from './input/Periode';
+
+// TODO: adapt
+//export { default as Couleur } from './input/Couleur';
+//export { default as Code } from './input/Code';
+//export { default as Rte } from './input/Rte';
