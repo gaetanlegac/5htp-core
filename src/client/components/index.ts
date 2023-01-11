@@ -4,7 +4,7 @@ export { default as Card } from './Card';
 export { default as Table } from './Table';
 export { default as Select } from './Select';
 export { default as Amount } from './Amount';
-export { default as Logo } from './Logo';
+export { default as Logo } from './logo';
 
 export { default as Input } from './input';
 export { default as Textarea } from './input/Textarea';
