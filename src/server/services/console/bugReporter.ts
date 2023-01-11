@@ -6,7 +6,7 @@
 import { v4 as uuid } from 'uuid';
 
 // Core
-import { SqlError } from '@server/error';
+import { SqlError } from '@server/services/database/debug';
 import type Console from '.';
 
 // Types
