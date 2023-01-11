@@ -186,7 +186,7 @@ export default class ServerResponse<
         context.page = page;
         
         // Prepare page & fetch data
-        await page.fetchData();
+        page.data = await page.fetchData();
         if (additionnalData !== undefined) // Example: error message for error pages
             page.data = { ...page.data, ...additionnalData }
 

@@ -52,22 +52,25 @@ export default class ApiClientRequest extends RequestService implements ApiClien
         };
     }
 
-    public async fetchSync(fetchers: TFetcherList): Promise<TObjetDonnees> {
+    public async fetchSync(fetchers: TFetcherList, alreadyLoadedData: {}): Promise<TObjetDonnees> {
 
-        const resolved: TObjetDonnees = {};
+        const fetchedData: TObjetDonnees = { ...alreadyLoadedData };
 
         for (const id in fetchers) {
 
             const { method, path, data, options } = fetchers[id];
-
             //this.router.config.debug && console.log(`[api] Resolving from internal api`, method, path, data);
 
+            // We don't fetch the already given data
+            if (id in fetchedData)
+                continue;
+
+            // Create a children request to resolve the api data
             const internalHeaders = { accept: 'application/json' }
             const request = this.request.children(method, path, data, { ...internalHeaders/*, ...headers*/ });
-            resolved[id] = await request.router.resolve(request).then(res => res.data);
-
+            fetchedData[id] = await request.router.resolve(request).then(res => res.data);
         }
 
-        return resolved;
+        return fetchedData;
     } 
 }

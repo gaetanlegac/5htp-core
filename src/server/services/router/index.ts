@@ -24,7 +24,7 @@ import BaseRouter, {
 } from '@common/router';
 import { buildRegex, getRegisterPageArgs } from '@common/router/register';
 import { layoutsList } from '@common/router/layouts';
-import { TFetcherArgs } from '@common/router/request/api';
+import { TFetcherList, TFetcher } from '@common/router/request/api';
 import type { TFrontRenderer } from '@common/router/response/page';
 import type { TSsrUnresolvedRoute, TRegisterPageArgs } from '@client/services/router';
 
@@ -386,7 +386,7 @@ export default class ServerRouter<
                 // Bulk API Requests
                 if (request.path === '/api' && typeof request.data.fetchers === "object") {
 
-                    return await this.resolveApiBatch(request);
+                    return await this.resolveApiBatch(request.data.fetchers, request);
 
                 } else {
                     response = await this.resolve(request);
@@ -434,7 +434,7 @@ export default class ServerRouter<
 
     public async resolve(request: ServerRequest<this>): Promise<ServerResponse<this>> {
 
-        console.info(request.ip, request.method, request.domain, request.path, 'user =', request.user);
+        console.info(request.ip, request.method, request.domain, request.path);
 
         const response = new ServerResponse<this>(request);
 
@@ -475,12 +475,14 @@ export default class ServerRouter<
         throw new NotFound(`The requested endpoint was not found.`);
     }
 
-    private async resolveApiBatch( request: ServerRequest<this> ) {
+    private async resolveApiBatch( fetchers: TFetcherList, request: ServerRequest<this> ) {
+
+        // TODO: use api.fetchSync instead
 
         const responseData: TObjetDonnees = {};
-        for (const id in request.data.fetchers) {
+        for (const id in fetchers) {
 
-            const [method, path, data] = request.data.fetchers[id] as TFetcherArgs;
+            const { method, path, data } = fetchers[id];
 
             const response = await this.resolve(
                 request.children(method, path, data)
@@ -489,7 +491,6 @@ export default class ServerRouter<
             responseData[id] = response.data;
 
             // TODO: merge response.headers ?
-
         }
 
         // Status
