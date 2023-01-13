@@ -21,6 +21,8 @@ import type { TMetasTable } from './metas';
 - SERVICE TYPES
 ----------------------------------*/
 
+export { default as QueriesDictionnary } from './dictionnary';
+
 export type Config = {
 
 }
@@ -164,15 +166,16 @@ export default class SQL extends Service<Config, Hooks, Application> {
                 stringBefore = stringBefore.trim();
                 const prefix = stringBefore[stringBefore.length - 1];
 
+                // Null
                 if (value === undefined || value === null) {
 
                     value = 'NULL';
 
                     // Replace ""= NULL" by "IS NULL"
-                    console.log("signBeforesignBefore", prefix, stringBefore);
                     if (prefix === '=')
                         stringBefore = stringBefore.substring(0, stringBefore.length - 1) + 'IS ';
 
+                // Prefix = special parse
                 } else if (prefix === ':' || prefix === '&') {
 
                     // Remove the prefix
@@ -191,6 +194,7 @@ export default class SQL extends Service<Config, Hooks, Application> {
 
                     }
 
+                // SQL query
                 } else if (typeof value === 'function' && value.string !== undefined)
                     value = value.string;
                 else
