@@ -9,6 +9,9 @@
         "allowJs": true,
         "strict": false,
         "downlevelIteration": true,
+        // Force case sensitive import filenames on Window and Mac
+        // https://briandesousa.net/?p=870 
+        "forceConsistentCasingInFileNames": true,
 
         // Equivalent webpack: resolve.symblinks = false
         "preserveSymlinks": true,
