@@ -1,17 +1,25 @@
+export { Link } from '../services/router/components/Link';
 export { default as Button } from './button';
 export { default as Row } from './Row';
 export { default as Card } from './Card';
 export { default as Table } from './Table';
 export { default as Select } from './Select';
 export { default as Amount } from './Amount';
-export { default as Logo } from './logo';
 
-export { default as Input } from './input';
-export { default as Textarea } from './input/Textarea';
+// Media
+export { default as Logo } from './logo';
+export { default as Video } from './Video';
+
 export { default as Number } from './input/Number';
 export { default as Slider } from './input/Slider';
-export { default as Upload } from './input/Upload';
 export { default as Radio } from './input/Radio';
+
+export { default as Time } from './data/Time';
+export { default as SpinText } from './data/spintext';
+
+// Input V3
+export { default as String } from './inputv3/string';
+export { default as File } from './inputv3/file';
 
 // TOD: fix popover component
 //export { default as Date } from './input/Date';
