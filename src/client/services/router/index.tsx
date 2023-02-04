@@ -14,7 +14,6 @@ import type {
 } from '@server/services/router';
 import type { TBasicSSrData } from '@server/services/router/response';
 
-import { Erreur } from '@common/errors';
 import BaseRouter, {
     defaultOptions, TRoute, TErrorRoute, TClientOrServerContext, TRouteModule
 } from '@common/router'
