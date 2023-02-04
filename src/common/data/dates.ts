@@ -5,7 +5,7 @@ const timeAgo = new TimeAgo('en-US')
 
 import dayjs from 'dayjs';
 
-export const timeSince = (date: Date | number | string, prefixe: boolean = false) => {
+export const timeSince = (date: Date | number | string) => {
 
     if (date === undefined)
         return 'Inconnu';
