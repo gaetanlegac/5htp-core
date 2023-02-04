@@ -5,8 +5,7 @@
 import React from 'react';
 
 // Core components
-import Button from '@client/components/button';
-import Textarea from '@client/components/input/Textarea';
+import { Button, String } from '@client/components';
 import Card, { Props as CardProps } from '@client/components/Dialog/card';
 
 // Core libs
@@ -50,11 +49,11 @@ export default ({ ...self }: {} & CardProps) => {
 
             <p>What's the problem ?</p>
 
-            <Textarea valeur={observation} onChange={setObservation} />
+            <String type="longtext" title="Description of the problem" value={observation} onChange={setObservation} />
 
             <p>What did you do just before the problem occurs ?</p>
 
-            <Textarea valeur={before} onChange={setBefore} />
+            <String type="longtext" title="How the problem occured ?" value={before} onChange={setBefore} />
 
         </Card>
     )
