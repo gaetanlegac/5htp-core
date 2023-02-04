@@ -305,7 +305,7 @@ export default class Console extends Service<Config, Hooks, Application> {
     }
 
     public printSql = (requete: string) => highlight(
-        formatSql(requete, { indent: ' '.repeat(4) }),
+        requete,//formatSql(requete, { indent: ' '.repeat(4) }),
         { language: 'sql', ignoreIllegals: true }
     )
 
