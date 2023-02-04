@@ -22,7 +22,7 @@ import { timeSince } from '@common/data/dates';
 - COMPOSANT
 ----------------------------------*/
 export default ({ since }: {
-    since: Date
+    since: Parameters<typeof timeSince>[0]
 }) => {
 
     const [text, setDisplay] = React.useState(timeSince(since));
