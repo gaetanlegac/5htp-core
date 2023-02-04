@@ -99,7 +99,7 @@ export default class FetchService extends Service<Config, Hooks, Application> {
 
         // Save file
         if (saveToPath !== undefined && processedBuffer !== null) {
-            console.log(LogPrefix, `Saving ${imageBuffer} logo to ${saveToPath}`);
+            console.log(LogPrefix, `Saving ${imageFileUrl} logo to ${saveToPath}`);
             fs.outputFileSync(saveToPath, processedBuffer);
         }
 
