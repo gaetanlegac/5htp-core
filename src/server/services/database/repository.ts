@@ -12,7 +12,7 @@ import type Database from '.';
 /*----------------------------------
 - CLASS
 ----------------------------------*/
-export default class QueriesDictionnary {
+export default class QueriesRepository {
 
     public constructor( 
         protected database: Database
