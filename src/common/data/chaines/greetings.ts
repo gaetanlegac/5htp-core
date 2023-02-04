@@ -24,4 +24,4 @@ const howareyou = () => {
     return howareyou_list[ index ];
 }
 
-export default (username: string) => hello() + ', ' + username + '. ' + howareyou();
+export default (username: string, withHowAreYou: boolean = true) => hello() + ', ' + username + '. ' + (withHowAreYou ? howareyou() : '');
