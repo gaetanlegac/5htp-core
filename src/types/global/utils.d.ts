@@ -44,3 +44,13 @@ declare type TStats<T> = {
         i: { src: TIcons } & React.HTMLAttributes<HTMLElement>;
     }
 }*/
+
+declare type Routes = {
+    [path: string]: {
+        params: {
+            [param: string]: any
+        }
+    }
+}
+
+declare type PrimitiveValue = string | number | boolean;
