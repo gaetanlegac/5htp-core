@@ -3,15 +3,6 @@
 /*----------------------------------
 - DEPENDANCES
 ----------------------------------*/
-
-// Npm
-import { ComponentChild } from 'preact'
-
-// Libs
-import { Erreur, TListeErreursSaisie, InputErrorSchema } from '@common/errors';
-
-import { EXCLURE_VALEUR } from './validators/build';
-
 /*----------------------------------
 - CONSTANTES
 ----------------------------------*/
