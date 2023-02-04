@@ -52,8 +52,6 @@ export default class AuthenticationRouterService<
             // TODO: Typings. (context.user ?)
             const decoded = await this.users.decode( request.req, true);
 
-            console.log("DECODED", decoded);
-
             request.user = decoded || null;
         })
 
