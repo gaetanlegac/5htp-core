@@ -3,7 +3,7 @@
 ----------------------------------*/
 
 // Core
-import { Erreur, TListeErreursSaisie, InputErrorSchema } from '@common/errors';
+import { CoreError, TListeErreursSaisie, InputErrorSchema } from '@common/errors';
 
 // Specific
 import { default as Validator, EXCLUDE_VALUE } from './validator';
@@ -15,10 +15,12 @@ import { default as Validator, EXCLUDE_VALUE } from './validator';
 export type TSchemaFields = { [fieldName: string]: Schema<{}> | Validator<any> }
 
 type TOptsValider = {
-    critique?: boolean,
-    validationComplete?: boolean,
-    avecDependances?: boolean,
-    corriger?: boolean,
+    debug?: boolean,
+    throwError?: boolean,
+
+    validateAll?: boolean,
+    validateDeps?: boolean,
+    autoCorrect?: boolean,
 }
 
 export type TValidationResult<TFields extends TSchemaFields> = {
@@ -35,8 +37,6 @@ export type TValidatedData<TFields extends TSchemaFields> = {
 /*----------------------------------
 - CONST
 ----------------------------------*/
-
-const debug = true;
 
 const LogPrefix = '[schema][validator]';
 
@@ -63,14 +63,15 @@ export default class Schema<TFields extends TSchemaFields> {
     ): TValidationResult<TFields> {
     
         opts = {
-            critique: false,
-            validationComplete: false,
-            avecDependances: true,
-            corriger: false,
+            debug: false,
+            throwError: false,
+            validateAll: false,
+            validateDeps: true,
+            autoCorrect: false,
             ...opts,
         }
     
-        const clesAvalider = Object.keys(opts.validationComplete === true ? this.fields : dataToValidate);
+        const clesAvalider = Object.keys(opts.validateAll === true ? this.fields : dataToValidate);
     
         let outputSchema = output;
         for (const branche of chemin)
@@ -84,7 +85,7 @@ export default class Schema<TFields extends TSchemaFields> {
             // La donnée est répertoriée dans le schema
             const field = this.fields[champ];
             if (field === undefined) {
-                debug && console.warn(LogPrefix, '[' + champ + ']', 'Exclusion (pas présent dans le schéma)');
+                opts.debug && console.warn(LogPrefix, '[' + champ + ']', 'Exclusion (pas présent dans le schéma)');
                 continue;
             }
     
@@ -140,24 +141,24 @@ export default class Schema<TFields extends TSchemaFields> {
                 // Validation
                 try {
     
-                    const val = field.validate(valOrigine, allData, output, opts.corriger);
+                    const val = field.validate(valOrigine, allData, output, opts.autoCorrect);
     
                     // Exclusion seulement si explicitement demandé
                     // IMPORTANT: Conserver les values undefined
                     //      La présence d'un valeur undefined peut être utile, par exemple, pour indiquer qu'on souhaite supprimer une donnée
                     //      Exemple: undefinec = suppression fichier | Absende donnée = conservation fihcier actuel
                     if (val === EXCLUDE_VALUE)
-                        debug && console.log(LogPrefix, '[' + cheminA + '] Exclusion demandée');
+                        opts.debug && console.log(LogPrefix, '[' + cheminA + '] Exclusion demandée');
                     else
                         outputSchema[champ] = val;
     
-                    debug && console.log(LogPrefix, '[' + cheminA + ']', valOrigine, '=>', val);
+                    opts.debug && console.log(LogPrefix, '[' + cheminA + ']', valOrigine, '=>', val);
     
                 } catch (error) {
     
-                    debug && console.warn(LogPrefix, '[' + cheminA + ']', valOrigine, '|| Erreur:', error);
+                    opts.debug && console.warn(LogPrefix, '[' + cheminA + ']', valOrigine, '|| CoreError:', error);
     
-                    if (error instanceof Erreur) {
+                    if (error instanceof CoreError) {
     
                         // Référencement erreur
                         erreurs[cheminAstr] = [error.message]
@@ -169,11 +170,11 @@ export default class Schema<TFields extends TSchemaFields> {
             }
         }
     
-        if (nbErreurs !== 0 && opts.critique === true) {
+        if (nbErreurs !== 0 && opts.throwError === true) {
             throw new InputErrorSchema(erreurs);
         }
     
-        debug && console.log(LogPrefix, '', dataToValidate, '=>', output);
+        opts.debug && console.log(LogPrefix, '', dataToValidate, '=>', output);
     
         return { 
             values: output as TValidatedData<TFields>,

@@ -8,7 +8,7 @@ import {
     RouterService
 } from '@server/services/router';
 
-import RequestValidator from './request';
+import RequestValidator, { TConfig } from './request';
 
 /*----------------------------------
 - TYPES
@@ -23,11 +23,15 @@ export default class AuthenticationRouterService<
     TUser extends {} = {}
 > extends RouterService {
 
+    public constructor( protected config: TConfig ) {
+        super();
+    }
+
     public async register() {
         
     }
 
     public requestService( request: ServerRequest< TRouterWithSchema<this>> ): RequestValidator {
-        return new RequestValidator( request );
+        return new RequestValidator( request, this.config );
     }
 }

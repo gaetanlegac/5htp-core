@@ -12,8 +12,7 @@ import {
 
 // Core
 import { InputError } from '@common/errors';
-import File from '@common/data/file';
-import NormalizedFile from '@common/data/file';
+import FileToUpload from '@client/components/inputv3/file/FileToUpload';
 
 // Speciific
 import Validator, { TValidator } from './validator'
@@ -26,7 +25,7 @@ import Dropdown from '@client/components/dropdown.old';
 - TYPES
 ----------------------------------*/
 
-export type TFileValidator = TValidator<NormalizedFile> & {
+export type TFileValidator = TValidator<FileToUpload> & {
     type?: (keyof typeof raccourcisMime) | string[], // Raccourci, ou liste de mimetype
     taille?: number
 }
@@ -274,9 +273,7 @@ export default class SchemaValidator {
         output: TObjetDonnees
     ): File | undefined => {
 
-        console.log('VALIDER FICHIER', type, val);
-
-        if (!(val instanceof NormalizedFile))
+        if (!(val instanceof FileToUpload))
             throw new InputError(`Must be a File (${typeof val} received)`);
 
         // MIME

@@ -7,13 +7,20 @@ import {
     default as Router, RequestService, Request as ServerRequest
 } from '@server/services/router';
 
-import ServerSchemaValidator from '.';
-
 import Schema, { TSchemaFields, TValidatedData } from '@common/validation/schema';
 
+// Specific
+import ServerSchemaValidator from '.';
+
 /*----------------------------------
-- TYPES
+- SERVICE CONFIG
 ----------------------------------*/
+
+const LogPrefix = `[router][validation]`;
+
+export type TConfig = {
+    debug?: boolean
+}
 
 /*----------------------------------
 - SERVICE
@@ -22,6 +29,7 @@ export default class RequestValidator extends ServerSchemaValidator implements R
 
     public constructor(
         public request: ServerRequest<Router>,
+        public config: TConfig,
         public router = request.router,
         public app = router.app
     ) {
@@ -32,7 +40,7 @@ export default class RequestValidator extends ServerSchemaValidator implements R
 
     public validate<TSchemaFieldsA extends TSchemaFields>( fields: TSchemaFieldsA ): TValidatedData<TSchemaFieldsA> {
 
-        console.log("Validate request data:", this.request.data);
+        this.config.debug && console.log(LogPrefix, "Validate request data:", this.request.data);
 
         const schema = new Schema(fields);
 
@@ -42,9 +50,10 @@ export default class RequestValidator extends ServerSchemaValidator implements R
             this.request.data, 
             {}, 
             {
-                critique: true,
-                validationComplete: true,
-                avecDependances: false
+                debug: this.config.debug,
+                throwError: true,
+                validateAll: true,
+                validateDeps: false
             },
             []
         );
