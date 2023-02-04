@@ -8,10 +8,13 @@ import axios, { AxiosResponse, AxiosError, AxiosRequestConfig } from 'axios';
 // Core
 import type { TApiResponseData } from '@server/services/router';
 import ApiClientService, { 
+    TPostData,
     TApiFetchOptions, TFetcherList, TFetcherArgs, TFetcher 
 } from '@common/router/request/api';
 import { instancierViaCode, NetworkError } from '@common/errors';
 import type ClientApplication from '@client/app';
+
+import { toMultipart } from './multipart';
 
 // Specific
 import type { default as Router, Request } from '..';
@@ -34,7 +37,8 @@ export default class ApiClient implements ApiClientService {
     // APO Client needs to know the current request so we can monitor which api request is made from which page
     public constructor( 
         public app: ClientApplication, 
-        public request: Request<Router> 
+        public request: Request,
+        public router = request.router
     ) {
 
     }
@@ -42,16 +46,16 @@ export default class ApiClient implements ApiClientService {
     /*----------------------------------
     - HIGH LEVEL
     ----------------------------------*/
-    public get = <TData extends unknown = unknown>(path: string, data?: TObjetDonnees, opts?: TApiFetchOptions) => 
+    public get = <TData extends unknown = unknown>(path: string, data?: TPostData, opts?: TApiFetchOptions) => 
         this.createFetcher<TData>('GET', path, data, opts);
 
-    public post = <TData extends unknown = unknown>(path: string, data?: TObjetDonnees, opts?: TApiFetchOptions) => 
+    public post = <TData extends unknown = unknown>(path: string, data?: TPostData, opts?: TApiFetchOptions) => 
         this.createFetcher<TData>('POST', path, data, opts);
 
-    public put = <TData extends unknown = unknown>(path: string, data?: TObjetDonnees, opts?: TApiFetchOptions) => 
+    public put = <TData extends unknown = unknown>(path: string, data?: TPostData, opts?: TApiFetchOptions) => 
         this.createFetcher<TData>('PUT', path, data, opts);
 
-    public delete = <TData extends unknown = unknown>(path: string, data?: TObjetDonnees, opts?: TApiFetchOptions) => 
+    public delete = <TData extends unknown = unknown>(path: string, data?: TPostData, opts?: TApiFetchOptions) => 
         this.createFetcher<TData>('DELETE', path, data, opts);
 
     
@@ -108,9 +112,9 @@ export default class ApiClient implements ApiClientService {
             method, path, data, options,
             // For async calls: api.post(...).then((data) => ...)
             then: (callback: (data: any) => void) => this.fetchAsync<TData>(...args).then(callback),
-            catch: (callback: (data: any) => void) => this.fetchAsync(...args).catch(callback),
-            finally: (callback: () => void) => this.fetchAsync(...args).finally(callback),
-            run: () => this.fetchAsync(...args)
+            catch: (callback: (data: any) => void) => this.fetchAsync<TData>(...args).catch(callback),
+            finally: (callback: () => void) => this.fetchAsync<TData>(...args).finally(callback),
+            run: () => this.fetchAsync<TData>(...args)
         };
     }
 
@@ -183,12 +187,16 @@ export default class ApiClient implements ApiClientService {
         };
     
         if (data) {
-            if (method === "GET")
+            // URL params
+            if (method === "GET") {
                 config.params = data;
-            else {
+            // Post form data
+            } else if (options?.encoding === 'multipart') {
+                config.headers["Content-Type"] = 'multipart/form-data';
+                config.data = toMultipart(data);
+            // Post JSON
+            } else {
                 config.data = data;
-                if (data instanceof FormData)
-                    config.headers["Content-Type"] = 'multipart/form-data';
             }
         }
     

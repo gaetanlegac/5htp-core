@@ -10,21 +10,23 @@ import Bowser from "bowser";
 
 // Core
 import BaseRequest from '@common/router/request';
+import type FileToUpload from '@client/components/inputv3/file/FileToUpload';
 
 // Specific
-import ServerResponse from '../response';
+import type { 
+    default as Router, Config as RouterConfig, 
+    HttpMethod, HttpHeaders
+} from '..';
 import ApiClient from './api';
+import ServerResponse from '../response';
 
 /*----------------------------------
 - TYPES
 ----------------------------------*/
 
-import type { 
-    default as Router, Config as RouterConfig, 
-    HttpMethod, HttpHeaders
-} from '@server/services/router';
-
 const localeFilter = (input: any) => typeof input === 'string' && ISO6391.validate(input) ? input : undefined;
+
+export type UploadedFile = With<FileToUpload, 'md5'|'ext'>
 
 /*----------------------------------
 - CONTEXTE

@@ -9,7 +9,7 @@ import SchemaValidator, { TFileValidator } from '@common/validation/validators';
 
 import Validator, { EXCLUDE_VALUE,} from '@common/validation/validator';
 
-import NormalizedFile from '@common/data/file';
+import type FileToUpload from '@client/components/inputv3/file/FileToUpload';
 
 /*----------------------------------
 - TYPES
@@ -21,8 +21,8 @@ import NormalizedFile from '@common/data/file';
 ----------------------------------*/
 export default class ServerSchemaValidator extends SchemaValidator {
 
-    public file = ({ ...opts }: TFileValidator & { sharp: any }) => 
-        new Validator<NormalizedFile>('file', (val, input, output) => {
+    public file = ({ ...opts }: TFileValidator) => 
+        new Validator<FileToUpload>('file', (val, input, output) => {
 
             // Chaine = url ancien fichier = exclusion de la valeur pour conserver l'ancien fichier
             // NOTE: Si la valeur est présente mais undefined, alors on supprimera le fichier
@@ -33,14 +33,7 @@ export default class ServerSchemaValidator extends SchemaValidator {
             const file = this.validateFile(opts, val, input, output);
 
             if (file === undefined)
-                return file;
-
-            // Process Image
-            if (opts.sharp !== undefined) {
-
-
-
-            }
+                return EXCLUDE_VALUE;
 
             return file;
         }, opts)

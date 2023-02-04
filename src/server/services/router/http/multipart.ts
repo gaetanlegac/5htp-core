@@ -2,7 +2,12 @@
 - DEPENDANCES
 ----------------------------------*/
 
-import NormalizedFile from '@common/data/file';
+// Npm
+import mime from 'mime-types';
+
+// Core
+import FileToUpload from '@client/components/inputv3/file/FileToUpload';
+import { InputError } from '@common/errors';
 
 /*----------------------------------
 - TYPES
@@ -10,6 +15,34 @@ import NormalizedFile from '@common/data/file';
 
 import type { Request, Response, NextFunction } from 'express';
 import type { FileArray, UploadedFile } from 'express-fileupload';
+
+/*----------------------------------
+- CONFIG
+----------------------------------*/
+const reMultipart = /^multipart\/(?:form-data|related)(?:;|$)/i;
+
+/*----------------------------------
+- MIDDLEWARE
+----------------------------------*/
+export const MiddlewareFormData = (req: Request, res: Response, next: NextFunction) => {
+
+    // Verif si multipart
+    if (!isMutipart( req ))
+        return next();
+        
+    // Données body + fichiers
+    // NOTE: Les données devant obligatoirement passer par le validateur de schema, 
+    //  On peut mélanger le body et les files sans risque de sécurité
+    req.body = traiterMultipart(req.body, req['files']);
+    //req.files = traiterMultipart(req.files);
+
+    next();
+}
+
+/*----------------------------------
+- FUNCTIONS
+----------------------------------*/
+export const isMutipart = (req: Request) => req.headers['content-type'] && reMultipart.exec( req.headers['content-type'] );
 
 export const traiterMultipart = (...canaux: any[]) => {
 
@@ -20,38 +53,39 @@ export const traiterMultipart = (...canaux: any[]) => {
         if (!donnees)
             continue;
 
-        for (const chemin in donnees) {
-            let donnee = donnees[chemin];
+        for (const fieldPath in donnees) {
+            let donnee = donnees[fieldPath];
 
             let brancheA = sortie;
-            const resultats = [...chemin.matchAll(/[^\[\]]+/g)];
-            for (let iCle = 0; iCle < resultats.length; iCle++) {
+            const results = [...fieldPath.matchAll(/[^\[\]]+/g)];
+            for (let iCle = 0; iCle < results.length; iCle++) {
 
-                const [cle] = resultats[ iCle ];
+                const [cle] = results[ iCle ];
 
-                // Si ce n'est pas le dernier
-                if (iCle !== resultats.length - 1) {
+                // Need to go deeper to find data
+                if (iCle !== results.length - 1) {
 
                     if (brancheA[ cle ] === undefined) {
-                        const tableau = !isNaN( resultats[ iCle + 1 ][0] as any )
+                        const tableau = !isNaN( results[ iCle + 1 ][0] as any )
                         brancheA[ cle ] = tableau ? [] : {};
                     }
 
                     brancheA = brancheA[ cle ];
-
-                // Donnée atteinte
-                } else {
-
-                    // Fichier
-                    if (typeof donnee === 'object' && donnee.data !== undefined && donnee.data instanceof Buffer){
-                        donnee = normaliserFichier(donnee);
-                    }
-                    
-                    brancheA[ cle ] = donnee;
-                        
-
+                    continue;
                 }
 
+                // Data reached
+                if (
+                    typeof donnee === 'object' 
+                    && 
+                    donnee.data !== undefined 
+                    && 
+                    donnee.data instanceof Buffer
+                ){
+                    donnee = normalizeFile(donnee);
+                }
+                
+                brancheA[ cle ] = donnee;
             }
         }
     }
@@ -59,27 +93,22 @@ export const traiterMultipart = (...canaux: any[]) => {
     return sortie;
 }
 
-const reMultipart = /^multipart\/(?:form-data|related)(?:;|$)/i;
-export const requeteMultipart = (req: Request) => reMultipart.exec( req.headers['content-type'] );
+const normalizeFile = (file: UploadedFile) => {
 
-const normaliserFichier = (file: UploadedFile) => new NormalizedFile({
-    name: file.name,
-    type: file.mimetype,
-    size: file.size,
-    data: file.data,
-})
+    const ext = mime.extension(file.mimetype);
 
-export const MiddlewareFormData = (req: Request, res: Response, next: NextFunction) => {
+    if (ext === false)
+        throw new InputError(`We couldn't determine the type of the CV file you sent. Please encure it's not corrupted and try again.`);
 
-    // Verif si multipart
-    if (!requeteMultipart( req ))
-        return next();
-        
-    // Données body + fichiers
-    // NOTE: Les données devant obligatoirement passer par le validateur de schema, 
-    //  On peut mélanger le body et les files sans risque de sécurité
-    req.body = traiterMultipart(req.body, req.files);
-    //req.files = traiterMultipart(req.files);
+    return new FileToUpload({
 
-    next();
+        name: file.name,
+        type: file.mimetype,
+        size: file.size,
+    
+        data: file.data,
+    
+        md5: file.md5,
+        ext: ext
+    })
 }
