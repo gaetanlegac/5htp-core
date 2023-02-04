@@ -10,6 +10,9 @@ import fs from 'fs-extra';
 // Core
 import ConfigParser, { TEnvConfig } from './config';
 import { default as Service, AnyService } from './service';
+import CommandsManager from './commands';
+
+// Built-in
 import type { default as Router, Request as ServerRequest } from '@server/services/router';
 
 /*----------------------------------
@@ -62,6 +65,8 @@ export default abstract class Application extends Service<Config, Hooks, /* TODO
 
     public path = {
         root: process.cwd(),
+        typings: process.cwd() + '/var/typings',
+        cache: process.cwd() + '/var/cache',
         data: process.cwd() + '/var/data',
         log: process.cwd() + '/var/log',
         public: process.cwd() + '/public',
@@ -91,10 +96,8 @@ export default abstract class Application extends Service<Config, Hooks, /* TODO
 
         // Gestion crash
         process.on('unhandledRejection', (error: any, promise: any) => {
-
-            console.error("Unhandled promise rejection:", error);
+            // We don't log the error here because it's the role of the app to decidehiw to log errors
             this.runHook('error', error);
-
         });
 
         // Load config files
@@ -110,6 +113,16 @@ export default abstract class Application extends Service<Config, Hooks, /* TODO
     //  Only use in files where a service is strictly required 
     public use<ServiceType extends Service<{}, {}, this>>( serviceName: string ): ServiceType | undefined {
         return this[ serviceName ];
+    }
+
+    /*----------------------------------
+    - COMMANDS
+    ----------------------------------*/
+
+    private commandsManager = new CommandsManager(this, { debug: true });
+
+    public command( ...args: Parameters<CommandsManager["command"]> ) {
+        return this.commandsManager.command(...args);
     }
 
     /*----------------------------------
@@ -154,6 +167,11 @@ export default abstract class Application extends Service<Config, Hooks, /* TODO
             if (service.register)
                 service.register();
 
+            // Register commands
+            if (service.commands)
+                this.commandsManager.fromList(service.commands);
+
+            // Start service
             if (service.start) {
                 service.started = service.start();
                 await service.started;

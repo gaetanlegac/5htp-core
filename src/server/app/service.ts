@@ -2,7 +2,9 @@
 - DEPENDANCES
 ----------------------------------*/
 
+// Specific
 import Application from ".";
+import type { Command } from "./commands"; 
 
 /*----------------------------------
 - TYPES: OPTIONS
@@ -39,6 +41,8 @@ export default abstract class Service<
 
     public priority: TPriority = 0;
     public started?: Promise<void>;
+
+    public commands?: Command[];
 
     public constructor( 
         public app: TApplication, 
