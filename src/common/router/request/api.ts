@@ -4,11 +4,17 @@
 
 import type { HttpMethod } from '@server/services/router';
 
+import type { FileToUpload } from '@client/components/inputv3/file';
+
 /*----------------------------------
 - TYPES
 ----------------------------------*/
 
 export type TFetcherList = { [id: string]: TFetcher }
+
+export type TPostData = {[key: string]: PrimitiveValue}
+
+export type TPostDataWithFile = {[key: string]: PrimitiveValue | FileToUpload}
 
 export type TFetcher<TData extends unknown = unknown> = {
 
@@ -18,20 +24,22 @@ export type TFetcher<TData extends unknown = unknown> = {
     
     method: HttpMethod,
     path: string,
-    data?: object,
+    data?: TPostData,
     options?: TApiFetchOptions
 }
 
 export type TFetcherArgs = [
     method: HttpMethod,
     path: string,
-    data?: object,
+    data?: TPostData,
     options?: TApiFetchOptions
 ]
 
 export type TApiFetchOptions = {
     captcha?: string, // Action id (required by recaptcha)
-    onProgress?: (percent: number) => void
+    onProgress?: (percent: number) => void,
+    // Default: json
+    encoding?: 'json' | 'multipart'
 }
 
 // https://stackoverflow.com/questions/44851268/typescript-how-to-extract-the-generic-parameter-from-a-type
