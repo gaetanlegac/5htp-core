@@ -17,18 +17,24 @@ import './index.less';
 ----------------------------------*/
 
 export type Props = {
-    children: ComponentChild
+    children: ComponentChild,
+    elevator?: React.HTMLAttributes<HTMLDivElement>
 }
 
 /*----------------------------------
 - COMPONENT
 ----------------------------------*/
-export default ({ children }: Props) => {
+export default ({  children, elevator = {} }: Props) => {
 
     const containerRef = React.useRef<HTMLDivElement>();
-    const [leftPos, setLeftPos] = React.useState<number>(0);
+    const [containerHeight, setContainerHeight] = React.useState<number>(undefined);
+    const [scroll, setScroll] = React.useState({
+        pos: 0,
+        left: false,
+        right: true
+    });
 
-    const moveTo = (sens: number) => {
+    const moveTo = (direction: number) => {
 
         const container = containerRef.current;
         if (container === null)
@@ -41,25 +47,53 @@ export default ({ children }: Props) => {
         const containerWidth = container.getBoundingClientRect().width;
         const rowWidth = row.getBoundingClientRect().width;
 
-        console.log({ containerWidth, rowWidth });
+        setScroll( curPos => {
+
+            const newPos = {
+                pos: curPos.pos + (-1 * direction * containerWidth),
+                left: true,
+                right: true
+            };
+
+            // Scroll Left limit
+            const leftPosLim = 0 - rowWidth + containerWidth;
+            if (newPos.pos < leftPosLim) {
+                newPos.pos = leftPosLim;
+                newPos.right = false;
+            }
+
+            // Scroll Left limit
+            if (newPos.pos > 0) {
+                newPos.pos = 0;
+                newPos.left = false;
+            }
+
+            return newPos;
+        });
 
     }
 
     React.useEffect(() => {
 
         // If row oveflow, show horizontal arroxs
-        console.log({ containerRef });
-
+        setContainerHeight( containerRef.current.getBoundingClientRect().height );
 
     }, []);
 
     return (
-        <div class="scrollable-row stopLeft">
+        <div class={"scrollable-row" + (scroll.left ? '' : ' stopLeft') + (scroll.right ? '' : ' stopRight')}>
 
             <Button class="left" shape="pill" icon="arrow-left" onClick={() => moveTo(-1)} />
 
-            <div class="container" ref={containerRef}>
-                <div class="row" style={{ left: leftPos + 'px' }}>
+            <div class="container" ref={containerRef} style={{
+                height: containerHeight ? containerHeight + 'px' : undefined
+            }}>
+                <div {...elevator} class={"row " + (elevator.class || '')} style={{ 
+                    left: scroll.pos + 'px', 
+                    position: containerHeight === undefined 
+                        ? 'relative' 
+                        : 'absolute' 
+                }}>
                     {children}
                 </div>
             </div>
