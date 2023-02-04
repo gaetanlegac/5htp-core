@@ -24,7 +24,7 @@ type TMeta = {
 }
 
 export type Props = {
-    title: string,
+    title: ComponentChild,
     link?: string,
     cover?: {
         color?: string,
@@ -32,14 +32,15 @@ export type Props = {
         title?: string,
         logo?: ComponentChild
     },
-    metas: TMeta[],
+    metas?: TMeta[],
     class?: string,
+    footer?: ComponentChild
 }
 
 /*----------------------------------
 - COMPONENT
 ----------------------------------*/
-export default ({ title, link, cover, metas, class: className = '' }: Props) => {
+export default ({ title, link, cover, metas, class: className = '', footer }: Props) => {
 
     if (link)
         className += ' clickable';
@@ -87,6 +88,8 @@ export default ({ title, link, cover, metas, class: className = '' }: Props) => 
                     ))}
                 </ul>
             )}
+
+            {footer}
     
         </article>
     )
