@@ -9,15 +9,19 @@
 - DEPENDANCES
 ----------------------------------*/
 
+// Node
+import path from 'path';
+
 // Npm
 import type express from 'express';
 import { v4 as uuid } from 'uuid';
+import fs from 'fs-extra';
 import type { GlobImportedWithMetas } from 'babel-plugin-glob-import';
 
 // Core
 import Application, { Service } from '@server/app';
 import context from '@server/context';
-import { Erreur, NotFound } from '@common/errors';
+import { CoreError, NotFound } from '@common/errors';
 import BaseRouter, {
     TRoute, TErrorRoute, TRouteModule,
     TRouteOptions, defaultOptions
@@ -42,7 +46,7 @@ import DocumentRenderer from './response/page/document';
 
 export { default as RouterService } from './service';
 export { default as RequestService } from './request/service';
-export type { default as Request } from "./request";
+export type { default as Request, UploadedFile } from "./request";
 export type { default as Response, TRouterContext } from "./response";
 export type { TRoute } from '@common/router';
 
@@ -168,6 +172,7 @@ export default class ServerRouter<
     }
 
     private registerRoutes(defModules: GlobImportedWithMetas<TRouteModule>) {
+
         for (const routeModule of defModules) {
 
             const register = routeModule.exports.__register;
@@ -179,6 +184,14 @@ export default class ServerRouter<
         }
 
         this.afterRegister();
+    }
+
+    // TODO: Generate TS type of the routes list
+    public url<TRoutePath extends keyof Routes = keyof Routes>( 
+        path: TRoutePath, 
+        params: Routes[TRoutePath]["params"]
+    ) {
+        return this.http.publicUrl + path;
     }
 
     /*----------------------------------
@@ -265,9 +278,12 @@ export default class ServerRouter<
         console.info("Pre-Loading request services");
         //await TrackingService.LoadCache();
 
-        console.info("Loading routes ...");
+        // Generate typescript typings
+        if (this.app.env.profile = 'dev')
+            this.genTypings();
 
         // Ordonne par ordre de priorité
+        console.info("Loading routes ...");
         this.routes.sort((r1, r2) => {
 
             const prioDelta = r2.options.priority - r1.options.priority;
@@ -327,6 +343,21 @@ export default class ServerRouter<
         }
 
         console.info(this.routes.length + " routes where registered.");
+    }
+
+    private genTypings() {
+        fs.outputFileSync( path.join(this.app.path.typings, 'routes.d.ts'), `
+declare type Routes = {
+        ${this.routes.map( route => `
+            '${route.path}': {
+                params: {
+                    ${route.keys.map( k => "'" + k + "': string").join(',\n')}
+                }
+            }
+        `).join(',')}
+    }
+}
+        `);
     }
 
     /*----------------------------------
@@ -499,7 +530,7 @@ export default class ServerRouter<
         request.res.json(responseData);
     }
 
-    private async handleError(e: Erreur, request: ServerRequest<ServerRouter>) {
+    private async handleError(e: CoreError, request: ServerRequest<ServerRouter>) {
 
         const code = 'http' in e ? e.http : 500;
         const route = this.errors[code];
