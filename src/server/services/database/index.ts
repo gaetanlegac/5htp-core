@@ -4,6 +4,7 @@
 
 // Npm
 import mysql from 'mysql2/promise';
+import type { ResultSetHeader } from 'mysql2';
 import dottie from 'dottie';
 const safeStringify = require('fast-safe-stringify'); // remplace les références circulairs par un [Circular]
 
@@ -21,7 +22,7 @@ import type { TMetasTable } from './metas';
 - SERVICE TYPES
 ----------------------------------*/
 
-export { default as QueriesDictionnary } from './dictionnary';
+export { default as Repository } from './repository';
 
 export type Config = {
 
@@ -35,28 +36,32 @@ export type Hooks = {
 - DEFINITIONS TYPES
 ----------------------------------*/
 
-export type SqlQuery = SQL
+export type SqlQuery = ReturnType<SQL["sql"]>
 
 export type TSelectQueryOptions = TQueryOptions & {
 
 }
 
+export type TUpdateQueryOptions<TData extends TObjetDonnees = TObjetDonnees> = TQueryOptions;
+
 export type TInsertQueryOptions<TData extends TObjetDonnees = TObjetDonnees> = TQueryOptions & {
-    upsert?: (keyof TData)[] | true, // When true, we use table.upsertableColumns
+    upsert?: TColsToUpsert<TData>, // When "*", we use table.upsertableColumns
     upsertMode?: 'increment'
     try?: boolean
 }
 
-type TInsertResult = {
-    fieldCount: number;
-    affectedRows: number;
-    changedRows: number;
-    insertId: number;
-    serverStatus: number;
-    warningCount: number;
-    message: string;
-    procotol41: boolean;
-}
+type TColsToUpsert<TData extends TObjetDonnees> = (
+    // Update all updatable columns (default)
+    '*' 
+    | 
+    // Specify which values exactly we have to update
+    // If '*', provided, we update all the updatable values and override with specific values
+    // { '*': true } is equivalent to '*'
+    ({ '*'?: true } & Partial<TData>)
+    | 
+    // A list of columns to update
+    (keyof TData)[] 
+)
 
 /*----------------------------------
 - HELPERS
@@ -65,7 +70,7 @@ type TInsertResult = {
 const LogPrefix = '[database]'
 
 const equalities = (data: TObjetDonnees, keys = Object.keys(data)) => 
-    keys.map(k => '`' + k + '` = ' + mysql.escape( data[k] ))
+    keys.map(k => '' + k + ' = ' + mysql.escape( data[k] ))
 
 /*----------------------------------
 - CORE
@@ -270,18 +275,61 @@ export default class SQL extends Service<Config, Hooks, Application> {
     - OPERATIONS: UPDATE
     ----------------------------------*/
 
-    public update = <TData extends TObjetDonnees>(
-        table: string, 
-        data: TData, 
-        where: TObjetDonnees, 
-        opts?: TInsertQueryOptions<TData>
-    ) => {
+    // Update multiple records
+    public update<TData extends TObjetDonnees>(
+        tableName: string, 
+        data: TData[], 
+        where: (keyof TData)[], 
+        opts?: TUpdateQueryOptions<TData>
+    );
 
+    // Update one record
+    public update<TData extends TObjetDonnees>(
+        tableName: string, 
+        data: TData, 
+        where: (keyof TData)[] | TObjetDonnees, 
+        opts?: TUpdateQueryOptions<TData>
+    );
+
+    public update<TData extends TObjetDonnees>(...args: [
+        tableName: string, 
+        data: TData[], 
+        where: (keyof TData)[], 
+        opts?: TUpdateQueryOptions<TData>
+    ] | [
+        tableName: string, 
+        data: TData, 
+        where: (keyof TData)[] | TObjetDonnees, 
+        opts?: TUpdateQueryOptions<TData>
+    ]) {
+
+        let [tableName, data, where, opts] = args;
+
+        // Multiple updates in one
+        if (Array.isArray( data ))
+            return this.database.query(
+                data.map(record => this.update(tableName, record, where, opts)).join(';\n')
+            )
+
+        // No condition specified = use the pks
+        if (Array.isArray(where)) {
+            const whereColNames = where;
+            where = {}
+            for (const whereCol of whereColNames) {
+                const whereValue = data[whereCol];
+                if (whereValue === undefined)
+                    throw new Error(`The column "${whereCol}" is used as a where value, but no value has been provided in the data to update.`);
+                where[ whereCol ] = whereValue;
+            }
+        }
+
+        // Create equalities
         const egalitesData = equalities(data).join(', ')
         const egalitesWhere = equalities(where).join(' AND ')
 
+        // Build query
         return this.database.query(`
-            UPDATE ${table} SET ${egalitesData} WHERE ${egalitesWhere};
+            UPDATE ${tableName} SET ${egalitesData} WHERE ${egalitesWhere};
         `, opts);
 
     }
@@ -289,12 +337,12 @@ export default class SQL extends Service<Config, Hooks, Application> {
     public upsert<TData extends TObjetDonnees>(
         path: string, 
         data: TData[] | TData, 
-        colsToUpdate?: (keyof TData)[], 
+        colsToUpdate: TColsToUpsert<TData> = '*', 
         opts: TInsertQueryOptions<TData> = {}
     ) {
         return this.insert(path, data, {
             ...opts,
-            upsert: colsToUpdate || true
+            upsert: colsToUpdate
         });
     }
 
@@ -309,7 +357,7 @@ export default class SQL extends Service<Config, Hooks, Application> {
         path: string, 
         data: TData | TData[], 
         opts: TInsertQueryOptions<TData> = {}
-    ): Promise<TInsertResult> {
+    ): Promise<ResultSetHeader> {
 
         const table = this.database.getTable(path);
 
@@ -324,9 +372,8 @@ export default class SQL extends Service<Config, Hooks, Application> {
                 changedRows: 0,
                 insertId: 0,
                 serverStatus: 0,
-                warningCount: 0,
-                message: '',
-                procotol41: false,
+                warningStatus: 0,
+                info: undefined
             };
         }
 
@@ -391,29 +438,71 @@ export default class SQL extends Service<Config, Hooks, Application> {
         opts: With<TInsertQueryOptions<TData>, 'upsert'> 
     ): string | null {
 
-        let upsert = opts.upsert;
-
-        // Auto
-        if (upsert === true) {
-            console.log(LogPrefix, `Automatic upsert into ${table.chemin} using ${table.pk.join(', ')} as pk`);
-            upsert = table.columnNamesButPk;
-        }
+        const valuesToUpdate = this.getValuesToUpdate(table, opts.upsert);
 
         // All columns are ps
-        if (upsert.length === 0)
+        const valuesToUpdatesEntries = Object.entries(valuesToUpdate);
+        if (valuesToUpdatesEntries.length === 0)
             // Replace by insert ignore
             return null;
 
-        return 'ON DUPLICATE KEY UPDATE ' + upsert.map((col: string) => 
-            '`' + col + '` = ' + (opts.upsertMode === 'increment' ? '`' + col + '` + ' : '') + 'VALUES(' + col + ')'
+        return 'ON DUPLICATE KEY UPDATE ' + valuesToUpdatesEntries.map(([ colName, value ]) => 
+            '`' + colName + '` = ' + value
         )
+    }
+
+    // TODO: Fix typings
+    private getValuesToUpdate<TData extends TObjetDonnees>(
+        table: TMetasTable,
+        colsToUpdate: TColsToUpsert<TData>
+    ) {
+
+        // Column name => SQL
+        let valuesToUpdate: Partial<TData> = {};
+
+        // Define which columns to update when the record already exists
+        let valuesNamesToUpdate: (keyof TData)[] = [];
+        if (colsToUpdate === '*') {
+
+            console.log(LogPrefix, `Automatic upsert into ${table.chemin} using ${table.pk.join(', ')} as pk`);
+            valuesNamesToUpdate = table.columnNamesButPk;
+
+        } else if (Array.isArray( colsToUpdate )) {
+
+            valuesNamesToUpdate = colsToUpdate;
+
+        } else {
+
+            const { '*': updateAll, ...customValuesToUpdate } = colsToUpdate;
+
+            for (const colKey in customValuesToUpdate)
+                valuesToUpdate[ colKey ] = this.esc(customValuesToUpdate[ colKey ]);
+
+            if (updateAll)
+                valuesNamesToUpdate = table.columnNamesButPk;
+
+        }
+
+        for (const colToUpdate of valuesNamesToUpdate)   
+            if (!( colToUpdate in valuesToUpdate ))
+                valuesToUpdate[ colToUpdate ] = "VALUES(`" + colToUpdate + "`)";
+
+        return valuesToUpdate;
     }
 
     /*----------------------------------
     - OTHER
     ----------------------------------*/
-    public delete = (table: string, where: TObjetDonnees = {}, opts?: TQueryOptions) =>
-        this.database.query(`
-            DELETE FROM ${table} WHERE ${equalities(where).join(' AND ')};
-        `, opts);   
+    public delete(
+        table: string, 
+        where: TObjetDonnees | SQL = {}, 
+        opts?: TQueryOptions
+    ): Promise<ResultSetHeader> {
+
+        const whereSql = typeof where === 'function' && where['string'] !== undefined
+            ? where['string']
+            : equalities(where).join(' AND ');
+
+        return this.database.query(`DELETE FROM ${table} WHERE ${whereSql};`, opts);   
+    }
 }

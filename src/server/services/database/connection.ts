@@ -187,7 +187,8 @@ export default class DatabaseConnection extends Service<DatabaseServiceConfig, T
 
             const mysqlType = {
                 name: field.type as TMySQLTypeName,
-                params: []
+                params: [],
+                raw: 'undefined', // Not needed here
             }
 
             let jsTypeName = mysqlToJs[ mysqlType.name ];
@@ -200,7 +201,8 @@ export default class DatabaseConnection extends Service<DatabaseServiceConfig, T
                 sql: mysqlType,
                 js: {
                     name: jsTypeName,
-                    params: []
+                    params: [],
+                    raw: 'undefined', // Not needed here
                 }
             }
         }
@@ -244,6 +246,23 @@ export default class DatabaseConnection extends Service<DatabaseServiceConfig, T
 
     }
 
+    public checkValue( value: unknown, column: TMetasColonne ): string | false {
+
+        const jsType = jsTypes[ column.type.js.name ];
+        
+        const isValid = (value === undefined || value === null) 
+            ? column.optional
+            : jsType.check( value, column );
+
+        if (isValid)
+            return false;
+
+        console.log(column.type.sql.params)
+
+        return `Data expected to match: ${column.type.js.raw} (MySQL: ${column.type.sql.raw}) ||. Got: ` + JSON.stringify(value);;
+
+    }
+
     /*----------------------------------
     - QUERY
     ----------------------------------*/
@@ -254,30 +273,30 @@ export default class DatabaseConnection extends Service<DatabaseServiceConfig, T
         return new Bucket(queryOptions, queriesList);
     }
 
-    public async query<TResult extends TQueryResult>(
+    public query<TResult extends TQueryResult>(
         query: string,
         opts: TQueryOptions<'bucket', 'bucket'>
-    ): Promise<Bucket>;
+    ): Bucket;
 
-    public async query<TResult extends TQueryResult>(
+    public query<TResult extends TQueryResult>(
         query: string,
         opts: TQueryOptions<'returnQuery', 'returnQuery'>
-    ): Promise<string>;
+    ): string;
 
-    public async query<TResult extends TQueryResult>(
+    public query<TResult extends TQueryResult>(
         query: string,
         opts: TQueryOptions<'simulate', 'simulate'>
-    ): Promise<void>;
+    ): void;
 
-    public async query<TResult extends TQueryResult>(
+    public query<TResult extends TQueryResult>(
         query: string,
         opts?: TQueryOptions
     ): Promise<TResult>;
 
-    public async query<TResult extends TQueryResult>(
+    public query<TResult extends TQueryResult>(
         query: string,
         opts: TQueryOptions = {}
-    ): Promise<TResult | Bucket | string | void> {
+    ): Promise<TResult> | Bucket | string | void {
 
         if (opts.bucket) 
             return opts.bucket.add(query);
@@ -285,28 +304,25 @@ export default class DatabaseConnection extends Service<DatabaseServiceConfig, T
         if (opts.returnQuery === true)
             return query;
 
-        if (opts.log === true)
+        if (opts.log === true || opts.simulate === true)
             console.log(`[database][query]`, query);
 
         if (opts.simulate === true)
             return;
-
-        try {
-
-            const startTime = Date.now();
-
-            // Lancement de la requête
-            const [rows, fields] = await this.connection.query(query);
+            
+        const startTime = Date.now();
+        return this.connection.query(query).then(([rows, fields]) => {
 
             if (opts.log !== false)
                 this.log(query, startTime);
 
             return rows as unknown as TResult;
-            
-        } catch (error) {
+
+        }).catch((error) => {
 
             throw new SqlError(error, query);
-        }
+
+        })
     }
 
     private log( query: string, startTime: number ) {

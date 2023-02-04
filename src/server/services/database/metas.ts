@@ -8,6 +8,7 @@ import type mysql from 'mysql2/promise';
 
 // Core
 import Application from '@server/app';
+import { ucfirst } from '@common/data/chaines';
 
 // Database
 import type DatabaseConnection from './connection';
@@ -66,12 +67,14 @@ export type TMetasColonne = {
     // Column
     table: TMetasTable,
     nom: string,
+    pathname: string,
     attached: boolean, // Si les métadonnées ont bien été enrichies avec celles provenant de MySQL
     primary: boolean,
 
     // Type
     type: TColumnTypes,
     nullable: boolean,
+    optional: boolean,
 
     // Value
     defaut?: any, // ATTENTION: Valeur déjà sérialisée
@@ -88,12 +91,14 @@ export type TColumnTypes = {
 
 export type TMySQLType = {
     name: TMySQLTypeName,
-    params: string[] 
+    params?: string[],
+    raw: string
 }
 
 export type TJsType = {
     name: TJsTypeName,
-    params: string[],
+    params?: string[],
+    raw: string
 }
 
 /*----------------------------------
@@ -103,7 +108,7 @@ export type TJsType = {
 const LogPrefix = '[database][meta]';
 
 const sqlTypeParamsReg = /\'([^\']+)\'\,?/gi;
-const typeViaCommentReg = /^\[type=([a-z]+)\]/g;
+const typeViaCommentReg = /\[type=([a-z]+)\]/g;
 
 const modelsTypesPath = process.cwd() + '/src/server/models.ts';
 
@@ -196,7 +201,10 @@ export default class MySQLMetasParser {
 
             // Extrct tablesIndex
             const table = tablesIndex[database][nomTable];
-            const parsedTypes = this.parseColType(type, comment);
+            const isNullable = nullable === 'YES';
+            const defaultValue = defaut === null ? undefined : defaut;
+            const isOptional = isNullable || defaultValue !== undefined;
+            const parsedTypes = this.parseColType(nomColonne, type, comment, isOptional);
 
             // Reference primary keys
             const isPrimary = cle === 'PRI';
@@ -209,15 +217,17 @@ export default class MySQLMetasParser {
                 // Column
                 table: tablesIndex[database][nomTable],
                 nom: nomColonne,
+                pathname: database + '.' + nomTable + '.' + nomColonne,
                 attached: true,
                 primary: isPrimary,
 
                 // Type
                 type: parsedTypes,
-                nullable: nullable === 'YES',
+                nullable: isNullable,
+                optional: isOptional,
 
                 // Value
-                defaut: defaut === null ? undefined : defaut,
+                defaut: defaultValue,
                 autoIncrement: extra.includes('auto_increment'),
 
                 // Extra
@@ -241,76 +251,92 @@ export default class MySQLMetasParser {
         
     }
 
-    private parseColType( rawType: string, comment: string | null ): TColumnTypes {
+    private parseColType( name: string, rawType: string, comment: string | null, isOptional?: boolean ): TColumnTypes {
 
         const mysqlType = this.parseMySQLType(rawType);
 
-        const jsType = this.parseJsType(mysqlType, comment);
+        const jsType = this.parseJsType(name, mysqlType, comment, isOptional);
 
         return {
             sql: mysqlType,
             js: jsType
         }
-
     }
 
     private parseMySQLType( rawType: string ): TMySQLType {
 
         let name: TMySQLType["name"];
-        let params: TMySQLType["params"] = [];
+        let params: TMySQLType["params"];
 
         // Via native MySQL type: parse type expression + params
         const posParenthese = rawType.indexOf('(');
-        if (posParenthese === -1)
+        if (posParenthese === -1) {
+
             name = rawType.toUpperCase() as TMySQLType["name"];
-        else {
+
+        } else {
+
             name = rawType.substring(0, posParenthese).toUpperCase() as TMySQLType["name"];
+            params = []
 
             // Extraction paramètres du type entre les parentheses
             const paramsStr = rawType.substring(posParenthese + 1, rawType.length - 1)
             let m;
             do {
+
                 m = sqlTypeParamsReg.exec(paramsStr);
                 if (m)
                     params.push(m[1]);
+
             } while (m);
+
+            if (params.length === 0)
+                params = undefined;
         }
 
-        return { name, params }
+        return { name, params, raw: rawType }
 
     }
 
-    private parseJsType( mysqlType: TMySQLType, comment: string | null ): TJsType {
+    private parseJsType( name: string, mysqlType: TMySQLType, comment: string | null, isOptional?: boolean ): TJsType {
 
-        // Via comment
+        let typeName: TJsType["name"] | undefined;
+        let params: TJsType["params"];
+
+        // Find type info via comment
         if (comment) {
             // Exract via comments: [type=array]
-            const foundTypeExpression = typeViaCommentReg.exec( comment );
-            if (foundTypeExpression !== null) {
+            const foundTypeExpression = [...comment.matchAll( typeViaCommentReg )][0];
+            if (foundTypeExpression !== undefined) {
 
                 const typeNameViaComment = foundTypeExpression[1];
                 if (!(typeNameViaComment in jsTypes))
                     console.warn(`Invalid type "${typeNameViaComment}" found in column comments.`);
                 else
-                    return { 
-                        name: typeNameViaComment as TJsTypeName, 
-                        params: []
-                    }
+                    typeName = typeNameViaComment as TJsTypeName;
             }
         }
 
-        // Via mysql Type
-        let jsTypeName = mysqlToJs[ mysqlType.name ];
-        if (jsTypeName === undefined) {
-            console.warn(`The mySQL data type « ${mysqlType.name} » has not been associated with a JS equivalent in mysqlToJs. Using any instead.`);
-            jsTypeName = mysqlToJs['UNKNOWN'];
+        // Find type info via mysql Type
+        if (typeName === undefined) {
+
+            typeName = mysqlToJs[ mysqlType.name ];
+
+            // Equivalent not found
+            if (typeName === undefined) {
+                console.warn(`The mySQL data type « ${mysqlType.name} » has not been associated with a JS equivalent in mysqlToJs. Using any instead.`);
+                typeName = mysqlToJs['UNKNOWN'];
+            }
         }
 
-        return { 
-            name: jsTypeName,  
-            params: [],
-        }
+        // Get utils from name
+        const jsTypeUtils = jsTypes[ typeName ];
+        if (!jsTypeUtils)
+            throw new Error(`Unable to find the typescript print funvction for js type "${typeName}"`);
 
+        const raw = name + (isOptional ? '?' : '') + ': ' + jsTypeUtils.print( mysqlType.params );
+
+        return { name: typeName, params, raw }
     }
 
     private genTypesDef( databases: TDatabasesList ) {
@@ -325,18 +351,18 @@ export default class MySQLMetasParser {
                 const colsDecl: string[] = [];
                 for (const colName in table.colonnes) {
 
+                    // Get column metdata
                     const col = table.colonnes[colName];
-                    const jsTypeUtils = jsTypes[ col.type.js.name ];
-                    if (!jsTypeUtils) {
-                        console.warn(`Unable to find the typescript print funvction for js type "${col.type.js.name}"`);
-                        continue;
-                    }
 
-                    colsDecl.push('\t' + col.nom + (col.nullable ? '?' : '') + ': ' + jsTypeUtils.print( col ));
+                    // Generate typescript typedef
+                    colsDecl.push('\t' + col.type.js.raw);
+
+                    // Generate enum
+                    if (['ENUM', 'SET'].includes( col.type.sql.name ) && col.type.sql.params !== undefined)
+                        types.push('export const ' + table.nom + ucfirst( colName ) + ' = [' + col.type.sql.params.map( p => "'" + p + "'") + '] as const;');
                 }
                 
                 types.push('export type ' + table.nom + ' = {\n' + colsDecl.join(',\n') + '\n}');
-
             }
         }
 

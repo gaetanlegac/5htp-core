@@ -1,7 +1,7 @@
 /*----------------------------------
 - DEPENDANCES
 ----------------------------------*/
-import type { TMetasColonne } from './metas';
+import type { TMetasColonne, TMySQLType } from './metas';
 
 /*----------------------------------
 - TYPES
@@ -9,7 +9,8 @@ import type { TMetasColonne } from './metas';
 
 type JsType = {
     parse: (value: string) => any,
-    print: (col: TMetasColonne) => string
+    check: (value: unknown, col: TMetasColonne) => boolean,
+    print: (mysqlTypeParams: TMySQLType["params"]) => string,
 }
 
 export type TJsTypeName = keyof typeof js;
@@ -18,43 +19,81 @@ export type TMySQLTypeName = keyof typeof mysqlToJs;
 /*----------------------------------
 - LISTS
 ----------------------------------*/
+/*
+    TODO: to merge avec the schema library
+*/
 export const js = {
     array: {
         parse: (val: string) => val.split(','),
-        print: (col) => (col.type.sql.params.length 
-            ? '(' + col.type.sql.params.map( param => "'" + param + "'").join(' | ') + ')'
+        print: (mysqlTypeParams: TMySQLType["params"]) => (mysqlTypeParams !== undefined 
+            ? '(' + mysqlTypeParams.map( param => "'" + param + "'").join(' | ') + ')'
             : 'string'
-        ) + '[]'
+        ) + '[]',
+        // Check before using into a mysql query
+        check: (val: unknown, col: TMetasColonne) => Array.isArray(val) && (
+            col.type.sql.params === undefined
+            ||
+            val.every( item => col.type.sql.params?.includes( item ))
+        )
     },
     enum: {
         parse: (val: string) => val,
-        print: (col) => col.type.sql.params.map( param => "'" + param + "'").join(' | ')
+        print: (mysqlTypeParams: TMySQLType["params"]) => mysqlTypeParams !== undefined
+            ? mysqlTypeParams.map( param => "'" + param + "'").join(' | ')
+            : 'string',
+        // Check before using into a mysql query
+        check: (val: unknown, col: TMetasColonne) => typeof val === 'string' && (
+            col.type.sql.params === undefined
+            ||
+            col.type.sql.params.includes( val )
+        )
     },
     float: {
         parse: (val: string) => parseFloat(val),
-        print: (col) => 'number'
+        print: () => 'number',
+        // Check before using into a mysql query
+        check: (val: unknown) => typeof val === 'number'
     },
     int: {
         parse: (val: string) => parseFloat(val),
-        print: (col) => 'number'
+        print: () => 'number',
+        // Check before using into a mysql query
+        check: (val: unknown, col: TMetasColonne) => (
+            typeof val === 'number'
+            ||
+            // We assume that a int(1) is possibly a boolean
+            (
+                typeof val === 'boolean'
+                /*&&
+                col.type.sql.params[]*/
+            )
+        )
     },
     date: {
         parse: (val: string) => new Date(val),
-        print: (col) => 'Date'
+        print: () => 'Date',
+        // Check before using into a mysql query
+        check: (val: unknown) => typeof val === 'number' || typeof val === 'string' || (typeof val === 'object' && val instanceof Date)
     },
     string: {
         parse: (val: string) => val,
-        print: (col) => 'string'
+        print: () => 'string',
+        // Check before using into a mysql query
+        check: (val: unknown) => typeof val === 'string'
     },
     object: {
         parse: (val: string) => JSON.parse(val),
-        print: (col) => 'object'
+        print: () => 'object',
+        // Check before using into a mysql query
+        check: (val: unknown) => typeof val === 'object'
     },
     
     // When we were not able to find an equivalent
     unknown: {
         parse: (val: any) => val,
-        print: (col) => 'any'
+        print: (mysqlTypeParams: TMySQLType["params"]) => 'any',
+        // Check before using into a mysql query
+        check: (val: unknown) => true
     },
 } as const
 
