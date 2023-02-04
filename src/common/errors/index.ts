@@ -19,7 +19,7 @@ type TDetailsErreur = {
 /*----------------------------------
 - ERREURS
 ----------------------------------*/
-export abstract class Erreur extends Error {
+export abstract class CoreError extends Error {
     
     public static msgDefaut: string;
 
@@ -38,7 +38,7 @@ export abstract class Erreur extends Error {
 
         super(message);
 
-        this.message = message || (this.constructor as typeof Erreur).msgDefaut;
+        this.message = message || (this.constructor as typeof CoreError).msgDefaut;
 
         if (details !== undefined) {
             this.idRapport = details.idRapport;
@@ -66,13 +66,13 @@ export abstract class Erreur extends Error {
     }
 }
 
-export class InputError extends Erreur {
+export class InputError extends CoreError {
     public http = 400;
     public title = "Bad Request";
     public static msgDefaut = "Bad Request.";
 }
 
-export class InputErrorSchema extends Erreur {
+export class InputErrorSchema extends CoreError {
 
     public http = 400;
     public title = "Bad Request";
@@ -103,36 +103,40 @@ export class InputErrorSchema extends Erreur {
     }
 }
 
-export class AuthRequired extends Erreur {
+export class AuthRequired extends CoreError {
     public http = 401;
     public title = "Authentication Required";
     public static msgDefaut = "Please Login to Continue.";
 }
 
-export class Forbidden extends Erreur {
+export class Forbidden extends CoreError {
     public http = 403;
     public title = "Access Denied";
     public static msgDefaut = "You're not allowed to access to this resource.";
 }
 
-export class NotFound extends Erreur {
+export class NotFound extends CoreError {
     public http = 404;
     public title = "Not Found";
     public static msgDefaut = "The resource you asked for was not found.";
 }
 
-export class Anomaly extends Erreur {
+export class Anomaly extends CoreError {
 
     public http = 500;
     public title = "Technical Error";
     public static msgDefaut = "A technical error has occurred. A notification has just been sent to the admin.";
 
-    public constructor(message, public data: object) {
+    public constructor( 
+        message: string, 
+        public dataForDebugging?: object,
+        public originalError?: Error, 
+    ) {
         super(message);
     }
 }
 
-export class NotAvailable extends Erreur {
+export class NotAvailable extends CoreError {
 
     // TODO: page erreur pour code 503
     public http = 404;
@@ -149,7 +153,7 @@ export const instancierViaCode = (
     code: number, 
     message?: string | TListeErreursSaisie, 
     details?: TDetailsErreur
-): Erreur => {
+): CoreError => {
 
     if (typeof message === 'object')
         return new InputErrorSchema(message, details);
@@ -163,4 +167,4 @@ export const instancierViaCode = (
     }
 }
 
-export default Erreur;
+export default CoreError;

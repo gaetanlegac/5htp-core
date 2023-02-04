@@ -8,7 +8,7 @@ if (typeof window === 'undefined')
 window.dev && require('preact/debug');
 
 // Core
-import { Erreur } from '@common/errors';
+import { CoreError } from '@common/errors';
 import type { Layout } from '@common/router';
 import { createDialog } from '@client/components/Dialog/Manager';
 
@@ -102,7 +102,7 @@ export default abstract class Application {
             })
     }
 
-    public handleError( error: Erreur | Error, httpCode?: number ) {
+    public handleError( error: CoreError | Error, httpCode?: number ) {
     
         /*console.error(`[api] Network error:`, e);
         context.toast.error("Please check your internet connection and try again.", undefined, null, { autohide: false });*/
