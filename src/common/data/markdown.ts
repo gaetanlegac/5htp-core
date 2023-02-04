@@ -61,4 +61,4 @@ md.block.ruler.after('list', 'test', (state, startLine, endLine, silent) => {
 
 }, { alt: ['paragraph', 'reference', 'blockquote'] })
 
-export default (markdown: string) => md.render(markdown)
+export default md;
