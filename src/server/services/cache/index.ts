@@ -12,7 +12,8 @@ import fs from 'fs-extra';
 // Core
 import Application, { Service } from '@server/app';
 
-// Libs
+// Specific
+import registerCommands from './commands';
 
 /*----------------------------------
 - CONFIG
@@ -30,12 +31,25 @@ type TPrimitiveValue = string | boolean | number | undefined | TPrimitiveValue[]
 
 type TExpirationDelay = 'never' | string | number | Date;
 
-type CacheEntry = { 
+type CacheEntry<TValue extends TPrimitiveValue =TPrimitiveValue > = { 
     // Value
-    value: TPrimitiveValue, 
+    value: TValue, 
     // Expiration Timestamp
-    expiration?: number 
+    expiration?: number,
+    changes: number
 };
+
+type TCacheGetOrUpdateArgs<TValeur extends TPrimitiveValue> = [
+    cle: string, 
+    func: (() => Promise<TValeur>),
+    expiration?: TExpirationDelay,
+    avecDetails?: boolean
+]
+
+type TCacheGetOnlyArgs = [
+    cle: string, 
+    avecDetails: true
+]
 
 /*----------------------------------
 - TYPES
@@ -53,15 +67,16 @@ export type Hooks = {
 - SERVICE
 ----------------------------------*/
 export default class Cache extends Service<Config, Hooks, Application> {
+
+    public commands = registerCommands(this);
     
-    private cacheFile = path.join(this.app.path.data, 'cache/mem.json');
+    private cacheDir = this.app.path.cache;
 
-    private data: {[key: string]: CacheEntry | undefined} = {};
-
-    private changes: number = 0;
+    public data: {[key: string]: CacheEntry | undefined} = {};
     
     public async register() {
 
+        
 
     }
 
@@ -70,8 +85,20 @@ export default class Cache extends Service<Config, Hooks, Application> {
         setInterval(() => this.cleanMem(), 10000);
 
         // Restore persisted data
-        if (fs.existsSync(this.cacheFile))
-            this.data = fs.readJSONSync(this.cacheFile)
+        await this.restore();
+    }
+
+    private restore() {
+        const files = fs.readdirSync( this.cacheDir );
+        for (const file of files) {
+
+            if (!file.endsWith('.json'))
+                continue;
+
+            const entryKey = file.substring(0, file.length - 5);
+            this.data[ entryKey ] = fs.readJSONSync( path.join(this.cacheDir, file) );
+            console.log(LogPrefix, `Restored cache entry ${entryKey}`);
+        }
     }
 
     private cleanMem() {
@@ -87,12 +114,28 @@ export default class Cache extends Service<Config, Hooks, Application> {
         }
         
         // Write changes
-        if (this.changes > 0) {
-            fs.outputJSONSync(this.cacheFile, this.data);
-            this.config.debug && console.log(LogPrefix, `Flush ${this.changes} changes`);
-            this.changes = 0;
+        for (const entryKey in this.data) {
+
+            const entry = this.data[entryKey];
+            if (!entry?.changes)
+                continue;
+
+            this.config.debug && console.log(LogPrefix, `Flush ${entry.changes} changes for ${entryKey}`);
+
+            entry.changes = 0;
+            const entryFile = this.getEntryFile(entryKey);
+            fs.outputJSONSync(entryFile , this.data[entryKey]);
         }
     }
+
+    private getEntryFile( entryKey: string ) {
+        return path.join(this.cacheDir, entryKey + '.json');
+    }
+
+    public get<TValeur extends TPrimitiveValue>(
+        cle: string, 
+        avecDetails?: true
+    ): Promise<CacheEntry<TValeur> | TValeur | undefined>;
 
     // Expiration = Durée de vie en secondes ou date max
     // Retourne null quand pas de valeur
@@ -101,7 +144,7 @@ export default class Cache extends Service<Config, Hooks, Application> {
         func: (() => Promise<TValeur>),
         expiration: TExpirationDelay,
         avecDetails: true
-    ): Promise<CacheEntry>;
+    ): Promise<CacheEntry<TValeur>>;
 
     public get<TValeur extends TPrimitiveValue>(
         cle: string, 
@@ -110,14 +153,25 @@ export default class Cache extends Service<Config, Hooks, Application> {
         avecDetails?: false
     ): Promise<TValeur>;
 
-    public async get<TValeur extends TPrimitiveValue>(
-        cle: string, 
-        func: (() => Promise<TValeur>),
-        expiration: TExpirationDelay = 'never',
-        avecDetails?: boolean
-    ): Promise<TValeur | CacheEntry> {
+    public async get<TValeur extends TPrimitiveValue, TArgs extends TCacheGetOnlyArgs | TCacheGetOrUpdateArgs<TValeur> = TCacheGetOnlyArgs | TCacheGetOrUpdateArgs<TValeur>>(
+        ...args: TArgs
+    ): Promise< TValeur | CacheEntry<TValeur> | (TArgs extends TCacheGetOnlyArgs ? undefined : TValeur)> {
 
-        let entry: CacheEntry | undefined = this.data[cle];
+        let cle: string;
+        let func: (() => Promise<TValeur>) | undefined;
+        let expiration: TExpirationDelay | undefined;
+        let avecDetails: boolean | undefined = true;
+
+        if (typeof args[1] === 'function') {
+            ([ cle, func, expiration, avecDetails ] = args);
+        } else {
+            ([ cle, avecDetails ] = args);
+        }
+
+        if (expiration === undefined)
+            expiration = 'never';
+
+        let entry: CacheEntry<TValeur> | undefined = this.data[cle];
 
         // Expired
         if (entry?.expiration && entry.expiration < Date.now()){
@@ -126,22 +180,26 @@ export default class Cache extends Service<Config, Hooks, Application> {
         }
 
         // Donnée inexistante
-        if (entry === undefined) {
+        if (entry !== undefined) {
+
+            this.config.debug && console.log(LogPrefix, `Get "${cle}": restored via cache`);
+            
+        } else if (func !== undefined) {
 
             this.config.debug && console.log(LogPrefix, `Get "${cle}": refresh value`);
 
             // Rechargement
             entry = {
                 value: await func(),
-                expiration: this.delayToTimestamp(expiration)
+                expiration: this.delayToTimestamp(expiration),
+                changes: 0
             }
 
-            // undefined retourné = pas d'enregistrement
-            //if (entry.value !== undefined)
+            if (expiration !== 'now')
                 await this.set(cle, entry.value, expiration);
 
         } else
-            this.config.debug && console.log(LogPrefix, `Get "${cle}": restored via cache`);
+            return undefined;
 
         return avecDetails 
             ? entry
@@ -160,19 +218,29 @@ export default class Cache extends Service<Config, Hooks, Application> {
      * @returns A void promise
      */
     public set( cle: string, val: TPrimitiveValue, expiration: TExpirationDelay = 'never' ): void {
-        
+
+        // TODO: check is key contains illegal characters
+    
         this.config.debug && console.log(LogPrefix, "Updating cache " + cle);
         this.data[ cle ] = {
             value: val,
-            expiration: this.delayToTimestamp(expiration)
+            expiration: this.delayToTimestamp(expiration),
+            changes: 1
         }
-
-        this.changes++;
     };
 
-    public del( cle: string ): void {
-        this.data[ cle ] = undefined;
-        this.changes++;
+    public del( key?: string ): void {
+
+        if (key === undefined) {
+            this.data = {};
+            console.log(LogPrefix, "Deleting all keys from cache");
+            fs.removeSync( this.cacheDir );
+        } else {
+            this.data[ key ] = undefined;
+            console.log(LogPrefix, `Deleting key "${key}" from cache`);
+            const entryFile = this.getEntryFile(key);
+            fs.removeSync( entryFile );
+        }
     }
 
 
