@@ -8,41 +8,43 @@ import { ComponentChild, JSX } from 'preact';
 import TextareaAutosize from 'react-textarea-autosize';
 
 // Core libs
-import { useInput, InputBaseProps } from './BaseV2';
+import { useInput, InputBaseProps } from '../base';
 
 /*----------------------------------
 - TYPES
 ----------------------------------*/
 export type Props = {
 
-    type?: 'email' | 'password',
-    multiline?: boolean, // true = textarea
-    onPressEnter?: (value: string) => void,
-
     // Decoration
     icon?: string,
-    prefix?: ComponentChild,
-    suffix?: ComponentChild,
+    prefix?: React.VNode,
+    suffix?: React.VNode,
     iconR?: string,
 
+    // Behavior
+    type?: 'email' | 'password' | 'longtext',
+    choice?: string[] | ((input: string) => Promise<string[]>),
+    multiple?: boolean,
+
+    // Actions
+    onPressEnter?: (value: string) => void,
     inputRef?: React.Ref<HTMLInputElement>
-    
 }
 
 /*----------------------------------
 - COMPOSANT
 ----------------------------------*/
 export default ({ 
+    // Behavoir
     type, 
     icon, prefix, suffix, iconR,
-    multiline, 
     onPressEnter,
     inputRef,
     ...props 
 }: Props & InputBaseProps<string> & Omit<JSX.HTMLAttributes<HTMLInputElement>, 'onChange'>) => {
 
     /*----------------------------------
-    - STATE
+    - INIT
     ----------------------------------*/
 
     const [{ value, focus, fieldProps }, setValue, commitValue, setState] = useInput(props, '');
@@ -61,26 +63,37 @@ export default ({
     const refInput = inputRef || React.useRef<HTMLInputElement>();
     
     /*----------------------------------
-    - RENDER
+    - ATTRIBUTES
     ----------------------------------*/
 
+    let className: string = 'input text';
+
     // Auto prefix
-    if (prefix === undefined) {
-        if (icon !== undefined)
-            prefix = <i src={icon} />
-        else if (type === 'password')
-            prefix = <i src="key" />;
-        else if (type === 'email')
-            prefix = <i src="at" />;
+    if (prefix === undefined && icon !== undefined)
+        prefix = <i src={icon} />
+
+    // Type
+    let Tag = 'input';
+    if (type === 'password') {
+
+        prefix = prefix || <i src="key" />;
+        fieldProps.type = 'password';
+
+    } else if (type === 'email') {
+
+        prefix = prefix || <i src="at" />;
+        fieldProps.type = 'email';
+
+    } else if (type === 'longtext') {
+
+        prefix = prefix || <i src="text" />;
+        Tag = TextareaAutosize;
+
     }
 
     // Auto suffix
-    if (suffix === undefined) {
-        if (iconR !== undefined)
-            suffix = <i src={iconR} />
-    }
-
-    let className: string = 'input text';
+    if (suffix === undefined && iconR !== undefined)
+        suffix = <i src={iconR} />
 
     // When no value, show the lable as a placeholder
     if (value === '')
@@ -91,8 +104,9 @@ export default ({
     if (props.className !== undefined)
         className += ' ' + props.className;
 
-    const Tag = multiline ? TextareaAutosize : 'input';
-
+    /*----------------------------------
+    - RENDER
+    ----------------------------------*/
     return (
         <div class={className} onClick={() => refInput.current?.focus()}>
 
@@ -101,8 +115,8 @@ export default ({
             <div class="contValue">
 
                 <Tag {...fieldProps}
+                    // @ts-ignore: Property 'ref' does not exist on type 'IntrinsicAttributes'
                     ref={refInput}
-                    type={type}
                     value={value}
 
                     onFocus={() => setState({ focus: true })}

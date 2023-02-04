@@ -70,3 +70,4 @@ export function useInput<TValue>(
 /*----------------------------------
 - COMPONENT
 ----------------------------------*/
+import './base.less';
