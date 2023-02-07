@@ -1,23 +1,31 @@
+
 export { Link } from '../services/router/components/Link';
 export { default as Button } from './button';
-export { default as Row } from './Row';
+
+// Containers
 export { default as Card } from './Card';
+export { default as Popover } from './containers/Popover';
 export { default as Table } from './Table';
-export { default as Select } from './Select';
-export { default as Amount } from './Amount';
+export { default as Row } from './Row';
 
 // Media
 export { default as Logo } from './logo';
 export { default as Video } from './Video';
 
+// Input
 export { default as Number } from './input/Number';
 export { default as Slider } from './input/Slider';
 export { default as Radio } from './input/Radio';
 
+// Data
+export { default as Amount } from './Amount';
 export { default as Time } from './data/Time';
 export { default as SpinText } from './data/spintext';
+export { default as Progressbar } from './data/progressbar';
+export { default as CircularProgressbar } from './data/progressbar/circular';
 
 // Input V3
+export { default as Select } from './Select';
 export { default as String } from './inputv3/string';
 export { default as File } from './inputv3/file';
 
