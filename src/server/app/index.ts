@@ -87,7 +87,7 @@ export default abstract class Application extends Service<Config, Hooks, /* TODO
     ----------------------------------*/
 
     public env: TEnvConfig;
-    public abstract identity: Config.Identity;
+    public identity: Config.Identity;
 
     public constructor() {
 
@@ -103,6 +103,7 @@ export default abstract class Application extends Service<Config, Hooks, /* TODO
         // Load config files
         const configParser = new ConfigParser( this.path.root );
         this.env = configParser.env();
+        this.identity = configParser.identity();
     }
 
     /*----------------------------------
