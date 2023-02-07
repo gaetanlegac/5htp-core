@@ -9,12 +9,6 @@ import { TSelecteur } from './selecteurs';
 - TYPES
 ----------------------------------*/
 
-import type Modele from '@server/services/models';
-import type { TMetasAttribut, TControleAcces } from '@server/services/models/attributes';
-import type { TModelMetas } from '@server/services/models/table';
-
-import type { User } from '@models';
-
 type TObjet = { [cle: string]: TObjet | any };
 
 /*----------------------------------
@@ -30,21 +24,17 @@ const maxLevel = 10; // Prévention contre les références circulaires
 ----------------------------------*/
 export default class Filtre {
 
-    public constructor(
-        private user?: User
-    ) {
+    public constructor() {
 
 
     }
 
-    public async filtrer(
+    public filtrer(
         donnee: TObjet | Array<unknown> | Date,
         schema?: TSelecteur,
-
         chemin: string[] = [],
-        metasPropriete?: TMetasAttribut,
         schemaParent?: TObjet
-    ): Promise<any> {
+    ): any {
 
         // Prévention contre les références circulaires
         if (chemin.length > maxLevel)
@@ -57,7 +47,7 @@ export default class Filtre {
 
                 debug && console.log(`[requete][reponse][filtre]`, chemin.join('.'), ': Tableau');
 
-                return await this.tableau(donnee, schema, chemin, metasPropriete, schemaParent);
+                return this.tableau(donnee, schema, chemin, schemaParent);
 
                 // Valeur: Chaque true doit être remplacé par la donnee[ nomBranche ] correspondante
                 // Si la donnée est une chaine, un nombre, etc ... On la traite comme s'il y avait un true
@@ -75,7 +65,7 @@ export default class Filtre {
 
                 debug && console.log(`[requete][reponse][filtre]`, chemin.join('.'), ': Valeur');
 
-                return await this.valeur(
+                return this.valeur(
                     donnee,
                     schema,
                     chemin
@@ -86,7 +76,7 @@ export default class Filtre {
 
                 debug && console.log(`[requete][reponse][filtre]`, chemin.join('.'), ': Objet');
 
-                return await this.objet(donnee, schema, chemin, schemaParent);
+                return this.objet(donnee, schema, chemin, schemaParent);
 
             }
 
@@ -98,12 +88,11 @@ export default class Filtre {
         }
     }
 
-    private async tableau(
+    private tableau(
         donnee: any[],
         schema: TSelecteur | undefined,
 
         chemin: string[],
-        metasPropriete?: TMetasAttribut,
         schemaParent?: TObjet
     ) {
 
@@ -111,12 +100,11 @@ export default class Filtre {
 
         for (const iElem in donnee) {
             retour.push(
-                await this.filtrer(
+                this.filtrer(
                     donnee[iElem],
                     schema,
 
                     [...chemin, iElem],
-                    metasPropriete,
                     schemaParent
                 )
             )
@@ -125,7 +113,7 @@ export default class Filtre {
         return retour;
     }
 
-    private async objet(
+    private objet(
         donnee: TObjet,
         schema: TSelecteur | undefined,
 
@@ -167,29 +155,11 @@ export default class Filtre {
         }
 
         let retour: TObjet = {};
-        let metasClasse: TModelMetas | undefined;
-
-        // Modèle 
-        // On préfère cette méthode plutot que « instanceof Model »
-        // Car la rféérence vers Model peut ne pas être reconnue quand l'instance est créée depuis le projet
-        if (donnee._metas !== undefined) {
-
-            metasClasse = donnee._metas as unknown as TModelMetas;
-
-            // Injection nom modèle
-            // Permet de reconnaitre de quel modèle il s'agit coté client
-            // (Ex: retour pouvant avoir plusieurs types différent: Depot | Post)
-            retour._modele = metasClasse.name;
-        }
 
         // Liste des clés à itérer
         let clesAiterer: string[];
         if (schema !== undefined)
             clesAiterer = Object.keys(schema as object);
-        // Admin = toutes les données sont exposées à l'api
-        // Si la donnée est une instance de classe, on utilise la liste des propriétés exposées à l'api
-        else if (metasClasse)
-            clesAiterer = metasClasse.api;
         else // En dernier recours, on itère tout simplement les données de l'objet
             clesAiterer = Object.keys(donnee);
 
@@ -199,31 +169,16 @@ export default class Filtre {
             const cheminA = [...chemin, nomBranche];
             let donneeBranche = undefined;
 
-            // Filtrage
-            // propriete doit IMPERATIVEMENT être avant tout accès à la donnée
-            // Afin que les promises soient bien catchées
-            if (metasClasse !== undefined) {
-
-                donneeBranche = await this.propriete(nomBranche, donnee, metasClasse, cheminA);
-
-                // Exclusion de cette donnée
-                if (donneeBranche === undefined) {
-                    //debug && console.log('EXCLUSION', cheminA.join('.'));
-                    continue;
-                }
-            }
-
             // Extraction de la valeur de la propriété
             if (donneeBranche === undefined)
                 donneeBranche = donnee[nomBranche];
 
             // Filtrage de la valeur de la propriété
-            retour[nomBranche] = await this.filtrer(
+            retour[nomBranche] = this.filtrer(
                 donneeBranche,
                 schema !== undefined ? schema[nomBranche] : undefined,
 
                 cheminA,
-                metasClasse === undefined ? undefined : metasClasse.attributes[nomBranche],
 
                 schema as TObjet
             );
@@ -233,7 +188,7 @@ export default class Filtre {
     }
 
     // Traitement des données aux extrémités (auxquelles font référence les true)
-    private async valeur(
+    private valeur(
         donnee: any,
         schema: TSelecteur,
         chemin: string[]
@@ -265,12 +220,12 @@ export default class Filtre {
         return donnee;
     }
 
-    private async propriete<TModele extends Modele>(
+    /*private propriete<TModele extends Modele>(
         nom: keyof TModele,
         modele: TModele,
         metasClasse: TModelMetas,
         cheminA: string[]
-    ): Promise<any | undefined> {
+    ): any | undefined {
 
         const metasProp = metasClasse.attributes[nom];
 
@@ -285,20 +240,9 @@ export default class Filtre {
         }
 
         let valeur: any;
-
         // Si promise, on lui rattache un catch le plus tôt possible, avant qu'on ne tente d'acceder à sa valeur
         // (un simple acces lançant directement la promise)
-        if (metasProp.api.async) {
-
-            try {
-                valeur = await modele[nom];
-            } catch (e) {
-                console.error(`${cheminA.join('.')}: Erreur lors de l'execution de la promise ${metasClasse.nom}.${nom}`, e);
-                throw e;
-            }
-
-        } else
-            valeur = modele[nom];
+        valeur = modele[nom];
 
         // Permissions
         if (!this.controleAcces(modele, metasProp.api.auth, `Elimination de la donnée ${cheminA.join('.')} (${metasClasse.nom}.${nom})`)) {
@@ -316,7 +260,7 @@ export default class Filtre {
             return undefined;
 
         // Dernier traitement des valeurs
-        //valeur = await filtresProps(valeur, metasProp);
+        //valeur = filtresProps(valeur, metasProp);
         return valeur;
     }
 
@@ -374,6 +318,6 @@ export default class Filtre {
 
             return false;
         }
-    }
+    }*/
 
 }

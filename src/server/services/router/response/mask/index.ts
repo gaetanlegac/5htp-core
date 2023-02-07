@@ -24,12 +24,9 @@ const debug = false;
 ----------------------------------*/
 
 // proprieteModele = Si l'objet actuellement traité fait partie des valeurs d'un modèle
-export default async (
+export default (
     donnee: any,
-    selecteurs?: string | TObjetSelecteurs,
-
-    // Facultatif, car il faut pouvoir utiliser filtreApi pour l'emission socket général (ex: résultats selection trading)
-    user?: User | null
+    selecteurs?: string | TObjetSelecteurs
 ) => {
 
     // Pas besoin de filtrer
@@ -48,8 +45,8 @@ export default async (
 
     debug && console.log('Avant filtrage', donnee);
 
-    const filtre = new Filter(user);
-    const retour = await filtre.filtrer(donnee, selecteursCompiles);
+    const filtre = new Filter();
+    const retour = filtre.filtrer(donnee, selecteursCompiles);
 
     // Empêche un nouveau filtrage
     // OBSOLETE: éviter d emodifier le retour des api, car cela peut poser probleme lors du traitement de ces données (ex: itération clés objet)
