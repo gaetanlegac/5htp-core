@@ -42,6 +42,8 @@ export type TRouterContext<TRouter extends ClientRouter = ClientRouter, TApplica
     // Expose client application services (api, socket, ...)
     //TRouter["app"] 
     TApplication
+    &
+    ReturnType<TRouter["config"]["context"]>
 )
 
 /*----------------------------------
@@ -71,6 +73,8 @@ export default class ClientPageResponse<
 
     private createContext(): TRouterContext<TRouter, TRouter["app"]> {
 
+        console.log("this.request.router.context()", this.request.router.config.context());
+
         const context: TRouterContext<TRouter, TRouter["app"]> = {
             // App services (TODO: expose only services)
             ...this.request.app,
@@ -80,6 +84,8 @@ export default class ClientPageResponse<
             request: this.request,
             route: this.route,
             api: this.request.api,
+
+            ...this.request.router.config.context()
         }
 
         context.context = context;

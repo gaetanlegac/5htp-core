@@ -116,7 +116,7 @@ export default abstract class Application {
         },
         body: JSON.stringify({
             url: window.location.pathname,
-            ssrData: JSON.stringify(window["ssr"]),
+            context: JSON.stringify(window["ssr"]),
             guiVersion: BUILD_DATE,
             ...infos
         })

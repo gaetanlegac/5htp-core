@@ -98,7 +98,7 @@ export default class ServerResponse<
         this.route = route;
 
         // Create response context for controllers
-        const context = this.createContext(route);
+        const context = await this.createContext(route);
 
         // Run controller
         const response = await this.route.controller( context );
@@ -126,7 +126,7 @@ export default class ServerResponse<
     ----------------------------------*/
 
     // Start controller services
-    private createContext( route: TRoute ): TRequestContext {
+    private async createContext( route: TRoute ): Promise<TRequestContext> {
 
 
         const contextServices: Partial<TRouterContextServices<TRouter>> = {}
@@ -136,6 +136,8 @@ export default class ServerResponse<
             contextServices[ serviceName ] = routerService.requestService( this.request );
 
         }
+
+        const customSsrData = this.router.config.context(this.request);
 
         const context: TRequestContext = {
             // Router context
@@ -147,6 +149,7 @@ export default class ServerResponse<
             api: this.request.api,
             // Router services
             ...(contextServices as TRouterContextServices<TRouter>),
+            ...customSsrData
         }
 
         context.context = context;
@@ -154,9 +157,9 @@ export default class ServerResponse<
         return context;
     }
 
-    public async forSsr( page: Page<TRouter> ): Promise<TBasicSSrData> {
+    public forSsr( page: Page<TRouter> ): TBasicSSrData {
 
-        const customSsrData = await this.router.config.ssrData(this.request);
+        const customSsrData = this.router.config.context(this.request);
 
         return {
             request: {

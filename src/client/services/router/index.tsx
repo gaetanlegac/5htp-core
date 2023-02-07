@@ -116,21 +116,24 @@ export type THookCallback<TRouter extends ClientRouter> = (request: ClientReques
 
 type THookName = 'location.change' | 'page.changed'
 
-type Config = {
+type Config<TAdditionnalContext extends {} = {}> = {
     preload: string[], // List of globs
+    context: () => TAdditionnalContext
 }
 
 /*----------------------------------
 - ROUTER
 ----------------------------------*/
 export default class ClientRouter<
-    TApplication extends ClientApplication = ClientApplication
-> extends Service<Config, ClientApplication> implements BaseRouter {
+    TApplication extends ClientApplication = ClientApplication,
+    TAdditionnalContext extends {} = {}
+> extends Service<Config<TAdditionnalContext>, ClientApplication> implements BaseRouter {
 
-    public ssrData = window["ssr"] as (TBasicSSrData | undefined);
+    // Context data
+    public context = window["ssr"] as (TBasicSSrData | undefined);
     public ssrRoutes = window["routes"] as TSsrUnresolvedRoute[];
 
-    public constructor(app: TApplication, config: Config) {
+    public constructor(app: TApplication, config: Config<TAdditionnalContext>) {
 
         super(app, config);
     }
@@ -157,7 +160,7 @@ export default class ClientRouter<
 
         const loaders: TRoutesLoaders = { ...coreRoutes, ...appRoutes }
         let currentRoute: TUnresolvedRoute | undefined;
-        debug && console.log(LogPrefix, `Indexing routes and finding the current route from ssr data:`, this.ssrData);
+        debug && console.log(LogPrefix, `Indexing routes and finding the current route from ssr data:`, this.context);
 
         // Associe la liste des routes (obtenue via ssr) à leur loader
         for (let routeIndex = 0; routeIndex < this.ssrRoutes.length; routeIndex++) {
@@ -195,9 +198,9 @@ export default class ClientRouter<
             if (currentRoute === undefined) {
 
                 const isCurrentRoute = (
-                    this.ssrData !== undefined
+                    this.context !== undefined
                     &&
-                    route.chunk === this.ssrData.page.chunkId
+                    route.chunk === this.context.page.chunkId
                 );
 
                 if (isCurrentRoute) {
@@ -343,15 +346,15 @@ export default class ClientRouter<
 
         // Restituate SSR response
         let apiData: {} = {}
-        if (this.ssrData) {
+        if (this.context) {
 
             console.log("SSR Response restitution ...");
 
-            request.user = this.ssrData.user || null;
+            request.user = this.context.user || null;
 
-            request.data = this.ssrData.request.data;
+            request.data = this.context.request.data;
 
-            apiData = this.ssrData.page.data || {};
+            apiData = this.context.page.data || {};
         }
 
         // Replacer api data par ssr data

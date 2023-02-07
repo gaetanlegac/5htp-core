@@ -153,7 +153,7 @@ export default class DocumentRenderer {
 
     private async scripts( response, page ) {
 
-        const ssrData = safeStringify( await response.forSsr(page) );
+        const context = safeStringify( response.forSsr(page) );
 
         const routesForClient = JSON.stringify( this.router.ssrRoutes );
 
@@ -161,7 +161,7 @@ export default class DocumentRenderer {
             {/* JS */}
             {!page.amp && (
                 <script type="text/javascript" dangerouslySetInnerHTML={{ 
-                    __html: `window.ssr=${ssrData}; window.routes=${routesForClient};` + (
+                    __html: `window.ssr=${context}; window.routes=${routesForClient};` + (
                         this.app.env.profile === 'dev' ? 'window.dev = true;' : ''
                     )
                 }} />

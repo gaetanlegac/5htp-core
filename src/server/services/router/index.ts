@@ -93,7 +93,7 @@ export type Config<
     // Set it as a function, so when we instanciate the services, we can callthis.router to pass the router instance in roiuter services
     services: TServiceList,
 
-    ssrData: (request: ServerRequest<ServerRouter>) => Promise<TAdditionnalSsrData>,
+    context: (request: ServerRequest<ServerRouter>) => TAdditionnalSsrData,
 
     // Protections against bots
     // TODO: move to Protection service
