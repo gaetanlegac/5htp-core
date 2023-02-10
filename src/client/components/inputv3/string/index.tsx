@@ -21,25 +21,29 @@ export type Props = {
     suffix?: React.VNode,
     iconR?: string,
 
+    // State
+    inputRef?: React.Ref<HTMLInputElement>
+
     // Behavior
     type?: 'email' | 'password' | 'longtext',
     choice?: string[] | ((input: string) => Promise<string[]>),
-    multiple?: boolean,
 
     // Actions
     onPressEnter?: (value: string) => void,
-    inputRef?: React.Ref<HTMLInputElement>
 }
 
 /*----------------------------------
 - COMPOSANT
 ----------------------------------*/
 export default ({ 
-    // Behavoir
-    type, 
-    icon, prefix, suffix, iconR,
+    // Decoration
+    icon, prefix, suffix, iconR, required,
+    // State
+    inputRef, errors,
+    // Behavior
+    type, choice, 
+    // Actions
     onPressEnter,
-    inputRef,
     ...props 
 }: Props & InputBaseProps<string> & Omit<JSX.HTMLAttributes<HTMLInputElement>, 'onChange'>) => {
 
@@ -100,6 +104,8 @@ export default ({
         className += ' empty';
     if (focus)
         className += ' focus';
+    if (errors?.length)
+        className += ' error';
 
     if (props.className !== undefined)
         className += ' ' + props.className;
@@ -107,7 +113,7 @@ export default ({
     /*----------------------------------
     - RENDER
     ----------------------------------*/
-    return (
+    return <>
         <div class={className} onClick={() => refInput.current?.focus()}>
 
             {prefix}
@@ -131,11 +137,18 @@ export default ({
                     }}
                 />
 
-                <label>{props.title}</label>
+                <label>{props.title}{required && (
+                    <span class="fg error">&nbsp;*</span>
+                )}</label>
             </div>
 
             {suffix}
             
         </div>
-    )
+        {errors?.length && (
+            <div class="fg error txt-left">
+                {errors.join('. ')}
+            </div>
+        )}
+    </>
 }

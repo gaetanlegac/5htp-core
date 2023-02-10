@@ -14,8 +14,12 @@ import { useState } from '@client/hooks';
 ----------------------------------*/
 
 export type InputBaseProps<TValue> = {
-    value: TValue,
+
     title: string, // Now mandatory
+    required?: boolean,
+    errors?: string[],
+
+    value: TValue,
     onChange?: (newValue: TValue) => void,
 }
 
