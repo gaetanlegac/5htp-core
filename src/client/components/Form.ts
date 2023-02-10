@@ -25,6 +25,13 @@ export type Form<TFormData extends {} = {}> = {
     set: (data: Partial<TFormData>) => void,
     submit: (additionnalData?: Partial<TFormData>) => Promise<any>,
     fields: FieldsAttrs<TFormData>,
+} & FormState
+
+type FormState = {
+    isLoading: boolean,
+    errorsCount: number,
+    errors: {[fieldName: string]: string[]},
+    changed: boolean
 }
 
 /*----------------------------------
@@ -38,15 +45,16 @@ export default function useForm<TFormData extends {}>( schema: Schema<TFormData>
     const fields = React.useRef<FieldsAttrs<TFormData>>(null);
 
     const [data, setData] = React.useState<TFormData>( options.data || {} );
-    const [state, setState] = React.useState({
+    const [state, setState] = React.useState<FormState>({
         isLoading: false,
         errorsCount: 0,
         errors: {},
-        validated: false
+        changed: false
     });
 
+    // Validate data when it changes
     React.useEffect(() => {
-        state.validated && validate(data);
+        state.changed && validate(data);
     }, [data]);
 
     /*----------------------------------
@@ -58,13 +66,10 @@ export default function useForm<TFormData extends {}>( schema: Schema<TFormData>
 
         // Update errors
         if (validated.nbErreurs !== state.errorsCount) {
-            fields.current = null; // Update the fields definition
-            setState( old => ({ 
-                ...old,
+            rebuildFieldsAttrs({ 
                 errorsCount: validated.nbErreurs, 
                 errors: validated.erreurs,
-                validated: true
-            }));
+            });
         }
         
         return validated;
@@ -84,14 +89,39 @@ export default function useForm<TFormData extends {}>( schema: Schema<TFormData>
             return options.submit(validated.values);
     }
 
-    if (fields.current === null){
+    const rebuildFieldsAttrs = (newState: Partial<FormState> = {}) => {
+        // Force rebuilding the fields definition on the next state change
+        fields.current = null; 
+        // Force state change
+        setState( old => ({ 
+            ...old,
+            ...newState,
+            changed: true
+        }));
+    }
+
+    // Rebuild the fields attrs when the schema changes
+    if (fields.current === null || Object.keys(schema).join(',') !== Object.keys(fields.current).join(',')){
         fields.current = {}
         for (const fieldName in schema.fields) {
             fields.current[fieldName] = {
 
                 // Value control
                 value: data[fieldName],
-                onChange: (val) => setData( old => ({ ...old, [fieldName]: val })),
+                onChange: (val) => {
+                    setState( old => ({ 
+                        ...old,
+                        changed: true
+                    }));
+                    setData( old => {
+                        return { 
+                            ...old, 
+                            [fieldName]: typeof val === 'function'
+                                ? val(old[fieldName])
+                                : val
+                        }
+                    })
+                },
 
                 // Submit on press enter
                 onKeyDown: e => {
@@ -102,7 +132,8 @@ export default function useForm<TFormData extends {}>( schema: Schema<TFormData>
 
                 // Error
                 errors: state.errors[ fieldName ],
-                required: schema.fields[ fieldName ].options?.opt !== true
+                required: schema.fields[ fieldName ].options?.opt !== true,
+                validator: schema.fields[ fieldName ]
             }
         }
     }
