@@ -279,7 +279,7 @@ export default class SQL extends Service<Config, Hooks, Application> {
     public update<TData extends TObjetDonnees>(
         tableName: string, 
         data: TData[], 
-        where: (keyof TData)[], 
+        where?: (keyof TData)[], 
         opts?: TUpdateQueryOptions<TData>
     );
 
@@ -287,29 +287,41 @@ export default class SQL extends Service<Config, Hooks, Application> {
     public update<TData extends TObjetDonnees>(
         tableName: string, 
         data: TData, 
-        where: (keyof TData)[] | TObjetDonnees, 
+        where?: (keyof TData)[] | TObjetDonnees, 
         opts?: TUpdateQueryOptions<TData>
     );
 
     public update<TData extends TObjetDonnees>(...args: [
         tableName: string, 
         data: TData[], 
-        where: (keyof TData)[], 
+        where?: (keyof TData)[], 
         opts?: TUpdateQueryOptions<TData>
     ] | [
         tableName: string, 
         data: TData, 
-        where: (keyof TData)[] | TObjetDonnees, 
+        where?: (keyof TData)[] | TObjetDonnees, 
         opts?: TUpdateQueryOptions<TData>
-    ]) {
+    ]): Promise<ResultSetHeader> {
 
         let [tableName, data, where, opts] = args;
 
         // Multiple updates in one
         if (Array.isArray( data ))
             return this.database.query(
-                data.map(record => this.update(tableName, record, where, opts)).join(';\n')
+                data.map( record => 
+                    this.update(tableName, record, where, { ...opts, returnQuery: true })
+                ).join(';\n')
             )
+
+        // Automatic where based on pks
+        if (where === undefined) {
+
+            const tableMetas = this.database.getTable(tableName);
+            if (tableMetas.pk.length === 0)
+                throw new Error(`Tried to build the where condition based on the pks list, but no pk is attached to this table ${tableMetas.chemin}`);
+
+            where = tableMetas.pk;
+        }
 
         // No condition specified = use the pks
         if (Array.isArray(where)) {
