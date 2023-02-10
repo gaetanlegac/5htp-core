@@ -149,7 +149,7 @@ export default ({
             
         </div>
     ) : (
-        <div class={"card pd-2 col"} style={width === undefined 
+        <div class={"card pd-2 col al-top"} style={width === undefined 
             ? {}
             : { minWidth: width + "px", maxWidth: width + "px" }
         }>

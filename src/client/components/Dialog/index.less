@@ -82,8 +82,7 @@
         gap: @spacing;
         z-index: @modal-zindex;
 
-        background: fade(#fff, 20%);
-        backdrop-filter: blur(30px) saturate(2);
+        background: fade(#000, 20%);
         border-radius: @radius;
 
         // Desktop = vertically center the modal
@@ -109,6 +108,7 @@
             max-height: 100vh;
             box-shadow: none;
             padding: @spacing * 2;
+            overflow-y: auto;
 
             // Pas d'anim quand pas card, 
             // Car peut contenir bcp d'elemnts => performance
