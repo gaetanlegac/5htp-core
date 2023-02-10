@@ -9,14 +9,13 @@ import { ComponentChild, RefObject } from 'preact';
 // Core
 import Button, { Props as ButtonProps } from '../button';
 import { TDialogControls } from '../Dialog/Manager';
-export type { TDialogControls } from '../Dialog/Manager';
-
-// Libs
-import useContexte from '@/client/context';
+import Popover from '../containers/Popover';
 
 /*----------------------------------
 - TYPES
 ----------------------------------*/
+
+export type { TDialogControls } from '../Dialog/Manager';
 
 export type Props = ButtonProps & {
     content: ComponentChild,
@@ -28,23 +27,19 @@ export type Props = ButtonProps & {
 ----------------------------------*/
 export default (props: Props) => {
 
-    const { modal } = useContexte();
-
     let {
         content,
         refModal,
         ...buttonProps
     } = props;
 
+    const popoverState = React.useState(false);
+
     const refButton = React.useRef<HTMLElement>(null);
 
-    const open = () => {
-        const modalInstance = modal.show(() => content);
-        if (refModal)
-            refModal.current = modalInstance;
-    }
-
     return (
-        <Button {...buttonProps} onClick={(open)} refElem={refButton} />
+        <Popover content={content} state={popoverState}>
+            <Button {...buttonProps} refElem={refButton} />
+        </Popover>
     )
 }
