@@ -200,7 +200,7 @@ export default class ServerRouter<
 
     public page(...args: TRegisterPageArgs) {
 
-        const { path, options, controller, renderer } = getRegisterPageArgs(...args);
+        const { path, options, controller, renderer, layout } = getRegisterPageArgs(...args);
 
         const { regex, keys } = buildRegex(path);
 
@@ -209,7 +209,7 @@ export default class ServerRouter<
             path,
             regex,
             keys,
-            controller: (context: TRouterContext<this>) => new Page(controller, renderer, context),
+            controller: (context: TRouterContext<this>) => new Page(controller, renderer, context, layout),
             options: {
                 ...defaultOptions,
                 accept: 'html', // Les pages retournent forcémment du html

@@ -73,8 +73,6 @@ export default class ClientPageResponse<
 
     private createContext(): TRouterContext<TRouter, TRouter["app"]> {
 
-        console.log("this.request.router.context()", this.request.router.config.context());
-
         const context: TRouterContext<TRouter, TRouter["app"]> = {
             // App services (TODO: expose only services)
             ...this.request.app,

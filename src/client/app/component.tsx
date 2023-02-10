@@ -21,8 +21,7 @@ export default function App ({ context }: {
     context: TClientOrServerContext,
 }) {
 
-    const route = context.route;
-    const curLayout = route.options.layout;
+    const curLayout = context.page?.layout;
     const [layout, setLayout] = React.useState<Layout | false | undefined>(curLayout);
 
     // TODO: context.page is always provided in the context on the client side

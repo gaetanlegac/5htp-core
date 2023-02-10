@@ -77,8 +77,8 @@ export default ({ service: router }: { service: Router }) => {
             }
 
             // If if the layout changed
-            const curLayout = currentRoute?.options.layout;
-            const newLayout = newpage?.route.options.layout;
+            const curLayout = pages.current?.layout;
+            const newLayout = newpage?.layout;
             if (newLayout && curLayout && newLayout.path !== curLayout.path) {
 
                 // TEMPORARY FIX: reload everything when we change layout
@@ -126,7 +126,7 @@ export default ({ service: router }: { service: Router }) => {
         return history?.listen(async (locationUpdate) => {
 
             // Load the concerned route
-            const request = new ClientRequest(locationUpdate.location, context);
+            const request = new ClientRequest(locationUpdate.location, context.router);
             await resolvePage(request);
             
             // Scroll to the selected content via url hash

@@ -6,7 +6,7 @@
 import type { ComponentChild } from 'preact';
 
 // Core
-import type { TClientOrServerContext } from '@common/router';
+import type { TClientOrServerContext, Layout } from '@common/router';
 import PageResponse, { TDataProvider, TFrontRenderer } from "@common/router/response/page";
 
 // Specific
@@ -32,6 +32,7 @@ export default class ClientPage<TRouter = ClientRouter> extends PageResponse<TRo
         public dataProvider: TDataProvider | null,
         public component: TFrontRenderer,
         public context: TClientOrServerContext,
+        public layout?: Layout,
 
         public route = context.route
     ) {

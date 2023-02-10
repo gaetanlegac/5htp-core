@@ -98,7 +98,7 @@ export type TRouteOptions = {
     // Access Restriction
     auth?: TUserRole | boolean,
     //form?: TSchema,
-    layout?: false | Layout,
+    layout?: false | string, // The nale of the layout
 
     TESTING?: boolean,
     logging?: boolean,

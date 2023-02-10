@@ -9,8 +9,7 @@ const safeStringify = require('fast-safe-stringify'); // remplace les référenc
 
 // Core
 import { default as Router, TRouterContext } from "@server/services/router";
-import type ServerResponse from "@server/services/router/response";
-import type { TRoute } from '@common/router';
+import type { Layout } from '@common/router';
 import PageResponse, { TDataProvider, TFrontRenderer } from "@common/router/response/page";
 
 // Composants UI
@@ -33,6 +32,7 @@ export default class Page<TRouter extends Router = Router> extends PageResponse<
         public dataProvider: TDataProvider | null,
         public renderer: TFrontRenderer,
         public context: TRouterContext,
+        public layout?: Layout,
 
         public route = context.route,
         public router = context.request.router

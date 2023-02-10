@@ -215,7 +215,7 @@ export default class ClientRouter<
 
     public page(...args: TRegisterPageArgs): TRoute {
 
-        const { path, options, controller, renderer } = getRegisterPageArgs(...args);
+        const { path, options, controller, renderer, layout } = getRegisterPageArgs(...args);
 
         // S'il s'agit d'une page, son id doit avoir été injecté via le plugin babel
         const id = options["id"];
@@ -233,7 +233,7 @@ export default class ClientRouter<
                 ...defaultOptions,
                 ...options
             },
-            controller: (context: TClientOrServerContext) => new ClientPage(controller, renderer, context)
+            controller: (context: TClientOrServerContext) => new ClientPage(controller, renderer, context, layout)
         };
 
         this.routes.push(route);

@@ -29,16 +29,10 @@ export const getRegisterPageArgs = (...args: TRegisterPageArgs) => {
     else
         ([path, options, controller, renderer] = args)
 
-    // S'il s'agit d'une page, son id doit avoir été injecté via le plugin babel
-    const chunkId = options["id"];
-    if (chunkId === undefined)
-        throw new Error(`ID has not injected for the following page route: ${path}`);
+    // Automatic layout form the nearest _layout folder
+    const layout = getLayout(path, options);
 
-    // Bind layout
-    if (options.layout !== false)
-        options.layout = getLayout(chunkId);
-
-    return { path, options, controller, renderer }
+    return { path, options, controller, renderer, layout }
 
 }
 
