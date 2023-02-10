@@ -170,7 +170,7 @@ export default class BugReporter {
             channelType, 
             channelId,
             // User
-            user: request?.user?.name,
+            user: request?.user?.email,
             ip: request?.ip,
             // Error
             error,
@@ -180,25 +180,8 @@ export default class BugReporter {
 
         await this.sendToTransporters(bugReport);
 
-        // TODO: Move on App side
-        /*if (app.isLoaded('sql'))
-            // Memorize
-            $.sql.insert('BugServer', {
-                // Context
-                hash: hash,
-                date: now,
-                channelType, 
-                channelId,
-                // User
-                user: request?.user?.name,
-                ip: request?.ip,
-                // Error
-                stacktrace: error.stack || error.message,
-                logs: logsHtml
-            });*/
-
         // Update error message
-        error.message = "A bug report has been sent to my personal mailbox. Sorry for the inconvenience.";
+        error.message = "We encountered an internal error, and our team has just been notified. Sorry for the inconvenience.";
     }
 
     public async application( report: AppBugInfos ) {
