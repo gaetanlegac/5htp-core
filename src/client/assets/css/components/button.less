@@ -94,9 +94,6 @@
     ----------------------------------*/
 
     &.bg {
-
-        background: var(--cBg);
-        color: var(--cTxtBase);
         
         &:not(:disabled) {
             &:hover,
@@ -314,6 +311,10 @@ ul.col {
                 display: block;
             }
         }
+    }
+
+    &.menu > li > .btn {
+        width: 100%;
     }
 
     .btn.icon > .label,
