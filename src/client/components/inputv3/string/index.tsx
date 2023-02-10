@@ -91,7 +91,7 @@ export default ({
     } else if (type === 'longtext') {
 
         prefix = prefix || <i src="text" />;
-        Tag = TextareaAutosize;
+        Tag = 'textarea'//TextareaAutosize;
 
     }
 
