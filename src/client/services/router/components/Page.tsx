@@ -34,26 +34,24 @@ export default ({ page, isCurrent }: { page: Page, isCurrent?: boolean }) => {
 
     }, [page]);
 
-    return (
+    /*
         <div 
             class={"page" + (isCurrent ? ' current' : '')} 
             id={page.chunkId === undefined ? undefined : 'page_' + page.chunkId}
         >
+    */
 
-            {/* Make request parameters and api data accessible from the page component */}
-            {page.renderer ? (
+    //  Make request parameters and api data accessible from the page component
+    return page.renderer ? (
 
-                <page.renderer 
-                    // Services
-                    {...context} 
-                    // URL params
-                    {...context.request.data} 
-                    // API data
-                    {...apiData} 
-                />
-                
-            ) : null}
-
-        </div>
-    )
+        <page.renderer 
+            // Services
+            {...context} 
+            // URL params
+            {...context.request.data} 
+            // API data
+            {...apiData} 
+        />
+        
+    ) : null
 }
