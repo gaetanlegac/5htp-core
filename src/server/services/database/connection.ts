@@ -28,18 +28,10 @@ const LogPrefix = '[database][connection]';
 
 export type DatabaseServiceConfig = {
     list: string[],
-    dev: {
-        host: string,
-        port: number,
-        login: string,
-        password: string,
-    },
-    prod: {
-        host: string,
-        port: number,
-        login: string,
-        password: string,
-    }
+    host: string,
+    port: number,
+    login: string,
+    password: string,
 }
 
 export type THooks = {
@@ -113,15 +105,13 @@ export default class DatabaseConnection extends Service<DatabaseServiceConfig, T
 
         console.info(LogPrefix, `Connecting to databases ...`);
 
-        const creds = this.config[ this.app.env.profile ];
-
         return await mysql.createPool({
 
             // Identification
-            host: creds.host,
-            port: creds.port,
-            user: creds.login,
-            password: creds.password,
+            host: this.config.host,
+            port: this.config.port,
+            user: this.config.login,
+            password: this.config.password,
             database: this.config.list[0],
 
             // Pool
