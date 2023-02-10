@@ -4,7 +4,7 @@
 
 // Npm
 import React from 'react';
-import { ComponentChild } from 'preact';
+import type { StateUpdater } from 'preact/hooks';
 
 // Core libs
 import { useState } from '@client/hooks';
@@ -20,7 +20,7 @@ export type InputBaseProps<TValue> = {
     errors?: string[],
 
     value: TValue,
-    onChange?: (newValue: TValue) => void,
+    onChange?: StateUpdater<TValue>,
 }
 
 export type TInputState<TValue> = {
@@ -28,6 +28,7 @@ export type TInputState<TValue> = {
     fieldProps: {[key: string]: any},
     valueSource: 'internal'|'external',
     focus: boolean,
+    changed: boolean,
 }
 
 /*----------------------------------
@@ -47,12 +48,18 @@ export function useInput<TValue>(
         value: externalValue !== undefined ? externalValue : defaultValue,
         valueSource: 'external',
         fieldProps: {},
-        focus: false
+        focus: false,
+        changed: false
     });
 
-    const setValue = (value: TValue) => setState({ value, valueSource: 'internal' });
+    const setValue = (value: TValue) => setState({ value, valueSource: 'internal', changed: true });
 
     const commitValue = () => {
+
+        // Avoid to change parent component state at first render
+        if (state.changed === false)
+            return;
+
         console.log(`[input] Commit value:`, state.value);
         if (onChange !== undefined)
             onChange(state.value);
@@ -63,7 +70,7 @@ export function useInput<TValue>(
 
         if (externalValue !== undefined && externalValue !== state.value) {
             console.log("External value change", externalValue);
-            setState({ value: externalValue, valueSource: 'external' })
+            setState({ value: externalValue, valueSource: 'external', changed: true })
         }
         
     }, [externalValue]);
