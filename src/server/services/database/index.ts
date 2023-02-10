@@ -380,14 +380,9 @@ export default class SQL extends Service<Config, Hooks, Application> {
         let querySuffix: string = '';
 
         // Upsert
-        if (opts.upsert !== undefined) {
-            const upsertStatement = this.buildUpsertStatement<TData>(table, opts as With<TInsertQueryOptions<TData>, 'upsert'>);
-            if (upsertStatement === null)
-                opts.try = true;
-            else
-                querySuffix += ' ' + upsertStatement;
-        }
-
+        if (opts.upsert !== undefined)
+            querySuffix += ' ' + this.buildUpsertStatement<TData>(table, opts as With<TInsertQueryOptions<TData>, 'upsert'>);
+        
         // Create basic insert query
         const query = this.buildInsertStatement(table, data, opts) + querySuffix;
 
@@ -436,15 +431,14 @@ export default class SQL extends Service<Config, Hooks, Application> {
     private buildUpsertStatement<TData extends TObjetDonnees>( 
         table: TMetasTable, 
         opts: With<TInsertQueryOptions<TData>, 'upsert'> 
-    ): string | null {
+    ): string {
 
         const valuesToUpdate = this.getValuesToUpdate(table, opts.upsert);
 
         // All columns are ps
         const valuesToUpdatesEntries = Object.entries(valuesToUpdate);
         if (valuesToUpdatesEntries.length === 0)
-            // Replace by insert ignore
-            return null;
+            throw new Error(`You should provide at least one column to update in case of the record already exists.`);
 
         return 'ON DUPLICATE KEY UPDATE ' + valuesToUpdatesEntries.map(([ colName, value ]) => 
             '`' + colName + '` = ' + value
@@ -465,7 +459,9 @@ export default class SQL extends Service<Config, Hooks, Application> {
         if (colsToUpdate === '*') {
 
             console.log(LogPrefix, `Automatic upsert into ${table.chemin} using ${table.pk.join(', ')} as pk`);
-            valuesNamesToUpdate = table.columnNamesButPk;
+            valuesNamesToUpdate = Object.keys(table.colonnes);// table.columnNamesButPk;
+            // We don't take columnNamesButPk, because if all the columns are pks, we don't have yny value for the ON DUPLICATE KEY
+            //  Meaning
 
         } else if (Array.isArray( colsToUpdate )) {
 
@@ -479,7 +475,7 @@ export default class SQL extends Service<Config, Hooks, Application> {
                 valuesToUpdate[ colKey ] = this.esc(customValuesToUpdate[ colKey ]);
 
             if (updateAll)
-                valuesNamesToUpdate = table.columnNamesButPk;
+                valuesNamesToUpdate = Object.keys(table.colonnes);//table.columnNamesButPk;
 
         }
 
