@@ -104,6 +104,8 @@ export default abstract class Application extends Service<Config, Hooks, /* TODO
         const configParser = new ConfigParser( this.path.root );
         this.env = configParser.env();
         this.identity = configParser.identity();
+
+        console.log(`[boot] Environment:`, this.env);
     }
 
     /*----------------------------------
