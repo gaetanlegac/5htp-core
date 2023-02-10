@@ -63,8 +63,10 @@ export default class SchemaValidator {
             return val;
         }, opts)
 
-    public array = (subtype?: Validator<any>, { choice, ...opts }: TValidator<any[]> & {
-        choice?: any[]
+    public array = (subtype?: Validator<any>, { choice, min, max, ...opts }: TValidator<any[]> & {
+        choice?: any[],
+        min?: number, 
+        max?: number
     } = {}) => {
 
         if (subtype !== undefined)
@@ -72,12 +74,17 @@ export default class SchemaValidator {
 
         return new Validator<any[]>('array', (items, input, output, corriger) => {
 
-            //console.log('VALIDER ARRAY', items, input);
-
+            // Type
             if (!Array.isArray(items))
-                throw new InputError("This value must be an array.");
+                throw new InputError("This value must be a list.");
 
-            // Verif items
+            // Items number
+            if ((min !== undefined && items.length < min))
+                throw new InputError(`Please select at least ${min} items.`);
+            if ((max !== undefined && items.length > max))
+                throw new InputError(`Please select maximum ${max} items.`);
+
+            // Verif each item
             if (subtype !== undefined) {
                 if (false/*subtype instanceof Schema*/) {
 
@@ -85,9 +92,9 @@ export default class SchemaValidator {
 
                 } else {
 
-                    for (let i = 0; i < items.length; i++)
-                        items[i] = subtype.validate( items[i], items, items, corriger );
-
+                    items = items.map( item =>
+                        subtype.validate( item, items, items, corriger )
+                    )
                 }
             }
 
@@ -101,7 +108,7 @@ export default class SchemaValidator {
     }
 
     public choice = (values: any[], opts: TValidator<any> & {} = {}) => 
-        new Validator<any>('object', (val, input, output) => {
+        new Validator<any>('choice', (val, input, output) => {
 
             if (!values.includes(val))
                 throw new InputError("Invalid value. Must be: " + values.join(', '));
@@ -115,6 +122,10 @@ export default class SchemaValidator {
     ----------------------------------*/
     public string = ({ min, max, ...opts }: TValidator<string> & { min?: number, max?: number } = {}) => 
         new Validator<string>('string', (val, input, output, corriger?: boolean) => {
+
+            // Choice value from Select component
+            if (typeof val === 'object' && val.value)
+                val = val.value;
 
             if (val === '')
                 return undefined;

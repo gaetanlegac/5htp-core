@@ -93,7 +93,7 @@ export default class Schema<TFields extends TSchemaFields> {
                 opts.debug && console.warn(LogPrefix, '[' + champ + ']', 'Exclusion (pas présent dans le schéma)');
                 continue;
             }
-    
+
             const cheminA = [...chemin, champ]
             const cheminAstr = cheminA.join('.')
     
@@ -178,7 +178,7 @@ export default class Schema<TFields extends TSchemaFields> {
         if (nbErreurs !== 0 && opts.throwError === true) {
             throw new InputErrorSchema(erreurs);
         }
-    
+        
         opts.debug && console.log(LogPrefix, '', dataToValidate, '=>', output);
     
         return { 
