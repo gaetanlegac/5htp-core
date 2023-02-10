@@ -19,8 +19,6 @@ import {
 - TYPES
 ----------------------------------*/
 
-import { TTailleComposant } from '@client/components/_base/types';
-
 type TEtape = {
     val: number,
     label?: string
@@ -44,7 +42,7 @@ export default ({
     ratioCercle: number,
     epaisseur: number,
     etapes?: TEtape[],
-    taille?: TTailleComposant
+    taille?: TComponentSize
 }) => {
 
     const refCont = React.useRef<HTMLDivElement>(null);
