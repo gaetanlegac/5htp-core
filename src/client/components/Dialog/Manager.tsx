@@ -137,10 +137,7 @@ export const createDialog = (app: Application, isToast: boolean): DialogActions 
             
             if (!isToast)
                 render = (
-                    <div class="modal" onClick={(e) => {
-                        if (e.target === e.currentTarget && !paramsInit?.prison)
-                            close(false);
-                    }}>
+                    <div class="modal">
                         {render}
                     </div>
                 )
