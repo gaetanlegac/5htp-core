@@ -14,6 +14,10 @@ import { default as Validator, EXCLUDE_VALUE } from './validator';
 
 export type TSchemaFields = { [fieldName: string]: Schema<{}> | Validator<any> }
 
+type TSchemaOptions = {
+    opt?: boolean
+}
+
 type TOptsValider = {
     debug?: boolean,
     throwError?: boolean,
@@ -46,7 +50,8 @@ const LogPrefix = '[schema][validator]';
 export default class Schema<TFields extends TSchemaFields> {
 
     public constructor(
-        public fields: TFields
+        public fields: TFields,
+        public options: TSchemaOptions = {}
     ) {
 
     }

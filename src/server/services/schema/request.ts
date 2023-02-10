@@ -38,11 +38,13 @@ export default class RequestValidator extends ServerSchemaValidator implements R
 
     }
 
-    public validate<TSchemaFieldsA extends TSchemaFields>( fields: TSchemaFieldsA ): TValidatedData<TSchemaFieldsA> {
+    public validate<TSchemaFieldsA extends TSchemaFields>( 
+        fields: TSchemaFieldsA | Schema<TSchemaFieldsA> 
+    ): TValidatedData<TSchemaFieldsA> {
 
         this.config.debug && console.log(LogPrefix, "Validate request data:", this.request.data);
 
-        const schema = new Schema(fields);
+        const schema = fields instanceof Schema ? fields : new Schema(fields);
 
         // Les InputError seront propagées vers le middleware dédié à la gestion des erreurs
         const { values } = schema.validate(

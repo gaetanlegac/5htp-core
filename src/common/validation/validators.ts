@@ -63,7 +63,7 @@ export default class SchemaValidator {
             return val;
         }, opts)
 
-    public array = (subtype?: Validator<any[]>, { choice, ...opts }: TValidator<any[]> & {
+    public array = (subtype?: Validator<any>, { choice, ...opts }: TValidator<any[]> & {
         choice?: any[]
     } = {}) => {
 
