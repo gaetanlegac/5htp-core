@@ -65,11 +65,13 @@ export default abstract class Application extends Service<Config, Hooks, /* TODO
 
     public path = {
         root: process.cwd(),
+        public: process.cwd() + '/public',
+
+        // TODO: move to disk
         typings: process.cwd() + '/var/typings',
         cache: process.cwd() + '/var/cache',
         data: process.cwd() + '/var/data',
         log: process.cwd() + '/var/log',
-        public: process.cwd() + '/public',
     }
 
     public pkg = fs.readJSONSync(this.path.root + '/package.json');
@@ -138,10 +140,13 @@ export default abstract class Application extends Service<Config, Hooks, /* TODO
     
     public async start() {
 
-        console.info(`[boot] Waiting for all services to be ready ...`);
+        console.info(`[boot] Connect disk`);
+        await this.initDisk();
+
+        console.info(`[boot] Start services`);
         await this.startServices()
 
-        console.info(`[boot] Launching application ...`);
+        console.info(`[boot] App ready`);
         await this.runHook('ready');
 
         console.info(`[boot] Run application-specific boot instructions ...`);
@@ -150,6 +155,15 @@ export default abstract class Application extends Service<Config, Hooks, /* TODO
         console.info(`[boot] Application is ready.`);
         this.launched = true;
 
+    }
+
+    private async initDisk() {
+        console.info(`[boot] Ensure runtime dirs ...`);
+        await Promise.all([
+            fs.ensureDir( this.path.cache ),
+            fs.ensureDir( this.path.log ),
+            fs.ensureDir( this.path.data ),
+        ]);
     }
 
     public registerService( service: AnyService ) {
