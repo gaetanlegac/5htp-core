@@ -127,7 +127,7 @@ export default class ApiClient implements ApiClientService {
 
         return await this.fetch<TData>(method, path, data, options).catch((e) => {
             this.app.handleError(e);
-            throw e;
+            throw e; // Throw to break the loop
         })
     }
 
@@ -157,6 +157,8 @@ export default class ApiClient implements ApiClientService {
                 return data;
 
             });
+
+        // Errors will be catched in the caller
 
         return { ...alreadyLoadedData, ...fetchedData }
     }

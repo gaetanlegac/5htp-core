@@ -102,11 +102,7 @@ export default abstract class Application {
             })
     }
 
-    public handleError( error: CoreError | Error, httpCode?: number ) {
-    
-        /*console.error(`[api] Network error:`, e);
-        context.toast.error("Please check your internet connection and try again.", undefined, null, { autohide: false });*/
-    }
+    public abstract handleError( error: CoreError | Error, httpCode?: number );
 
     public reportBug = (infos: TBugReportInfos) => fetch('/help/bug/gui', {
         method: 'POST',
