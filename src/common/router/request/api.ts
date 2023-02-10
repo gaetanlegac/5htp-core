@@ -10,7 +10,9 @@ import type { FileToUpload } from '@client/components/inputv3/file';
 - TYPES
 ----------------------------------*/
 
-export type TFetcherList = { [id: string]: TFetcher }
+// The fetcher can be undefined if we put a condition on it
+// By example if we want to fetch an api endpoint only if the url contains a certain url parameter
+export type TFetcherList = { [id: string]: TFetcher | undefined }
 
 export type TPostData = {[key: string]: PrimitiveValue}
 

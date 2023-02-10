@@ -136,8 +136,9 @@ export default class ApiClient implements ApiClientService {
         // Pick the fetchers where the data is needed
         const fetchersToRun: TFetcherList = {};
         let fetchersCount: number = 0;
-        for (const fetcherId in fetchers)
-            if (!( fetcherId in alreadyLoadedData )) {
+        for (const fetcherId in fetchers) 
+            // The fetcher can be undefined
+            if (!( fetcherId in alreadyLoadedData ) && fetchers[ fetcherId ]) {
                 fetchersToRun[ fetcherId ] = fetchers[ fetcherId ]
                 fetchersCount++;
             }

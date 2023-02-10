@@ -58,6 +58,9 @@ export default class ApiClientRequest extends RequestService implements ApiClien
 
         for (const id in fetchers) {
 
+            if (!fetchers[id])
+                continue;
+
             const { method, path, data, options } = fetchers[id];
             //this.router.config.debug && console.log(`[api] Resolving from internal api`, method, path, data);
 
