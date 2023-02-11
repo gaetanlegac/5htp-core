@@ -106,8 +106,6 @@ export default abstract class Application extends Service<Config, Hooks, /* TODO
         const configParser = new ConfigParser( this.path.root );
         this.env = configParser.env();
         this.identity = configParser.identity();
-
-        console.log(`[boot] Environment:`, this.env);
     }
 
     /*----------------------------------
@@ -139,6 +137,8 @@ export default abstract class Application extends Service<Config, Hooks, /* TODO
     }
     
     public async start() {
+
+        console.log(`5HTP Core`, process.env.npm_package_version);
 
         console.info(`[boot] Connect disk`);
         await this.initDisk();
