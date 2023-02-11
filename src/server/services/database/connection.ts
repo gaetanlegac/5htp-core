@@ -97,6 +97,7 @@ export default class DatabaseManager extends Service<DatabaseServiceConfig, THoo
             try {
                 this.connection = await this.connect(connectionConfig);
                 this.connectionConfig = connectionConfig;
+                break;
             } catch (error) {
                 console.warn(LogPrefix, `Failed to connect to ${connectionConfig.name}: ` + error);
                 connectionErrors.push(connectionConfig.name + ': ' + error);
