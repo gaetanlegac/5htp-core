@@ -92,5 +92,8 @@
 		"@types/ws": "^7.4.7",
 		"@types/yargs-parser": "^21.0.0",
 		"babel-plugin-glob-import": "^0.0.6-2"
-	}
+	},
+    "peerDependencies": {
+        "5htp": "0.2.3"
+    }
 }
