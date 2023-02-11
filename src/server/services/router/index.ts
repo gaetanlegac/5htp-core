@@ -27,7 +27,7 @@ import BaseRouter, {
     TRouteOptions, defaultOptions
 } from '@common/router';
 import { buildRegex, getRegisterPageArgs } from '@common/router/register';
-import { layoutsList } from '@common/router/layouts';
+import { layoutsList, getLayout } from '@common/router/layouts';
 import { TFetcherList, TFetcher } from '@common/router/request/api';
 import type { TFrontRenderer } from '@common/router/response/page';
 import type { TSsrUnresolvedRoute, TRegisterPageArgs } from '@client/services/router';
@@ -147,7 +147,6 @@ export default class ServerRouter<
         // Since route registering requires all services to be ready,
         // We load routes only when all services are ready
         this.app.on('ready', async () => {
-
             // Use require to avoid circular references
             this.registerRoutes([
                 ...require("metas:@/server/routes/**/*.ts"),
@@ -228,9 +227,13 @@ export default class ServerRouter<
         options: TRoute["options"],
         renderer: TFrontRenderer<{}, { message: string }>
     ) {
+
+        // Automatic layout form the nearest _layout folder
+        const layout = getLayout('Error ' + code, options);
+
         this.errors[code] = {
             code,
-            controller: (context: TRouterContext<this>) => new Page(null, renderer, context),
+            controller: (context: TRouterContext<this>) => new Page(null, renderer, context, layout),
             options
         };
     }
@@ -503,7 +506,7 @@ declare type Routes = {
                 return response;
         }
 
-        throw new NotFound(`The requested endpoint was not found.`);
+        throw new NotFound();
     }
 
     private async resolveApiBatch( fetchers: TFetcherList, request: ServerRequest<this> ) {
@@ -542,9 +545,14 @@ declare type Routes = {
         // Rapport / debug
         if (code === 500) {
 
+            // Report error
             await this.app.runHook('error', e, request);
 
-            // Pour déboguer les erreurs HTTP
+            // Don't exose technical errors to users
+            if (this.app.env.profile === 'prod')
+                e.message = "We encountered an internal error, and our team has just been notified. Sorry for the inconvenience.";
+
+        // Pour déboguer les erreurs HTTP
         } else if (this.app.env.profile === "dev")
             console.warn(e);
 

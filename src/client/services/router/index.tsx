@@ -17,6 +17,7 @@ import type { TBasicSSrData } from '@server/services/router/response';
 import BaseRouter, {
     defaultOptions, TRoute, TErrorRoute, TClientOrServerContext, TRouteModule
 } from '@common/router'
+import { getLayout } from '@common/router/layouts';
 import { getRegisterPageArgs, buildRegex } from '@common/router/register';
 import { TFetcherList } from '@common/router/request/api';
 import type { TFrontRenderer, TDataProvider } from '@common/router/response/page';
@@ -243,9 +244,12 @@ export default class ClientRouter<
 
     public error(code: number, options: TRoute["options"], renderer: TFrontRenderer<{}, { message: string }>) {
 
+        // Automatic layout form the nearest _layout folder
+        const layout = getLayout('Error ' + code, options);
+
         const route: TErrorRoute = {
             code,
-            controller: (context: TClientOrServerContext) => new ClientPage(null, renderer, context),
+            controller: (context: TClientOrServerContext) => new ClientPage(null, renderer, context, layout),
             options
         };
 

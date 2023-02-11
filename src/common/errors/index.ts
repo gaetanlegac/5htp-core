@@ -112,7 +112,7 @@ export class AuthRequired extends CoreError {
 export class Forbidden extends CoreError {
     public http = 403;
     public title = "Access Denied";
-    public static msgDefaut = "You're not allowed to access to this resource.";
+    public static msgDefaut = "You do not have sufficient permissions to access this content.";
 }
 
 export class NotFound extends CoreError {

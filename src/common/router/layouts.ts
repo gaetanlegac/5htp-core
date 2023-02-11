@@ -8,6 +8,7 @@ import type { ComponentChild } from 'preact';
 import type { ClientContext } from '@/client/context';
 import type { TRouteOptions } from '.';
 // App
+import internalLayout from '@client/pages/_layout';
 import layouts from '@/client/pages/**/_layout/index.tsx';
 
 /*----------------------------------
@@ -43,8 +44,6 @@ export const getLayout = (routePath: string, routeOptions?: TRouteOptions): Layo
     const chunkId = routeOptions["id"];
     if (chunkId === undefined)
         throw new Error(`ID has not injected for the following page route: ${routePath}`);
-
-    let layout: Layout | undefined;
     
     // Layout via name
     if (routeOptions.layout !== undefined) {
@@ -53,30 +52,30 @@ export const getLayout = (routePath: string, routeOptions?: TRouteOptions): Layo
         if (LayoutComponent === undefined)
             throw new Error(`No layout found with ID: ${routeOptions.layout}. registered layouts: ${Object.keys(layouts)}`);
 
-        layout = { 
+        return { 
             path: routeOptions.layout, 
             Component: layouts[routeOptions.layout] 
         }
-
-    } else {
+    } 
             
-        // Automatic layout via the nearest _layout folder
-        for (const layoutPath in layouts)
-            if (
-                // The layout is nammed index when it's at the root (@/client/pages/_layout)
-                layoutPath === 'index' 
-                // Exact match
-                || chunkId === layoutPath 
-                // Parent
-                || chunkId.startsWith( layoutPath + '_' )
-            )
-                layout = { 
-                    path: layoutPath, 
-                    Component: layouts[layoutPath] 
-                };
-    }
-    
-    //console.log(`[router][layouts] Get layout for "${routePath}". Found:`, layout);
+    // Automatic layout via the nearest _layout folder
+    for (const layoutPath in layouts)
+        if (
+            // The layout is nammed index when it's at the root (@/client/pages/_layout)
+            layoutPath === 'index' 
+            // Exact match
+            || chunkId === layoutPath 
+            // Parent
+            || chunkId.startsWith( layoutPath + '_' )
+        )
+            return { 
+                path: layoutPath, 
+                Component: layouts[layoutPath] 
+            };
 
-    return layout;
+    // Internal layout
+    return {
+        path: '/',
+        Component: internalLayout
+    }
 }
