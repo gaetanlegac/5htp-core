@@ -95,8 +95,7 @@ export default class DatabaseManager extends Service<DatabaseServiceConfig, THoo
         const connectionErrors: string[] = []
         for (const connectionConfig of this.config.connections){
             try {
-                this.connection = await this.connect(connectionConfig);
-                this.connectionConfig = connectionConfig;
+                await this.connect(connectionConfig)
                 break;
             } catch (error) {
                 console.warn(LogPrefix, `Failed to connect to ${connectionConfig.name}: ` + error);
@@ -111,9 +110,6 @@ export default class DatabaseManager extends Service<DatabaseServiceConfig, THoo
         // Disconnect from the database when the app is terminated
         this.app.on('cleanup', () => this.disconnect());
 
-        // Load tables metas
-        this.tables = await this.metas.load( this.connectionConfig.databases );
-
         // Ready to make queries
         this.initialized = true;
     }
@@ -125,16 +121,17 @@ export default class DatabaseManager extends Service<DatabaseServiceConfig, THoo
     /*----------------------------------
     - INIT
     ----------------------------------*/
-    public async connect({ name, databases, host, login, password, port }: ConnectionConfig) {
-        console.info(LogPrefix, `Trying to connect to ${name} ...`);
-        return await mysql.createPool({
+    public async connect(config: ConnectionConfig) {
+
+        console.info(LogPrefix, `Trying to connect to ${config.name} ...`);
+        this.connection = mysql.createPool({
 
             // Identification
-            host: host,
-            port: port,
-            user: login,
-            password: password,
-            database: databases[0],
+            host: config.host,
+            port: config.port,
+            user: config.login,
+            password: config.password,
+            database: config.databases[0],
 
             // Pool
             waitForConnections: true,
@@ -160,6 +157,11 @@ export default class DatabaseManager extends Service<DatabaseServiceConfig, THoo
                 return query;
             }
         })
+
+        this.connectionConfig = config;
+
+        this.tables = await this.metas.load( config.databases );
+        console.info(LogPrefix, `Successfully connected to ${config.name}.`);
     }
 
     private typeCast( field: mysql.Field, next: Function ) {
