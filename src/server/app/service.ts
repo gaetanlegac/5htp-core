@@ -41,6 +41,7 @@ export default abstract class Service<
 
     public priority: TPriority = 0;
     public started?: Promise<void>;
+    public status: 'stopped' | 'starting' | 'running' | 'paused' = 'stopped';
 
     public commands?: Command[];
 

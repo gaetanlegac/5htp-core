@@ -180,6 +180,7 @@ export default abstract class Application extends Service<Config, Hooks, /* TODO
         for (const service of this.servicesList) {
             const serviceClassName = service.constructor?.name;
             console.log(`[app] Start service`, serviceClassName);
+            service.status = 'starting';
 
             if (service.register)
                 service.register();
@@ -193,6 +194,8 @@ export default abstract class Application extends Service<Config, Hooks, /* TODO
                 service.started = service.start();
                 await service.started;
             }
+            
+            service.status = 'running';
         }
 
         console.log(`[app] All ${this.servicesList.length} services were started.`);
