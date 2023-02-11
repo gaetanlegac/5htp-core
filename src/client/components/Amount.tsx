@@ -24,7 +24,7 @@ export default ({ amount, unit, sign, decimals, ...props }: {
     sign?: '+' | '-'
 } & JSX.HTMLAttributes<HTMLDivElement>) => {
 
-    const className = 'number row sp-05 ' + (props.class ? props.class + ' ' : '');//sign === undefined ? 'txtPrimary' : (sign === '+' ? 'txtSuccess' : 'txtError');
+    const className = 'number row sp-05 ' + (props.class ? props.class + ' ' : '');//sign === undefined ? 'txtPrimary' : (sign === '+' ? 'fg success' : 'fg error');
     if (unit === 'credits')
         return <strong {...props} class={className}>{sign} {Format.credits(amount, decimals)} Credits</strong>;
     else if (unit === 'dollars')
