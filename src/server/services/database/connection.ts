@@ -8,6 +8,7 @@ import mysql from 'mysql2/promise';
 // Core: general
 import Application from '@server/app';
 import Service from '@server/app/service';
+import { Anomaly } from '@common/errors';
 
 // Core: specific
 import { SqlError } from './debug';
@@ -26,12 +27,17 @@ const LogPrefix = '[database][connection]';
 - SERVICE CONFIG
 ----------------------------------*/
 
-export type DatabaseServiceConfig = {
-    list: string[],
+type ConnectionConfig = {
+    name: string,
+    databases: string[],
     host: string,
     port: number,
     login: string,
     password: string,
+}
+
+export type DatabaseServiceConfig = {
+    connections: ConnectionConfig[]
 }
 
 export type THooks = {
@@ -63,10 +69,11 @@ type TSelectQueryResult = any;
 /*----------------------------------
 - SERVICES
 ----------------------------------*/
-export default class DatabaseConnection extends Service<DatabaseServiceConfig, THooks, Application> {
+export default class DatabaseManager extends Service<DatabaseServiceConfig, THooks, Application> {
 
     private initialized = false;
     public connection!: mysql.Pool;
+    public connectionConfig?: ConnectionConfig;
 
     public tables: TDatabasesList = {};
     public metas = new MetadataParser(this);
@@ -84,35 +91,49 @@ export default class DatabaseConnection extends Service<DatabaseServiceConfig, T
 
         this.initialized = false;
 
-        this.app.on('cleanup', () => this.cleanup());
+        // Try to connect to one of the databases
+        const connectionErrors: string[] = []
+        for (const connectionConfig of this.config.connections){
+            try {
+                this.connection = await this.connect(connectionConfig);
+                this.connectionConfig = connectionConfig;
+            } catch (error) {
+                console.warn(LogPrefix, `Failed to connect to ${connectionConfig.name}: ` + error);
+                connectionErrors.push(connectionConfig.name + ': ' + error);
+            }
+        }
 
-        this.connection = await this.connect();
+        // Coudnt connect to any database
+        if (this.connectionConfig === undefined)
+            throw new Anomaly(`Couldnt connect to any database.`, { connectionErrors });
 
-        this.tables = await this.metas.load( this.config.list );
+        // Disconnect from the database when the app is terminated
+        this.app.on('cleanup', () => this.disconnect());
 
+        // Load tables metas
+        this.tables = await this.metas.load( this.connectionConfig.databases );
+
+        // Ready to make queries
         this.initialized = true;
-
     }
 
-    public async cleanup() {
+    public async disconnect() {
         return this.connection.end();
     }
 
     /*----------------------------------
     - INIT
     ----------------------------------*/
-    public async connect() {
-
-        console.info(LogPrefix, `Connecting to databases ...`);
-
+    public async connect({ name, databases, host, login, password, port }: ConnectionConfig) {
+        console.info(LogPrefix, `Trying to connect to ${name} ...`);
         return await mysql.createPool({
 
             // Identification
-            host: this.config.host,
-            port: this.config.port,
-            user: this.config.login,
-            password: this.config.password,
-            database: this.config.list[0],
+            host: host,
+            port: port,
+            user: login,
+            password: password,
+            database: databases[0],
 
             // Pool
             waitForConnections: true,
@@ -137,7 +158,7 @@ export default class DatabaseConnection extends Service<DatabaseServiceConfig, T
                 //console.info(LogPrefix, 'queryFormat', query);
                 return query;
             }
-        });
+        })
     }
 
     private typeCast( field: mysql.Field, next: Function ) {
@@ -216,13 +237,16 @@ export default class DatabaseConnection extends Service<DatabaseServiceConfig, T
 
     public getTable( path: string ): TMetasTable {
 
+        if (this.connectionConfig === undefined)
+            throw new Error(`No connection has been initialised.`);
+
         // Parse path
         let db: string, table: string;
         if (path.includes('.'))
             ([db, table] = path.split('.'));
         else {
             // Only the table = use the main database (first of the list in the config)
-            db = this.config.list[0];
+            db = this.connectionConfig.databases[0];
             table = path;
         }
             
