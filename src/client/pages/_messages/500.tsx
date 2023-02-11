@@ -7,7 +7,7 @@ import React from 'react';
 
 // Core
 import { router } from '@app';
-import Button from '@client/components/button';
+import { Button } from '@client/components';
 
 // App
 import useHeader from '@client/pages/useHeader';
@@ -15,10 +15,7 @@ import useHeader from '@client/pages/useHeader';
 /*----------------------------------
 - CONTROLEUR
 ----------------------------------*/
-router.error( 500, {}, ({ message }) => {
-
-    if (!message)
-        message = "A technical error occurred.";
+router.error( 500, ({ message }) => {
 
     useHeader({
         title: 'Technical Error',
@@ -27,11 +24,14 @@ router.error( 500, {}, ({ message }) => {
 
     return (
         <div class="col pd-2">
-            <i src="times-circle" class="txtPrimary xxl" />
+
+            <i src="times-circle" class="fg error xxl" />
 
             <h1>Technical Error</h1>
 
             <p>{message}</p>
+
+            <Button type="primary" link="/">Go Home</Button>
         </div>
     )
 });

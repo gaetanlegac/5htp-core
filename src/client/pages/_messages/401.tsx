@@ -7,9 +7,10 @@ import React from 'react';
 
 // Core
 import { router } from '@app';
-import Button from '@client/components/button';
+import { Button } from '@client/components';
 
 // App
+import useHeader from '@client/pages/useHeader';
 
 /*----------------------------------
 - RESSOURCES
@@ -18,9 +19,14 @@ import Button from '@client/components/button';
 /*----------------------------------
 - CONTROLEUR
 ----------------------------------*/
-router.error(401, {  }, ({ api, toast, modal, request, page }) => {
+router.error( 401, ({ message, request, page }) => {
 
     request.response?.redirect('/');
+
+    useHeader({
+        title: 'Authentication Required',
+        subtitle: message
+    });
 
     React.useEffect(() => {
 
@@ -29,5 +35,16 @@ router.error(401, {  }, ({ api, toast, modal, request, page }) => {
 
     }, []);
 
-    return '';
+    return (
+        <div class="card w-3-4 col al-center pd-2">
+
+            <i src="times-circle" class="fg error xxl" />
+
+            <h1>Authentication Required</h1>
+
+            <p>{message}</p>
+
+            <Button type="primary" link="/">Go Home</Button>
+        </div>
+    )
 });
