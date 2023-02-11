@@ -23,6 +23,8 @@ import logToHTML from './html';
 type TLogProfile = 'silly' | 'info' | 'warn' | 'error'
 
 export type Config = {
+    debug?: boolean,
+    bufferLimit: number,
     dev: {
         level: TLogProfile,
     },
@@ -77,17 +79,12 @@ export type TQueryLogs = ChannelInfos & {
     time: number,
 }
 
-export type TLog = ChannelInfos & {
-
-}
+export type TLog = ILogObject &  ChannelInfos
 
 /*----------------------------------
 - TYPES: BUG REPORT
 ----------------------------------*/
 export type ServerBug = {
-
-    type: 'server',
-
     // Context
     hash: string,
     date: Date, // Timestamp
@@ -125,7 +122,7 @@ const logFields = [
     'lineNumber',
     'argumentsArray',
     'stack',
-]
+] as const
 
 /*----------------------------------
 - LOGGER
@@ -186,14 +183,17 @@ export default class Console extends Service<Config, Hooks, Application> {
             fatal: this.logEntry.bind(this),
         }, envConfig.level);
 
-        setInterval(() => this.clean(), 60000);
+        setInterval(() => this.clean(), 10000);
 
         // Send email report
         this.app.on('error', this.createBugReport.bind(this));
     }
 
     private clean() {
-        // Clean memory from old logs
+        this.config.debug && console.log(LogPrefix, `Clean logs buffer. Current size:`, this.logs.length, '/', this.config.bufferLimit);
+        const bufferOverflow = this.logs.length - this.config.bufferLimit;
+        if (bufferOverflow > 0)
+            this.logs = this.logs.slice(bufferOverflow);
     }
 
     /*----------------------------------
@@ -235,9 +235,6 @@ export default class Console extends Service<Config, Hooks, Application> {
         );
 
         const bugReport: ServerBug = {
-
-            type: 'server',
-
             // Context
             hash: hash,
             date: now,
@@ -264,6 +261,7 @@ export default class Console extends Service<Config, Hooks, Application> {
 
     private logEntry(entry: ILogObject) {
 
+        // Don't keep logs from the admin sashboard
         const [channelType, channelId] = entry.requestId?.split(':') || ['master'];
         if (entry.requestId === 'admin')
             return;
@@ -273,22 +271,6 @@ export default class Console extends Service<Config, Hooks, Application> {
         const miniLog: TObjetDonnees = { channelType, channelId };
         for (const k of logFields)
             miniLog[k] = entry[k];
-
-        // remove webpack path
-        if (miniLog.filePath !== undefined) {
-
-            const appPrefix = '/webpack:/' + this.app.pkg.name + '/src/';
-            const appPrefixIndex = miniLog.filePath.indexOf(appPrefix);
-
-            const corePrefix = '/webpack:/' + this.app.pkg.name + '/node_modules/5htp-core/src/';
-            const corePrefixIndex = miniLog.filePath.indexOf(corePrefix);
-
-            if (appPrefixIndex !== -1)
-                miniLog.filePath = '@/' + miniLog.filePath.substring(appPrefixIndex + appPrefix.length);
-            else if (corePrefixIndex !== -1)
-                miniLog.filePath = '@' + miniLog.filePath.substring(corePrefixIndex + corePrefix.length);
-
-        }
 
         this.logs.push(miniLog as TLog);
     }
@@ -367,11 +349,30 @@ export default class Console extends Service<Config, Hooks, Application> {
         if (channelId !== undefined)
             filters.channelId = channelId;
 
-        const fromBuffer = this.logs.filter(
-            e => e.channelId === channelId && e.channelType === channelType
-        ).reverse();
+        const entries: TLog[] = []
+        for (const log of this.logs) {
+
+            // Filters
+            if (!(log.channelId === channelId && log.channelType === channelType))
+                continue;
+
+            // Remove path prefixs
+            if (log.filePath !== undefined) {
+
+                const appPrefix = '/webpack:/' + this.app.pkg.name + '/src/';
+                const appPrefixIndex = log.filePath.indexOf(appPrefix);
+    
+                const corePrefix = '/webpack:/' + this.app.pkg.name + '/node_modules/5htp-core/src/';
+                const corePrefixIndex = log.filePath.indexOf(corePrefix);
+    
+                if (appPrefixIndex !== -1)
+                    log.filePath = '@/' + log.filePath.substring(appPrefixIndex + appPrefix.length);
+                else if (corePrefixIndex !== -1)
+                    log.filePath = '@' + log.filePath.substring(corePrefixIndex + corePrefix.length);
+            }
+        }
         
-        return this.printHtml(fromBuffer);
+        return this.printHtml( entries.reverse() );
     }
  
     public printHtml(logs: TLog[], full: boolean = false): string {
