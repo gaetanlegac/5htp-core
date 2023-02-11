@@ -92,6 +92,8 @@ export default abstract class Service<
             callbacks.map(
                 cb => cb(...args).catch(e => {
                     console.error(`[hook] Error while executing hook ${name}:`, e);
+                    if (name !== 'error')
+                        this.runHook('error', e);
                 })
             ) 
         ).then(() => {
