@@ -1,8 +1,8 @@
 /*----------------------------------
 - DEPENDANCES
 ----------------------------------*/
-
 // Npm
+import { v4 as uuid } from 'uuid';
 import { Logger, ILogObject } from "tslog";
 import { format as formatSql } from 'sql-formatter';
 import highlight from 'cli-highlight';
@@ -11,10 +11,10 @@ import highlight from 'cli-highlight';
 import Application, { Service, TPriority } from '@server/app';
 import context from '@server/context';
 import type ServerRequest from '@server/services/router/request';
+import { SqlError } from '@server/services/database/debug';
 
 // Specific
 import logToHTML from './html';
-import BugReporter from "./bugReporter";
 
 /*----------------------------------
 - SERVICE CONFIG
@@ -82,8 +82,34 @@ export type TLog = ChannelInfos & {
 }
 
 /*----------------------------------
+- TYPES: BUG REPORT
+----------------------------------*/
+export type ServerBug = {
+
+    type: 'server',
+
+    // Context
+    hash: string,
+    date: Date, // Timestamp
+    channelType?: string, 
+    channelId?: string,
+
+    user: string | null | undefined,
+    ip: string | null | undefined,
+    
+    // Error
+    error: Error,
+    stacktrace: string,
+    logs: string,
+}
+
+/*----------------------------------
 - CONST
 ----------------------------------*/
+
+const LogPrefix = '[console]'
+
+const errorMailInterval = (1 * 60 * 60 * 1000); // 1 hour
 
 const logFields = [
     'date',
@@ -111,13 +137,14 @@ export default class Console extends Service<Config, Hooks, Application> {
 
     // Services
     public logger!: Logger;
-    public bugReport = new BugReporter(this);
 
     // Buffers
     public logs: TLog[] = [];
     public clients: TGuestLogs[] = [];
     public requests: TRequestLogs[] = [];
     public sqlQueries: TQueryLogs[] = [];
+    // Bug ID => Timestamp latest send
+    private sentBugs: {[bugId: string]: number} = {};
 
     // Adapters
     public log = console.log;
@@ -162,7 +189,7 @@ export default class Console extends Service<Config, Hooks, Application> {
         setInterval(() => this.clean(), 60000);
 
         // Send email report
-        this.app.on('error', (error: Error, request?: ServerRequest) => this.bugReport.server(error, request));
+        this.app.on('error', this.createBugReport.bind(this));
     }
 
     private clean() {
@@ -172,6 +199,61 @@ export default class Console extends Service<Config, Hooks, Application> {
     /*----------------------------------
     - LOGGING
     ----------------------------------*/
+
+    public async createBugReport( error: Error, request?: ServerRequest ) {
+
+        // Print the error so it's accessible via logs
+        if (error instanceof SqlError)  {
+            let printedQuery: string;
+            try {
+                printedQuery = this.printSql( error.query );
+            } catch (error) {
+                printedQuery = 'Failed to print query:' + (error || 'unknown error');
+            }
+            console.error(`Error caused by this query:`, printedQuery);
+        }
+        console.error(LogPrefix, `Sending bug report for the following error:`, error);
+
+        // Prevent spamming the mailbox if infinite loop 
+        const bugId = ['server', request?.user?.name, undefined, error.message].filter(e => !!e).join('::');
+        const lastSending = this.sentBugs[bugId];
+        this.sentBugs[bugId] = Date.now();
+        const shouldSendReport = lastSending === undefined || lastSending < Date.now() - errorMailInterval;
+        if (!shouldSendReport)
+            return;
+
+        // Get context
+        const now = new Date();
+        const hash = uuid();
+        const { channelType, channelId } = this.getChannel();
+
+        // On envoi l'email avant l'insertion dans bla bdd
+        // Car cette denrière a plus de chances de provoquer une erreur
+        const logsHtml = this.printHtml(
+            this.logs.filter(e => e.channelId === channelId), 
+            true
+        );
+
+        const bugReport: ServerBug = {
+
+            type: 'server',
+
+            // Context
+            hash: hash,
+            date: now,
+            channelType, 
+            channelId,
+            // User
+            user: request?.user?.email,
+            ip: request?.ip,
+            // Error
+            error,
+            stacktrace: error.stack || error.message,
+            logs: logsHtml
+        }
+
+        await this.runHook('bugReport', bugReport);
+    }
 
     public getChannel() {
         return context.getStore() || {
