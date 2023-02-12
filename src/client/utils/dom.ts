@@ -47,7 +47,7 @@ export const blurable = (...args: [HTMLElement, Function][]) => {
 
             if (!deepContains([refElement], e.target))
                 masquer();
-
+                
         }
     }
 

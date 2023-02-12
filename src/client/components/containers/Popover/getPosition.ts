@@ -2,6 +2,8 @@ export type TSide = "left"|"top"|"right"|"bottom";
 
 const debug = true;
 
+export type TPosition = ReturnType<typeof corrigerPosition>
+
 export default function corrigerPosition(
     conteneur: HTMLElement,
     popover: HTMLElement,
@@ -20,7 +22,7 @@ export default function corrigerPosition(
         height: popover.offsetHeight
     }
 
-    debug && console.log(`[positionnement] Conteneur =`, conteneur, `Popover =`, popover, `Coté =`, cote);
+    debug && console.log(`[popover] Conteneur =`, conteneur, `Popover =`, popover, `Coté =`, cote);
 
     if (dimsPop.width === undefined || dimsPop.height === undefined)
         console.error(`Impossible de récupérer les dimensions de la popover. popover est-il réelement n élement html, ou alors un composant react ? | dimsPop =`, dimsPop, 'popover =', popover);
@@ -37,6 +39,7 @@ export default function corrigerPosition(
     const posCont = conteneur.getBoundingClientRect();
 
     // Placement
+    debug && console.log(`[popover] Placement = ${cote}`, posCont.height, margeY);
     switch (cote) {
         case 'top':
             posInit.top = -dimsPop.height - margeY;
@@ -54,12 +57,12 @@ export default function corrigerPosition(
 
     // Centrage Horizontal
     if (cote === 'top' || cote === 'bottom') {
-        debug && console.log(`[positionnement] Centrage horizontal`);
+        debug && console.log(`[popover] Centrage horizontal`);
         posInit.left = posCont.width / 2 - dimsPop.width / 2;
     }
     // Centrage Vertical
     if (cote === 'left' || cote === 'right') {
-        debug && console.log(`[positionnement] Centrage vertical`);
+        debug && console.log(`[popover] Centrage vertical`);
         posInit.top = posCont.height / 2 - dimsPop.height / 2;
     }
     
@@ -96,34 +99,34 @@ export default function corrigerPosition(
         bottom: 'auto'
     };
 
-    debug && console.log(`[positionnement] Position initiale =`, posInit, `Frontières =`, frame, '=', frontieres);
+    debug && console.log(`[popover] Position initiale =`, posInit, `Frontières =`, frame, '=', frontieres);
 
     // Extrémité Haut
     if (posCont.top + posInit.top < frontieres.top) {
         posFinale.top = (frontieres.top - posCont.top) + 'px';
-        debug && console.log(`[positionnement] Top: Extremité haut`, posFinale.top);
+        debug && console.log(`[popover] Top: Extremité haut`, posFinale.top);
     // Extrémité Bas
     } else if (posCont.top + posInit.top + dimsPop.height >= frontieres.bottom) {
         posFinale.top = 'auto';
         posFinale.bottom = (posCont.bottom - frontieres.bottom) + 'px';
-        debug && console.log(`[positionnement] Top: Extremité bas`, posFinale.bottom);
+        debug && console.log(`[popover] Top: Extremité bas`, posFinale.bottom);
     } else {
         posFinale.top = posInit.top + 'px';
-        debug && console.log(`[positionnement] Top: Conservation`, posFinale.top);
+        debug && console.log(`[popover] Top: Conservation`, posFinale.top);
     }
 
     // Extrémité Gauche
     if (posCont.left + posInit.left < frontieres.left) {
         posFinale.left = (frontieres.left - posCont.left) + 'px';
-        debug && console.log(`[positionnement] Left: Extremité gauche`, posFinale.left);
+        debug && console.log(`[popover] Left: Extremité gauche`, posFinale.left);
     // Extrémité Droite
     } else if (posCont.left + posInit.left + dimsPop.width >= frontieres.right) {
         posFinale.left = 'auto';
         posFinale.right = (posCont.right - frontieres.right) + 'px';
-        debug && console.log(`[positionnement] Left: Extremité droite`, posFinale.right);
+        debug && console.log(`[popover] Left: Extremité droite`, posFinale.right);
     } else {
         posFinale.left = posInit.left + 'px';
-        debug && console.log(`[positionnement] Left: Conservation`, posFinale.left);
+        debug && console.log(`[popover] Left: Conservation`, posFinale.left);
     }
 
     console.log({ posInit, dimsPop, frontieres }, { posFinale });

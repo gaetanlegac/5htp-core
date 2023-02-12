@@ -14,7 +14,7 @@ import Bouton, { Props as PropsBouton } from '@client/components/button';
 //import '@client/components/Donnees/Tooltip/index.less';
 
 // Libs
-import getPosition, { TSide } from './getPosition';
+import getPosition, { TSide, TPosition } from './getPosition';
 import { blurable, deepContains } from '@client/utils/dom';
 import useContexte from '@/client/context';
 
@@ -58,7 +58,7 @@ export default (props: Props) => {
         ...autresProps
     } = props;
 
-    const [position, setPosition] = React.useState(undefined);
+    const [position, setPosition] = React.useState<TPosition>(undefined);
     const refCont = React.useRef<HTMLElement>(null);
     const refPop = React.useRef<HTMLElement>(null);
 
@@ -73,12 +73,12 @@ export default (props: Props) => {
                     refCont.current, 
                     refPop.current, 
                     false, 
-                    position, 
+                    side, 
                     frame || document.getElementById('page')
                 )
             );
 
-            //return blurable([refCont, () => show(false)])
+            return blurable([refCont.current, () => show(false)])
         }
 
     }, [shown]);
