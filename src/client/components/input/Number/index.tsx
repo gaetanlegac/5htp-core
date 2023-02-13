@@ -58,13 +58,13 @@ export default Champ<Props, TValeurDefaut, TValeurOut>('number', { valeurDefaut,
     }
 
     const boutonsControle = [{
-        icone: /* @icone */"minus",
+        icon: /* @icon */"minus",
         onClick: () => {
             const pasA = pas >= valeur ? pas / 10 : pas;
             setState({ valeur: corrigerValeur(valeur - pasA) }, true);
         }
     }, {
-        icone: /* @icone */"plus",
+        icon: /* @icon */"plus",
         onClick: () => {
             setState({ valeur: corrigerValeur(valeur + pas) }, true);
         }
