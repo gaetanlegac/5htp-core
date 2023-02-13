@@ -8,7 +8,7 @@ import { ComponentChild, JSX } from 'preact';
 import TextareaAutosize from 'react-textarea-autosize';
 
 // Core libs
-import { useInput, InputBaseProps } from '../base';
+import { useInput, InputBaseProps } from './base';
 
 /*----------------------------------
 - TYPES
@@ -25,7 +25,7 @@ export type Props = {
     inputRef?: React.Ref<HTMLInputElement>
 
     // Behavior
-    type?: 'email' | 'password' | 'longtext',
+    type?: 'email' | 'password' | 'longtext' | 'number',
     choice?: string[] | ((input: string) => Promise<string[]>),
 
     // Actions
@@ -92,6 +92,10 @@ export default ({
 
         prefix = prefix || <i src="text" />;
         Tag = 'textarea'//TextareaAutosize;
+
+    } else if (type === 'number') {
+
+        fieldProps.type = 'number';
 
     }
 
