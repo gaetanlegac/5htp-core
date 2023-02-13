@@ -18,7 +18,7 @@ import Popover from '../containers/Popover';
 export type { TDialogControls } from '../Dialog/Manager';
 
 export type Props = ButtonProps & {
-    content: ComponentChild,
+    content: ComponentChild | (() => ComponentChild),
     refModal?: RefObject<TDialogControls>
 }
 
