@@ -5,7 +5,7 @@
 import React from 'react';
 
 // Core components
-import { Button, String } from '@client/components';
+import { Button, Input } from '@client/components';
 import Card, { Props as CardProps } from '@client/components/Dialog/card';
 
 // Core libs
@@ -49,11 +49,11 @@ export default ({ ...self }: {} & CardProps) => {
 
             <p>What's the problem ?</p>
 
-            <String type="longtext" title="Description of the problem" value={observation} onChange={setObservation} />
+            <Input type="longtext" title="Description of the problem" value={observation} onChange={setObservation} />
 
             <p>What did you do just before the problem occurs ?</p>
 
-            <String type="longtext" title="How the problem occured ?" value={before} onChange={setBefore} />
+            <Input type="longtext" title="How the problem occured ?" value={before} onChange={setBefore} />
 
         </Card>
     )

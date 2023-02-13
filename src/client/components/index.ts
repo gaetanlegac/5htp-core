@@ -26,7 +26,7 @@ export { default as CircularProgressbar } from './data/progressbar/circular';
 
 // Input V3
 export { default as Select } from './Select';
-export { default as String } from './inputv3/string';
+export { default as Input } from './inputv3';
 export { default as File } from './inputv3/file';
 
 // TOD: fix popover component
