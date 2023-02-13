@@ -3,19 +3,12 @@
 ----------------------------------*/
 
 // Npm
-import React, { JSX } from 'react';
-import { ComponentChild } from 'preact';
+import React, { JSX, ComponentChild } from 'react';
 import type { StateUpdater } from 'preact/hooks';
-
-// Composants
-import Bouton, { Props as PropsBouton } from '@client/components/button';
-
-// Ressouces
-//import '@client/components/Donnees/Tooltip/index.less';
 
 // Libs
 import getPosition, { TSide, TPosition } from './getPosition';
-import { blurable, deepContains } from '@client/utils/dom';
+import { blurable, deepContains, focusContent } from '@client/utils/dom';
 import useContexte from '@/client/context';
 
 /*----------------------------------
@@ -26,7 +19,7 @@ export type Props = {
     id?: string,
 
     // Display
-    content?: JSX.Element,
+    content?: JSX.Element | (() => JSX.Element),
     state: [boolean, StateUpdater<boolean>],
     width?: number | string,
     disable?: boolean
@@ -44,8 +37,10 @@ export type Props = {
 import "./popover.less";
 export default (props: Props) => {
 
-    const ctx = useContexte();
-
+    /*----------------------------------
+    - INIT
+    ----------------------------------*/
+    
     let {
         id,
 
@@ -60,29 +55,37 @@ export default (props: Props) => {
 
     const [position, setPosition] = React.useState<TPosition>(undefined);
     const refCont = React.useRef<HTMLElement>(null);
-    const refPop = React.useRef<HTMLElement>(null);
+    const refContent = React.useRef<HTMLElement>(null);
 
     const [shown, show] = state;
 
     // Màj visibilite
     React.useEffect(() => {
         if (shown === true) {
+
             // Positionnement si affichage
             setPosition(
                 getPosition(
                     refCont.current, 
-                    refPop.current, 
+                    refContent.current, 
                     false, 
                     side, 
                     frame || document.getElementById('page')
                 )
             );
 
-            return blurable([refCont.current, () => show(false)])
+            // Autofocus elements
+            focusContent( refContent.current );
+
+            // Close when the user clicks elsewere tha the popover
+            return blurable([ refCont.current, () => show(false) ])
         }
 
     }, [shown]);
 
+    /*----------------------------------
+    - ATTRIBUTES
+    ----------------------------------*/
     if (!autresProps.className)
         autresProps.className = '';
 
@@ -95,6 +98,36 @@ export default (props: Props) => {
 
     const Tag = tag || 'div';
 
+    let renderedContent: ComponentChild;
+    if (active) {
+        content = typeof content === 'function' ? React.createElement(content) : content;
+        renderedContent = React.cloneElement( 
+            content, 
+            {
+                className: (content.props.className || '') 
+                    + ' card white popover pd-1' 
+                    + (position ? ' pos_' + position.cote : ''),
+                ref: (ref: any) => {
+                    if (ref !== null)
+                        refContent.current = ref
+                },
+                style: {
+                    ...(content.props.style || {}),
+                    ...(position ? {
+                        top: position.css.top,
+                        left: position.css.left,
+                        right: position.css.right,
+                        bottom: position.css.bottom,
+                    } : {}),
+                    ...(width !== undefined ? { width: typeof width === 'number' ? width + 'rem' : width } : {})
+                }
+            }
+        )
+    }
+
+    /*----------------------------------
+    - RENDER
+    ----------------------------------*/
     return (
         <Tag
             style={{
@@ -115,23 +148,7 @@ export default (props: Props) => {
                 }
             })}
 
-            {active && React.cloneElement(content, {
-                className: (content.props.className || '') + ' card white popover' + (position ? ' pos_' + position.cote : ''),
-                ref: (ref: any) => {
-                    if (ref !== null)
-                        refPop.current = ref
-                },
-                style: {
-                    ...(content.props.style || {}),
-                    ...(position ? {
-                        top: position.css.top,
-                        left: position.css.left,
-                        right: position.css.right,
-                        bottom: position.css.bottom,
-                    } : {}),
-                    ...(width !== undefined ? { width: typeof width === 'number' ? width + 'rem' : width } : {})
-                }
-            })}
+            {renderedContent}
         </Tag>
     )
 }
