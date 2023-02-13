@@ -25,7 +25,7 @@ export default function corrigerPosition(
     debug && console.log(`[popover] Conteneur =`, conteneur, `Popover =`, popover, `Coté =`, cote);
 
     if (dimsPop.width === undefined || dimsPop.height === undefined)
-        console.error(`Impossible de récupérer les dimensions de la popover. popover est-il réelement n élement html, ou alors un composant react ? | dimsPop =`, dimsPop, 'popover =', popover);
+        console.error("Unable to get the dimensions of the popover element. Did you pass a react element as content of popover ?");
 
     /*----------------------------------
     - POSITIONNEMENT INITIAL
