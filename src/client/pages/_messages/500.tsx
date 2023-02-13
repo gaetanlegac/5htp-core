@@ -23,7 +23,7 @@ router.error( 500, ({ message }) => {
     });
 
     return (
-        <div class="col pd-2">
+        <div class="card w-3-4 col al-center pd-2">
 
             <i src="times-circle" class="fg error xxl" />
 
