@@ -18,18 +18,18 @@ type TSchemaOptions = {
     opt?: boolean
 }
 
-type TOptsValider = {
+export type TValidateOptions<TFields extends TSchemaFields = {}> = {
     debug?: boolean,
     throwError?: boolean,
-
-    validateAll?: boolean,
+    ignoreMissing?: boolean,
+    only?: (keyof TFields)[],
     validateDeps?: boolean,
     autoCorrect?: boolean,
 }
 
 export type TValidationResult<TFields extends TSchemaFields> = {
     values: TValidatedData<TFields>,
-    nbErreurs: number,
+    errorsCount: number,
     erreurs: TListeErreursSaisie
 }
 
@@ -62,7 +62,7 @@ export default class Schema<TFields extends TSchemaFields> {
         allData: TDonnees,
         output: TObjetDonnees = {},
     
-        opts: TOptsValider = {},
+        opts: TValidateOptions<TFields> = {},
         chemin: string[] = []
     
     ): TValidationResult<TFields> {
@@ -70,45 +70,44 @@ export default class Schema<TFields extends TSchemaFields> {
         opts = {
             debug: false,
             throwError: false,
-            validateAll: false,
             validateDeps: true,
             autoCorrect: false,
             ...opts,
         }
     
-        const clesAvalider = Object.keys(opts.validateAll === true ? this.fields : dataToValidate);
-    
         let outputSchema = output;
         for (const branche of chemin)
             outputSchema = outputSchema[branche];
+
+        const keysToValidate = opts.only || Object.keys(this.fields);
     
         // Validation de chacune d'entre elles
         let erreurs: TListeErreursSaisie = {};
-        let nbErreurs = 0;
-        for (const champ of clesAvalider) {
+        let errorsCount = 0;
+        for (const fieldName of keysToValidate) {
     
             // La donnée est répertoriée dans le schema
-            const field = this.fields[champ];
+            const field = this.fields[fieldName];
             if (field === undefined) {
-                opts.debug && console.warn(LogPrefix, '[' + champ + ']', 'Exclusion (pas présent dans le schéma)');
+                opts.debug && console.warn(LogPrefix, '[' + fieldName + ']', 'Exclusion (pas présent dans le schéma)');
                 continue;
             }
 
-            const cheminA = [...chemin, champ]
+            const cheminA = [...chemin, fieldName]
             const cheminAstr = cheminA.join('.')
     
             // Sous-schema
             if (field instanceof Schema) {
     
                 // Initialise la structure pour permettre l'assignement d'outputSchema
-                if (outputSchema[champ] === undefined)
-                    outputSchema[champ] = {}
+                if (outputSchema[fieldName] === undefined)
+                    outputSchema[fieldName] = {}
 
                 // The corresponding data should be an object
-                const schemadata = dataToValidate[champ];
+                const schemadata = dataToValidate[fieldName];
                 if (typeof schemadata !== 'object') {
                     erreurs[ cheminAstr ] = [`Should be an object`];
-                    nbErreurs++;
+                    errorsCount++;
                     continue;
                 }
     
@@ -123,30 +122,30 @@ export default class Schema<TFields extends TSchemaFields> {
                     cheminA
                 );
                 erreurs = { ...erreurs, ...validationSchema.erreurs };
-                nbErreurs += validationSchema.nbErreurs;
+                errorsCount += validationSchema.errorsCount;
     
                 // Pas besoin d'assigner, car output est passé en référence
-                //output[champ] = validationSchema.values;
+                //output[fieldName] = validationSchema.values;
     
     
             // I don't remind what is options.activer about
             /*} else if (field.activer !== undefined && field.activer(allData) === false) {
     
-                delete outputSchema[champ];*/
+                delete outputSchema[fieldName];*/
     
             // Validator
             } else {
     
                 // Champ composé de plusieurs values
                 const valOrigine = field.options.as === undefined
-                    ? dataToValidate[champ]
-                    // Le champ regroupe plusieurs values (ex: Periode)
+                    ? dataToValidate[fieldName]
+                    // Le fieldName regroupe plusieurs values (ex: Periode)
                     : field.options.as.map((nomVal: string) => dataToValidate[nomVal])
     
                 // Validation
                 try {
     
-                    const val = field.validate(valOrigine, allData, output, opts.autoCorrect);
+                    const val = field.validate(valOrigine, allData, output, opts);
     
                     // Exclusion seulement si explicitement demandé
                     // IMPORTANT: Conserver les values undefined
@@ -155,7 +154,7 @@ export default class Schema<TFields extends TSchemaFields> {
                     if (val === EXCLUDE_VALUE)
                         opts.debug && console.log(LogPrefix, '[' + cheminA + '] Exclusion demandée');
                     else
-                        outputSchema[champ] = val;
+                        outputSchema[fieldName] = val;
     
                     opts.debug && console.log(LogPrefix, '[' + cheminA + ']', valOrigine, '=>', val);
     
@@ -167,7 +166,7 @@ export default class Schema<TFields extends TSchemaFields> {
     
                         // Référencement erreur
                         erreurs[cheminAstr] = [error.message]
-                        nbErreurs++;
+                        errorsCount++;
     
                     } else
                         throw error;
@@ -175,7 +174,7 @@ export default class Schema<TFields extends TSchemaFields> {
             }
         }
     
-        if (nbErreurs !== 0 && opts.throwError === true) {
+        if (errorsCount !== 0 && opts.throwError === true) {
             throw new InputErrorSchema(erreurs);
         }
         
@@ -184,7 +183,7 @@ export default class Schema<TFields extends TSchemaFields> {
         return { 
             values: output as TValidatedData<TFields>,
             erreurs, 
-            nbErreurs, 
+            errorsCount, 
         };
     
     }

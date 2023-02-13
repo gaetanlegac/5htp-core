@@ -8,6 +8,9 @@ import type { ComponentChild } from 'preact'
 // Core
 import { InputError } from '@common/errors';
 
+// Specific
+import type { TValidateOptions } from './schema';
+
 /*----------------------------------
 - TYPES
 ----------------------------------*/
@@ -41,12 +44,12 @@ type TValidationArgs<TValue, TAllValues extends {}> = [
     val: TNonEmptyValue, 
     input: TAllValues, 
     output: Partial<TAllValues>, 
-    corriger?: boolean
+    validateOptions?: TValidateOptions
 ]
 
 type TValidationFunction<TValue, TAllValues extends {} = {}> = (
     ...args: TValidationArgs<TValue, TAllValues>
-    ) => TValue | typeof EXCLUDE_VALUE;
+) => TValue | typeof EXCLUDE_VALUE;
 
 type TValidateReturnType<
     TOptions extends TValidator<TValue>, 
@@ -76,12 +79,18 @@ export default class Validator<TValue, TOptions extends TValidator<TValue> = TVa
 
     public isEmpty = (val: any) => val === undefined || val === '' || val === null
 
-    public validate(...[ val, input, output, correct ]: TValidationArgs<TValue, {}>): TValidateReturnType<TOptions, TValue> {
+    public validate(...[ 
+        val, input, output, validateOptions 
+    ]: TValidationArgs<TValue, {}>): TValidateReturnType<TOptions, TValue> {
 
         // Required value
         if (this.isEmpty(val)) {
             // Optionnel, on skip
-            if (this.options.opt === true)
+            if (this.options.opt === true || (
+                validateOptions?.ignoreMissing === true
+                &&
+                val === undefined
+            ))
                 return undefined as TValidateReturnType<TOptions, TValue>;
             // Requis
             else
@@ -89,7 +98,7 @@ export default class Validator<TValue, TOptions extends TValidator<TValue> = TVa
         }
 
         // Validate type
-        return this.validateType(val, input, output, correct) as TValidateReturnType<TOptions, TValue>;
+        return this.validateType(val, input, output, validateOptions) as TValidateReturnType<TOptions, TValue>;
     }
 
 }

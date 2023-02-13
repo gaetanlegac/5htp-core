@@ -54,7 +54,6 @@ export default class RequestValidator extends ServerSchemaValidator implements R
             {
                 debug: this.config.debug,
                 throwError: true,
-                validateAll: true,
                 validateDeps: false
             },
             []
