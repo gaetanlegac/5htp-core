@@ -6,10 +6,11 @@
 import React from 'react';
 import { ComponentChild } from 'preact';
 
-// Libs
+// Core
 import useContext from '@/client/context';
+import { blurable, deepContains, focusContent } from '@client/utils/dom';
 
-// Métier
+// Specific
 import type Application from '../../app';
 import Card, { Props as CardInfos } from './card';
 import Button from '../button';
@@ -242,9 +243,7 @@ export default () => {
 
         // Focus
         const lastToast = modals[ modals.length - 1 ];
-        const toFocus = lastToast.querySelector('input, textarea, button.btn.primary, footer > button.btn') || lastToast;
-        console.log('Element to focus', toFocus);
-        toFocus.focus();
+        focusContent( lastToast );
 
         // Backdrop color
         const header = lastToast.querySelector('header');
