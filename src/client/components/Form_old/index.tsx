@@ -85,13 +85,13 @@ export const useForm = <TDonnees extends TObjetDonnees>(
     const [state, setState] = React.useState<{
         donnees: Partial<TDonnees>,
         erreurs: TListeErreursSaisie,
-        nbErreurs: number,
+        errorsCount: number,
         progression: false | number,
         changed: Partial<TDonnees> // Nom des champs changés depuis le dernier enregistrement
     }>({
         donnees: props.donnees || {},
         erreurs: {},
-        nbErreurs: 0,
+        errorsCount: 0,
         progression: false,
         changed: {}
     });
@@ -129,7 +129,7 @@ export const useForm = <TDonnees extends TObjetDonnees>(
     async function onChange(
         valeursInit: Partial<TDonnees>,
         newState: Partial<typeof state> = {},
-    ): Promise<{ erreurs: TListeErreursSaisie, nbErreurs: number }> {
+    ): Promise<{ erreurs: TListeErreursSaisie, errorsCount: number }> {
 
         // RAPPEL: donnees = anciennes données
 
@@ -142,7 +142,7 @@ export const useForm = <TDonnees extends TObjetDonnees>(
 
         if (debug) console.log(`[form][saisie] onChange`, changees);
 
-        let nbErreurs: number = 0;
+        let errorsCount: number = 0;
         let erreurs: TListeErreursSaisie = {}
         if (Object.keys(changees).length !== 0) {
 
@@ -151,14 +151,14 @@ export const useForm = <TDonnees extends TObjetDonnees>(
             let nouvellesDonnees: Partial<TDonnees>;
             ({
                 valeurs: nouvellesDonnees,
-                nbErreurs,
+                errorsCount,
                 erreurs
             } = await valider(valeursInit));
 
-            if (debug && nbErreurs !== 0) console.log(`[form][saisie] erreurs`, erreurs);
+            if (debug && errorsCount !== 0) console.log(`[form][saisie] erreurs`, erreurs);
 
             newState.erreurs = erreurs;
-            newState.nbErreurs = nbErreurs;
+            newState.errorsCount = errorsCount;
 
             // Validation & mapping personnalisé
             /*if (props.filtres?.after)
@@ -177,8 +177,8 @@ export const useForm = <TDonnees extends TObjetDonnees>(
                 ...newState
             }));
 
-            if (props.onChange && nbErreurs === 0)
-                props.onChange(donneesCompletes, { valeurs: nouvellesDonnees, nbErreurs, erreurs, changed });
+            if (props.onChange && errorsCount === 0)
+                props.onChange(donneesCompletes, { valeurs: nouvellesDonnees, errorsCount, erreurs, changed });
 
             /*if (valider && props.autosave === true) {
 
@@ -191,7 +191,7 @@ export const useForm = <TDonnees extends TObjetDonnees>(
             }*/
         }
 
-        return { erreurs, nbErreurs };
+        return { erreurs, errorsCount };
     }
 
     async function valider(
@@ -206,7 +206,7 @@ export const useForm = <TDonnees extends TObjetDonnees>(
         });
 
         // Focus sur le premier champ ayant déclenché une erreur
-        if (retour.nbErreurs !== 0) {
+        if (retour.errorsCount !== 0) {
 
             const cheminChamp = Object.keys(retour.erreurs)[0]
             const champ = chemin.get(schema, cheminChamp);
@@ -233,15 +233,15 @@ export const useForm = <TDonnees extends TObjetDonnees>(
         if (props.progression !== undefined && props.progression !== false)
             return false;
 
-        if (state.nbErreurs !== 0)
+        if (state.errorsCount !== 0)
             return false;
 
         console.log(`[form][saisie] Envoyer`, donnees);
 
         // Validation de l'ensemble des champs
-        const { erreurs, nbErreurs, valeurs } = await valider(donnees);
-        if (nbErreurs !== 0) {
-            setState((stateA) => ({ ...stateA, erreurs, nbErreurs }));
+        const { erreurs, errorsCount, valeurs } = await valider(donnees);
+        if (errorsCount !== 0) {
+            setState((stateA) => ({ ...stateA, erreurs, errorsCount }));
             console.error('Erreurs formulaire', erreurs);
             return false;
         }
@@ -369,10 +369,10 @@ export const useForm = <TDonnees extends TObjetDonnees>(
                     });
 
                 // Application des changements
-                const { nbErreurs } = await onChange(nouvellesDonnees, {});
+                const { errorsCount } = await onChange(nouvellesDonnees, {});
 
                 // Si aucune erreur, onChange propre au champ + gestion erreurs
-                if (propsChamp.onChange !== undefined && nbErreurs === 0)
+                if (propsChamp.onChange !== undefined && errorsCount === 0)
                     await propsChamp.onChange(nouvelleValeur).catch((e) => {
                         setState((stateA) => ({
                             ...stateA,
