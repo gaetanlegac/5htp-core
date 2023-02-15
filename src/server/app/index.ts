@@ -196,6 +196,8 @@ export default abstract class Application extends Service<Config, Hooks, /* TODO
                     console.error("Catched error while starting service " + serviceClassName + '. Exiting process if mode production.', e);
                     if (this.env.profile === 'prod')
                         process.exit();
+                    else
+                        throw e;
                 })
             }
 
