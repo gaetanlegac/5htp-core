@@ -28,6 +28,7 @@ export { default as CircularProgressbar } from './data/progressbar/circular';
 export { default as Select } from './Select';
 export { default as Input } from './inputv3';
 export { default as File } from './inputv3/file';
+export { default as DateRangeInput } from './inputv3/date';
 
 // TOD: fix popover component
 //export { default as Date } from './input/Date';
