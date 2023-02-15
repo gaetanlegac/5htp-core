@@ -86,7 +86,7 @@ export default function useForm<TFormData extends {}>(
 
         // Autosave
         if (options.autoSave !== undefined)
-            saveLocally(data, options.autoSave);
+            saveLocally(data, options.autoSave.id);
 
     }, [data]);
 
@@ -134,7 +134,7 @@ export default function useForm<TFormData extends {}>(
 
         // Reset autosaved data
         if (options.autoSave)
-            localStorage.removeItem(options.autoSave.id);
+            localStorage.removeItem('form.' + options.autoSave.id);
 
         return submitResult;
     }
