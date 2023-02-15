@@ -89,15 +89,10 @@ export default class ApiClient implements ApiClientService {
                 fetcher.data = { ...(fetcher.data || {}), ...params };
 
             console.log("[api][reload]", id, fetcher.method, fetcher.path, fetcher.data);
-            const indicator = this.toast.loading("Loading ...");
 
             this.fetchAsync(fetcher.method, fetcher.path, fetcher.data).then((data) => {
 
                 this.set({ [id]: data });
-
-            }).finally(() => {
-
-                indicator.close(true);
 
             })
         }
