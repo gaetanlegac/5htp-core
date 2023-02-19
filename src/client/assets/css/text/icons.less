@@ -64,6 +64,7 @@ img.icon {
     object-position: center;
 }
 
+img.logo,
 i.logo {
     /*width: 3.2em;
     height: 3.2em;
@@ -75,11 +76,16 @@ i.logo {
     line-height: 2em;
     flex: 0 0 2em;
 
+    background-color: var(--cBg2);
+    border-radius: @radius;
+    border: none; // For img
+}
+
+i.logo {
+
     background-repeat: no-repeat;
     background-position: center;
     background-size: cover;
-    background-color: var(--cBg2);
-    border-radius: 50%;
 
     &.contain {
         background-color: transparent;
