@@ -29,10 +29,11 @@ export default ({ id, title, subtitle, focus, jail, error }: Props) => {
     if (!page)
         return;
 
-    const fullTitle = title + ' | ' + subtitle;
+    page.title = title;
+    if (subtitle !== undefined)
+        page.title += ' | ' + subtitle;
 
     page.bodyId = page.bodyId || id || '';
-    page.title = fullTitle;
 
     if (focus)
         page.bodyClass.add('focus');
