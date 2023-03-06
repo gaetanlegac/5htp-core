@@ -133,7 +133,9 @@ export default class ServerResponse<
         for (const serviceName in this.router.services) {
 
             const routerService = this.router.services[serviceName];
-            contextServices[ serviceName ] = routerService.requestService( this.request );
+            const requestService = routerService.requestService( this.request );
+            if (requestService !== null)
+                contextServices[ serviceName ] = requestService;
 
         }
 

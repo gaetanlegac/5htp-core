@@ -43,6 +43,6 @@ export default abstract class RouterService<TRouter extends Router = Router> {
     
     public abstract register(): Promise<void>;
 
-    public abstract requestService( request: ServerRequest<TRouter> ): RequestService;
+    public abstract requestService( request: ServerRequest<TRouter> ): RequestService | null;
 
 }
