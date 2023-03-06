@@ -19,10 +19,10 @@ import type Page from '.';
 /*----------------------------------
 - SERVICE
 ----------------------------------*/
-export default class DocumentRenderer {
+export default class DocumentRenderer<TRouter extends Router> {
 
     public constructor(
-        public router: Router,
+        public router: TRouter,
         public app = router.app
     ) {
 
@@ -55,7 +55,7 @@ export default class DocumentRenderer {
         );
     }
 
-    public async page( html: string, page: Page, response: ServerResponse<Router> ) {
+    public async page( html: string, page: Page, response: ServerResponse<TRouter> ) {
 
         const fullUrl = this.router.http.publicUrl + response.request.path;
 
@@ -133,7 +133,7 @@ export default class DocumentRenderer {
         </>
     }
 
-    private styles( page ) {
+    private styles( page: Page ) {
         return <>
             <link rel="stylesheet" type="text/css" href="/public/icons.css" />
             <link rel="preload" href="/public/client.css" as="style" />
@@ -151,7 +151,7 @@ export default class DocumentRenderer {
         </>
     }
 
-    private async scripts( response, page ) {
+    private async scripts( response: ServerResponse<TRouter>, page: Page ) {
 
         const context = safeStringify( response.forSsr(page) );
 
@@ -174,21 +174,9 @@ export default class DocumentRenderer {
                 <link rel="preload" href={script.url} as="script" />
                 <script type="text/javascript" src={script.url} {...script.attrs || {}} />
             </> : <>
-                <script type="text/javascript" {...script.attrs || {}} id={script.id} dangerouslySetInnerHTML={{ __html: script.inline }} />
+                <script type="text/javascript" {...script.attrs || {}} id={script.id} 
+                    dangerouslySetInnerHTML={{ __html: script.inline }} />
             </>)}
-
-            {/* Initialize GTM & GA for pagechange events */}
-            {/* TODO: append via the metrics module */}
-            {/*<script async src={"https://www.googletagmanager.com/gtag/js?id=" + this.app.config.tracking.ga.pub}></script>
-            <script dangerouslySetInnerHTML={{ __html: `
-                window.dataLayer = window.dataLayer || [];
-                function gtag(){dataLayer.push(arguments);}
-                gtag('js', new Date());
-
-                gtag('config', '${this.app.config.tracking.ga.pub}', {
-                    send_page_view: false
-                });
-            `}} />*/}
         </>
     }
 }
