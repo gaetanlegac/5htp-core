@@ -55,7 +55,8 @@ export default ({ service: router }: { service: Router }) => {
 
         // Page not found: Directly load with the browser
         if (newpage === undefined) {
-            window.location.replace(request.path);
+            window.location.replace(request.url);
+            console.error("not found");
             return;
         // Unable to load (no connection, server error, ....)
         } else if (newpage === null) {
@@ -86,7 +87,7 @@ export default ({ service: router }: { service: Router }) => {
                 //  But when we call setLayout, the style of the previous layout are still oaded and applied
                 //  Find a way to unload the  previous layout / page resources before to load the new one
                 console.log(LogPrefix, `Changing layout. Before:`, curLayout, 'New layout:', newLayout);
-                window.location.replace(request.path);
+                window.location.replace(request.url);
                 return pages;
 
                 context.app.setLayout(newLayout);

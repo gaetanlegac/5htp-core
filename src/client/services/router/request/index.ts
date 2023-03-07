@@ -27,6 +27,8 @@ export default class ClientRequest<TRouter extends ClientRouter = ClientRouter> 
 
     public api: ApiClient;
     public response?: ClientResponse<TRouter>;
+
+    public url: string;
     public hash?: string;
 
     public constructor( 
@@ -38,8 +40,16 @@ export default class ClientRequest<TRouter extends ClientRouter = ClientRouter> 
         super(location.pathname);
 
         this.host = window.location.host;
+        this.url = window.location.protocol + '//' + window.location.host + this.path;
         this.hash = location.hash;
 
+        // Extract search params
+        if (location.search) {
+            this.url += location.search;
+            this.data = Object.fromEntries( new URLSearchParams( location.search ));
+        }
+    
+        // Request services
         this.api = new ApiClient(this.app, this);
     }
 
