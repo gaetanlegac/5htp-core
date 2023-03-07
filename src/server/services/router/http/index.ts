@@ -43,6 +43,12 @@ export type Config = {
     upload: {
         maxSize: string // Expression package bytes
     },
+    csp: {
+        default?: string[],
+        styles?: string[],
+        images?: string[],
+        scripts: string[],
+    }
 }
 
 export type Hooks = {
@@ -193,9 +199,7 @@ export default class HttpServer extends Service<Config, Hooks, Application> {
         routes.use( csp.expressCspHeader({
             directives: {
                 'script-src': [csp.INLINE, csp.SELF, 
-                    // Whitelist external js scripts
-                    "https://www.googletagmanager.com/gtag/js",
-                    "https://cdn.jsdelivr.net"
+                   ...this.config.csp.scripts
                 ]
             }
         }));
