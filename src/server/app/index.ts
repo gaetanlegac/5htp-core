@@ -183,7 +183,7 @@ export default abstract class Application extends Service<Config, Hooks, /* TODO
             service.status = 'starting';
 
             if (service.register)
-                service.register();
+                await service.register();
 
             // Register commands
             if (service.commands)
