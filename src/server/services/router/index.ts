@@ -468,7 +468,12 @@ declare type Routes = {
 
     public async resolve(request: ServerRequest<this>): Promise<ServerResponse<this>> {
 
-        console.info(request.ip, request.method, request.domain, request.path);
+        console.info(LogPrefix, request.ip, request.method, request.domain, request.path);
+
+        if (this.status === 'starting') {
+            console.log(LogPrefix, `Waiting for servert to be resdy before resolving request`);
+            await this.started;
+        }
 
         const response = new ServerResponse<this>(request);
 
@@ -547,6 +552,8 @@ declare type Routes = {
 
             // Report error
             await this.app.runHook('error', e, request);
+
+            console.log("ERROR 500 VIA ROUTER", e);
 
             // Don't exose technical errors to users
             if (this.app.env.profile === 'prod')
