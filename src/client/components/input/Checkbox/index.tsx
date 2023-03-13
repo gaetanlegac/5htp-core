@@ -1,74 +1,82 @@
 /*----------------------------------
 - DEPENDANCES
 ----------------------------------*/
-import React from 'react';
-import Champ from '../Base';
-import { ComponentChild } from 'preact';
 
-import uid from '@common/data/id';
+// Npm
+import React from 'react';
+import { JSX, ComponentChild } from 'preact';
+
+// Core libs
+import { useInput, InputBaseProps } from '../../inputv3/base';
 
 /*----------------------------------
 - TYPES
 ----------------------------------*/
-type TValeur = boolean;
-const valeurDefaut = false as boolean;
-type TValeurDefaut = typeof valeurDefaut;
-type TValeurOut = string;
-
 export type Props = {
-    valeur: TValeur,
-    switch?: boolean,
-    children?: ComponentChild
+    id: string,
+    label: ComponentChild,
+    // State
+    inputRef?: React.Ref<HTMLInputElement>
 }
 
 /*----------------------------------
-- COMPOSANTS
+- COMPOSANT
 ----------------------------------*/
-import './index.less';
-export default Champ<Props, TValeurDefaut, TValeurOut>('checkbox', { valeurDefaut }, ({
-    label, titre, children, switch: isSwitch, attrsContChamp, attrsChamp, nom, description, 
-    readOnly
-}, { valeur, state, setState }, rendre) => {
+export default ({ 
+    id,
+    // Decoration
+    required,
+    label: labelText,
+    // State
+    inputRef, errors,
+    ...props 
+}: Props & InputBaseProps<boolean> & Omit<JSX.HTMLAttributes<HTMLInputElement>, 'onChange'>) => {
 
-    if (label === undefined)
-        label = true;
-    if (!titre && children)
-        titre = children;
+    /*----------------------------------
+    - INIT
+    ----------------------------------*/
 
-    if (isSwitch) {
-        attrsContChamp.className += ' switch';
-        if (label)
-            attrsContChamp.className += ' avecLabel';
-    } else
-        attrsContChamp.className += ' classique';
+    const [{ value, focus, fieldProps }, setValue, commitValue, setState] = useInput(props, false, true);
 
-    if (state.chargement)
-        attrsContChamp.disabled = true;
+    const refInput = inputRef || React.useRef<HTMLInputElement>();
+    
+    /*----------------------------------
+    - ATTRIBUTES
+    ----------------------------------*/
 
-    attrsChamp.id = 'check_' + (nom || uid());
+    let className: string = 'input checkbox row';
 
-    if (readOnly)
-        return rendre(valeur ? 'Yes' : 'No', {});
+    if (focus)
+        className += ' focus';
+    if (errors?.length)
+        className += ' error';
 
-    return rendre(<>
+    if (props.className !== undefined)
+        className += ' ' + props.className;
 
-        <input type="checkbox" {...attrsChamp}
-            onChange={() => {
-                setState({ valeur: !valeur });
-            }}
-            checked={valeur}
-        />
+    /*----------------------------------
+    - RENDER
+    ----------------------------------*/
+    return <>
+        <div class={className} onClick={() => refInput.current?.focus()}>
 
-        {/* On ne peut pas rendre le switch + le texte du label dans le même <label> */}
-        {(true || (isSwitch && label)) && (
-            <label htmlFor={attrsChamp.id} />
-        )}
+            <input type="checkbox" 
+                onChange={() => {
+                    setValue( !value );
+                }}
+                checked={value}
+            />
 
-        <div className="contLabel">
-            <label htmlFor={attrsChamp.id}>{titre}</label>   
-             
-            {description && <p className="desc">{description}</p>}
+            <label htmlFor={id} class="col-1 txt-left">
+                {labelText}
+            </label>
+            
         </div>
-
-    </>, { ecraser: true });
-})
+        
+        {errors?.length && (
+            <div class="fg error txt-left">
+                {errors.join('. ')}
+            </div>
+        )}
+    </>
+}
