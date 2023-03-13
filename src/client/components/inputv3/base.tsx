@@ -37,6 +37,7 @@ export type TInputState<TValue> = {
 export function useInput<TValue>(
     { value: externalValue, onChange }: InputBaseProps<TValue>, 
     defaultValue: TValue,
+    autoCommit: boolean = false
 ): [
     state: TInputState<TValue>,
     setValue: (value: TValue) => void,
@@ -52,7 +53,12 @@ export function useInput<TValue>(
         changed: false
     });
 
-    const setValue = (value: TValue) => setState({ value, valueSource: 'internal', changed: true });
+    const setValue = (value: TValue) => {
+        setState({ value, valueSource: 'internal', changed: true });
+
+        if (autoCommit)
+            commitValue(value);
+    };
 
     const commitValue = () => {
 
@@ -74,6 +80,12 @@ export function useInput<TValue>(
         }
         
     }, [externalValue]);
+
+    React.useEffect(() => {
+        if (state.valueSource === 'internal') {
+            commitValue();
+        } 
+    }, [state.value]);
 
     return [state, setValue, commitValue, setState]
 }
