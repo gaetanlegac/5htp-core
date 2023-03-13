@@ -24,8 +24,8 @@ export { default as Service } from './service';
 declare global {
     interface Window {
         dev: boolean,
-        // Defined by loading gtag.js
-        gtag: (action: string, name: string, params?: any) => void,
+        /*context: ClientContext,
+        user: User,*/
         /*context: ClientContext,
         user: User,*/
     }
