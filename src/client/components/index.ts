@@ -16,6 +16,7 @@ export { default as Video } from './Video';
 export { default as Number } from './input/Number';
 export { default as Slider } from './input/Slider';
 export { default as Radio } from './input/Radio';
+export { default as Checkbox } from './input/Checkbox';
 
 // Data
 export { default as Amount } from './Amount';
