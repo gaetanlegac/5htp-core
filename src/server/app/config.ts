@@ -51,6 +51,8 @@ type AppIdentityConfig = {
 
     web: {
         title: string,
+        titleSuffix: string,
+        fullTitle: string,
         description: string,
         version: string
     }                                 
