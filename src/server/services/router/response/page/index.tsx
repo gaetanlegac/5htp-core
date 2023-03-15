@@ -22,6 +22,11 @@ const chunks = require('./chunk-manifest.json');
 - TYPES
 ----------------------------------*/
 
+const seoLimits = {
+    title: 70,
+    description: 255
+}
+
 /*----------------------------------
 - FONCTION
 ----------------------------------*/
@@ -35,7 +40,8 @@ export default class Page<TRouter extends Router = Router> extends PageResponse<
         public layout?: Layout,
 
         public route = context.route,
-        public router = context.request.router
+        public app = context.app,
+        public router = context.request.router,
         
     ) {
 
@@ -44,6 +50,16 @@ export default class Page<TRouter extends Router = Router> extends PageResponse<
     }
 
     public render(): Promise<string> {
+
+        // Complete SEO metadatas
+        const titleSuffix = ' | ' + this.app.identity.web.titleSuffix
+        if (this.title === undefined)
+            this.title = this.app.identity.web.fullTitle;
+        else if (this.title.length < seoLimits.title - titleSuffix.length)
+            this.title += titleSuffix;
+
+        if (this.description === undefined)
+            this.description = this.app.identity.web.description;
 
         // We render page & document separatly,
         // because document needs to access to runtime assigned values
