@@ -93,7 +93,7 @@ export default class FetchService extends Service<Config, Hooks, Application> {
 
         // Convert to webp and finalize
         const processedBuffer = await processing.webp({ quality }).toBuffer().catch(e => {
-            console.error(LogPrefix, `Error while processing image at ${imageBuffer}:`, e);
+            console.error(LogPrefix, `Error while processing image at ${imageFileUrl}:`, e);
             return null;
         })
 
