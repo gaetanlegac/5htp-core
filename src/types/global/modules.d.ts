@@ -36,7 +36,7 @@ declare module "*.svg" {
     export = value;
 }
 
-declare module "*.png" {
+declare module "*.(png|webp)" {
     const value: string;
     export = value;
 }
