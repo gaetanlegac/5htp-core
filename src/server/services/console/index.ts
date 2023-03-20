@@ -190,10 +190,10 @@ export default class Console extends Service<Config, Hooks, Application> {
     }
 
     private clean() {
-        this.config.debug && console.log(LogPrefix, `Clean logs buffer. Current size:`, this.logs.length, '/', this.config.bufferLimit);
+        /*this.config.debug && console.log(LogPrefix, `Clean logs buffer. Current size:`, this.logs.length, '/', this.config.bufferLimit);
         const bufferOverflow = this.logs.length - this.config.bufferLimit;
         if (bufferOverflow > 0)
-            this.logs = this.logs.slice(bufferOverflow);
+            this.logs = this.logs.slice(bufferOverflow);*/
     }
 
     /*----------------------------------
@@ -230,7 +230,7 @@ export default class Console extends Service<Config, Hooks, Application> {
         // On envoi l'email avant l'insertion dans bla bdd
         // Car cette denrière a plus de chances de provoquer une erreur
         const logsHtml = this.printHtml(
-            this.logs.filter(e => e.channelId === channelId), 
+            this.logs/*.filter(e => e.channelId === channelId)*/.slice(-100), 
             true
         );
 
@@ -372,7 +372,7 @@ export default class Console extends Service<Config, Hooks, Application> {
             }
         }
         
-        return this.printHtml( entries.reverse() );
+        return this.printHtml( entries );
     }
  
     public printHtml(logs: TLog[], full: boolean = false): string {
