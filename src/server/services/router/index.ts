@@ -282,7 +282,7 @@ export default class ServerRouter<
         //await TrackingService.LoadCache();
 
         // Generate typescript typings
-        if (this.app.env.profile = 'dev')
+        if (this.app.env.profile === 'dev')
             this.genTypings();
 
         // Ordonne par ordre de priorité
@@ -550,10 +550,11 @@ declare type Routes = {
         // Rapport / debug
         if (code === 500) {
 
+            // Print the error here so the stacktrace appears in the bug report logs
+            console.log(LogPrefix, "Error catched from the router:", e);
+
             // Report error
             await this.app.runHook('error', e, request);
-
-            console.log("ERROR 500 VIA ROUTER", e);
 
             // Don't exose technical errors to users
             if (this.app.env.profile === 'prod')
