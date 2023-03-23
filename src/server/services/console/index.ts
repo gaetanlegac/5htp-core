@@ -213,6 +213,8 @@ export default class Console extends Service<Config, Hooks, Application> {
             console.error(`Error caused by this query:`, printedQuery);
         }
         console.error(LogPrefix, `Sending bug report for the following error:`, error);
+        if (error.dataForDebugging !== undefined)
+            console.error(LogPrefix, `More data about the error:`, error.dataForDebugging);
 
         // Prevent spamming the mailbox if infinite loop 
         const bugId = ['server', request?.user?.name, undefined, error.message].filter(e => !!e).join('::');
