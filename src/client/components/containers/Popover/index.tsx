@@ -3,7 +3,8 @@
 ----------------------------------*/
 
 // Npm
-import React, { JSX, ComponentChild } from 'react';
+import React from 'react';
+import { JSX, ComponentChild } from 'preact';
 import type { StateUpdater } from 'preact/hooks';
 
 // Libs
@@ -15,11 +16,11 @@ import useContexte from '@/client/context';
 - TYPES
 ----------------------------------*/
 
-export type Props = {
+export type Props = JSX.HTMLAttributes<HTMLDivElement> & {
     id?: string,
 
     // Display
-    content?: JSX.Element | (() => JSX.Element),
+    content?: JSX.Element,
     state: [boolean, StateUpdater<boolean>],
     width?: number | string,
     disable?: boolean
@@ -53,7 +54,7 @@ export default (props: Props) => {
         ...autresProps
     } = props;
 
-    const [position, setPosition] = React.useState<TPosition>(undefined);
+    const [position, setPosition] = React.useState<TPosition | undefined>(undefined);
     const refCont = React.useRef<HTMLElement>(null);
     const refContent = React.useRef<HTMLElement>(null);
 
@@ -61,7 +62,7 @@ export default (props: Props) => {
 
     // Màj visibilite
     React.useEffect(() => {
-        if (shown === true) {
+        if (shown === true && refContent.current !== null && refCont.current !== null) {
 
             // Positionnement si affichage
             setPosition(
@@ -70,7 +71,7 @@ export default (props: Props) => {
                     refContent.current, 
                     false, 
                     side, 
-                    frame || document.getElementById('page')
+                    frame || document.getElementById('page') || undefined
                 )
             );
 
@@ -100,17 +101,20 @@ export default (props: Props) => {
 
     let renderedContent: ComponentChild;
     if (active) {
-        content = typeof content === 'function' ? React.createElement(content) : content;
+        //content = typeof content === 'function' ? React.createElement(content) : content;
+        console.log("render content", content);
         renderedContent = React.cloneElement( 
             content, 
             {
                 className: (content.props.className || '') 
                     + ' card white popover pd-1' 
                     + (position ? ' pos_' + position.cote : ''),
+
                 ref: (ref: any) => {
                     if (ref !== null)
                         refContent.current = ref
                 },
+
                 style: {
                     ...(content.props.style || {}),
                     ...(position ? {

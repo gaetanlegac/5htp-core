@@ -6,7 +6,7 @@
 import React from 'react';
 
 // Core
-import Dropdown, { TDialogControls, Props as DropdownProps } from '@client/components/dropdown';
+import Dropdown, { TDropdownControl, Props as DropdownProps } from '@client/components/dropdown';
 
 // Specific
 import ChoiceSelector, { 
@@ -36,7 +36,7 @@ export default ({
     - INIT
     ----------------------------------*/
 
-    const refModal = React.useRef<TDialogControls>(null);
+    const refDropdown = React.useRef<TDropdownControl>(null);
 
     /*----------------------------------
     - ACTIONS
@@ -56,9 +56,9 @@ export default ({
         {props.inline ? (
             <ChoiceSelector {...props} currentList={currentList} />
         ) : (
-            <Dropdown {...props} content={(() =>
-                <ChoiceSelector {...props} currentList={currentList} />
-            )} iconR="chevron-down" refModal={refModal}>
+            <Dropdown {...props} content={(
+                <ChoiceSelector {...props} currentList={currentList} refDropdown={refDropdown} />
+            )} iconR="chevron-down" refDropdown={refDropdown}>
 
                 {currentList.length === 0
                     ? title

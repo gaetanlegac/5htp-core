@@ -1,6 +1,6 @@
 export type TSide = "left"|"top"|"right"|"bottom";
 
-const debug = true;
+const debug = false;
 
 export type TPosition = ReturnType<typeof corrigerPosition>
 
@@ -129,7 +129,7 @@ export default function corrigerPosition(
         debug && console.log(`[popover] Left: Conservation`, posFinale.left);
     }
 
-    console.log({ posInit, dimsPop, frontieres }, { posFinale });
+    debug && console.log({ posInit, dimsPop, frontieres }, { posFinale });
 
     return {
         css: posFinale,

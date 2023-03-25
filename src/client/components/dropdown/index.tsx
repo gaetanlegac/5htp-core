@@ -8,18 +8,19 @@ import { ComponentChild, RefObject } from 'preact';
 
 // Core
 import Button, { Props as ButtonProps } from '../button';
-import { TDialogControls } from '../Dialog/Manager';
 import Popover from '../containers/Popover';
 
 /*----------------------------------
 - TYPES
 ----------------------------------*/
 
-export type { TDialogControls } from '../Dialog/Manager';
-
 export type Props = ButtonProps & {
     content: ComponentChild | (() => ComponentChild),
-    refModal?: RefObject<TDialogControls>
+    refDropdown?: RefObject<TDropdownControl>
+}
+
+export type TDropdownControl = {
+    close: () => void
 }
 
 /*----------------------------------
@@ -29,13 +30,18 @@ export default (props: Props) => {
 
     let {
         content,
-        refModal,
+        refDropdown,
         ...buttonProps
     } = props;
 
     const popoverState = React.useState(false);
 
     const refButton = React.useRef<HTMLElement>(null);
+
+    if (refDropdown)
+        refDropdown.current = {
+            close: () => popoverState[1]( false )
+        }
 
     return (
         <Popover content={content} state={popoverState}>

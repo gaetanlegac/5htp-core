@@ -69,11 +69,9 @@ export const blurable = (...args: [HTMLElement, Function][]) => {
 
 export const focusContent = ( container: HTMLElement ) => {
 
-    const toFocus = container.querySelector(
+    const toFocus = container.querySelector<HTMLInputElement | HTMLTextAreaElement | HTMLButtonElement>(
         'input, textarea, button.btn.primary, footer > button.btn'
     ) || container;
 
-    console.log('Element to focus', toFocus);
-    // TODO: Type only docusable elemnts
     toFocus?.focus();
 }

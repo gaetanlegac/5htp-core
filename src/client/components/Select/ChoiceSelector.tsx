@@ -4,12 +4,13 @@
 
 // Npm
 import React from 'react';
-import type { ComponentChild, RefObject } from 'preact';
+import type { JSX, ComponentChild, RefObject } from 'preact';
 import type { StateUpdater } from 'preact/hooks';
 
 // Core
 import Button from '@client/components/button';
 import Input from '@client/components/inputv3';
+import type { TDialogControls } from '@client/components/dropdown';
 
 /*----------------------------------
 - TYPES
@@ -42,7 +43,7 @@ export type Props = (
     required?: boolean,
     noneSelection?: false | string,
     currentList: Choice[],
-    refPopover?: RefObject<HTMLElement>
+    refDropdown?: RefObject<TDialogControls>
 }
 
 /*----------------------------------
@@ -53,7 +54,7 @@ export type Props = (
     - we don't want the selector to be rendered before the dropdown content is dhown
     - this component is called multiple time
 */
-export default ({
+export default React.forwardRef<HTMLDivElement, Props>(({
     choices: initChoices, 
     validator, 
     required, 
@@ -64,8 +65,9 @@ export default ({
     inline, 
     multiple, 
     currentList,
-    refPopover
-}: Props) => {
+    refDropdown,
+    ...otherProps
+}: Props, ref) => {
 
     /*----------------------------------
     - INIT
@@ -102,7 +104,7 @@ export default ({
     - RENDER
     ----------------------------------*/
     return (
-        <div class={(inline ? '' : 'card ') + "col al-top"} ref={refPopover}>
+        <div {...otherProps} className={(inline ? '' : 'card ') + "col al-top " + (otherProps.className || '')} ref={ref}>
 
            {enableSearch && (
                <Input icon="search" 
@@ -113,7 +115,7 @@ export default ({
                />
            )}
 
-           {currentList.length !== 0 && (
+           {/*currentList.length !== 0 && (
                <ul class="col menu">
                    {currentList.map(choice => (
                        <Button size="s" onClick={() => {
@@ -126,7 +128,7 @@ export default ({
                        </Button>
                    ))}
                </ul>
-           )}
+            )*/}
 
            {choices === null ? (
                <div class="row h-3 al-center">
@@ -136,15 +138,22 @@ export default ({
                <ul class="col menu">
                    {choices.map( choice => {
                        const isCurrent = currentList.some(c => c.value === choice.value);
-                       return !isCurrent && (
+                       return (
                            <li>
                                <Button size="s" onClick={() => {
-                                   onChange( current => {
-                                       return multiple 
-                                           ? [...(current || []), choice] 
-                                           : choice
-                                   });
-                               }}>
+
+                                    onChange( current => {
+                                        return multiple 
+                                            ? [...(current || []), choice] 
+                                            : choice
+                                    });
+
+                                    console.log("refDropdown?.current?.close", refDropdown, refDropdown?.current?.close);
+
+                                    if (!multiple)
+                                        refDropdown?.current?.close(true);
+
+                               }} suffix={ isCurrent && <i src="check" class="fg primary" /> }>
                                    {/*search.keywords ? (
                                        <span>
                                        
@@ -169,4 +178,4 @@ export default ({
            )}
        </div>
    )
-}
+})

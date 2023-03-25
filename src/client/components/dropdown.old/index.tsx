@@ -10,7 +10,7 @@ import { ComponentChild } from 'preact';
 import Button, { Props as ButtonProps } from '../button';
 
 // Libs
-import { TPopoverControls, PopoverProps } from './Manager';
+import { TPopover, PopoverProps } from './Manager';
 import useContexte from '@client/context';
 
 /*----------------------------------
@@ -77,7 +77,7 @@ export default (props: Props) => {
     }
 
     const refButton = React.useRef<HTMLElement>(null);
-    const refPopover = React.useRef<TPopoverControls>(null);
+    const refPopover = React.useRef<TPopover>(null);
 
     let classe = buttonProps.class === undefined
         ? "dropdown"
