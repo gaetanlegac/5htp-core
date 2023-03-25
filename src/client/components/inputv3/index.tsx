@@ -111,7 +111,7 @@ export default ({
         suffix = <i src={iconR} />
 
     // When no value, show the lable as a placeholder
-    if (value === '')
+    if (value === '' || value === undefined)
         className += ' empty';
     if (focus)
         className += ' focus';
