@@ -41,7 +41,7 @@ const raccourcisMime = {
 /*----------------------------------
 - CLASS
 ----------------------------------*/
-export default class SchemaValidator {
+export default class SchemaValidators {
 
     /*----------------------------------
     - CONTENEURS
@@ -185,6 +185,7 @@ export default class SchemaValidator {
     public number = (withDecimals: boolean) => ({ ...opts }: TValidator<number> & {
         min?: number,
         max?: number,
+        step?: number,
     } = {}) => new Validator<number>('number', (val, input, output, corriger?: boolean) => {
 
         // Vérifications suivantes inutiles si des values spécifiques ont été fournies

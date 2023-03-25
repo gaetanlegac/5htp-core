@@ -4,11 +4,13 @@
 
 // Npm
 import React from 'react';
-import { ComponentChild, JSX } from 'preact';
+import { VNode, JSX } from 'preact';
 import TextareaAutosize from 'react-textarea-autosize';
 
 // Core libs
 import { useInput, InputBaseProps } from './base';
+import { default as Validator } from '../../../common/validation/validator';
+import type SchemaValidators from '@common/validation/validators';
 
 /*----------------------------------
 - TYPES
@@ -17,20 +19,25 @@ export type Props = {
 
     // Decoration
     icon?: string,
-    prefix?: React.VNode,
-    suffix?: React.VNode,
+    prefix?: VNode,
+    suffix?: VNode,
     iconR?: string,
 
     // State
     inputRef?: React.Ref<HTMLInputElement>
 
-    // Behavior
-    type?: 'email' | 'password' | 'longtext' | 'number',
-    choice?: string[] | ((input: string) => Promise<string[]>),
-
     // Actions
     onPressEnter?: (value: string) => void,
-}
+} & ({
+    type?: 'email' | 'password' | 'longtext'
+    validator?: Validator<string>,
+
+    // Behavior
+    choice?: string[] | ((input: string) => Promise<string[]>),
+} | {
+    type: 'number',
+    validator?: ReturnType< SchemaValidators["number"] >,
+})
 
 /*----------------------------------
 - COMPOSANT
@@ -41,7 +48,7 @@ export default ({
     // State
     inputRef, errors,
     // Behavior
-    type, choice, 
+    type, choice, validator,
     // Actions
     onPressEnter,
     ...props 
@@ -113,6 +120,21 @@ export default ({
 
     if (props.className !== undefined)
         className += ' ' + props.className;
+
+    /*----------------------------------
+    - VALIDATION
+    ----------------------------------*/
+
+    // Map vaidation options to input props
+    if (validator?.options) {
+        if (type === 'number') {
+            ({
+                min: fieldProps.min,
+                max: fieldProps.max,
+                steps: fieldProps.steps,
+            } = validator.options)  
+        }
+    }
 
     /*----------------------------------
     - RENDER

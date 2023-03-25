@@ -158,6 +158,9 @@ export default function useForm<TFormData extends {}>(
     if (fields.current === null || Object.keys(schema).join(',') !== Object.keys(fields.current).join(',')) {
         fields.current = {}
         for (const fieldName in schema.fields) {
+
+            const validator = schema.fields[fieldName];
+
             fields.current[fieldName] = {
 
                 // Value control
@@ -182,8 +185,8 @@ export default function useForm<TFormData extends {}>(
 
                 // Error
                 errors: state.errors[fieldName],
-                required: schema.fields[fieldName].options?.opt !== true,
-                validator: schema.fields[fieldName]
+                required: validator.options?.opt !== true,
+                validator: validator,
             }
         }
     }
