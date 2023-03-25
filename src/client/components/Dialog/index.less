@@ -1,6 +1,6 @@
 @toast-zindex: 999;
 
-#dialog {
+#modals, #toasts {
 
     z-index: @toast-zindex;
 
@@ -10,11 +10,10 @@
     justify-content: flex-end;
     gap: @spacing;
     padding: @spacing;
-
+    
     &,
     > .modal {
         position: fixed;
-        top: 0px; 
         left: 0px; 
         right: 0px; 
         bottom: 0px;
@@ -35,40 +34,13 @@
             margin-top: 0;
         }        
     }
+}
 
-    // Toast
-    > .card {
+#modals {
 
-        text-align: left;
-        max-width: 450px;
-        z-index: 999;
-        cursor: pointer;
-        padding-right: @spacing * 1.5;
-
-        animation: aff-toast 0.1s ease;
-        @keyframes aff-toast {
-            0% {
-                opacity: 0.5;
-                transform: scale(0.5);
-            }
-            100% {
-                opacity: 1;
-                transform: scale(1);
-            }
-        }    
-        
-        > i {
-            color: @c1;
-            flex: 0 0 1em;
-        }
-
-        h2 {
-            font-size: 1em;
-        }
-
-        p {
-            text-align: left;
-        }
+    &,
+    > .modal {
+        top: 0px; 
     }
 
     > .modal {
@@ -132,6 +104,43 @@
             }
 
             z-index: 1; // Au dessus de l'animation canvas
+        }
+    }
+}
+
+#toasts {
+    // Toast
+    > .card {
+
+        text-align: left;
+        max-width: 450px;
+        z-index: 999;
+        cursor: pointer;
+        padding-right: @spacing * 1.5;
+
+        animation: aff-toast 0.1s ease;
+        @keyframes aff-toast {
+            0% {
+                opacity: 0.5;
+                transform: scale(0.5);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }    
+        
+        > i {
+            color: @c1;
+            flex: 0 0 1em;
+        }
+
+        h2 {
+            font-size: 1em;
+        }
+
+        p {
+            text-align: left;
         }
     }
 }

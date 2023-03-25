@@ -228,16 +228,19 @@ export default () => {
 
     const app = useContext();
 
-    const [rendered, setRendered] = React.useState<ComponentChild[]>([]);
+    const [modals, setModals] = React.useState<ComponentChild[]>([]);
+    const [toasts, setToasts] = React.useState<ComponentChild[]>([]);
 
-    if (app.side === 'client')
-        app.modal.setToasts = app.toast.setToasts = setRendered;
+    if (app.side === 'client') {
+        app.modal.setModals = setModals;
+        app.toast.setToasts = setToasts;
+    }
 
     React.useEffect(() => {
 
         console.log('Updated toast list');
 
-        const modals = document.querySelectorAll("#dialog > .modal");
+        const modals = document.querySelectorAll("#modals > .modal");
         if (modals.length === 0)
             return;
 
@@ -259,10 +262,18 @@ export default () => {
 
     });
     
-    return rendered.length !== 0 ? (
-        <div id="dialog">
-            {rendered}
-        </div>
-    ) : null;
+    return <>
+        {modals.length !== 0 ? (
+            <div id="modals">
+                {modals}
+            </div>
+        ) : null}
+
+        {toasts.length !== 0 ? (
+            <div id="toasts">
+                {toasts}
+            </div>
+        ) : null}
+    </>
 
 }
