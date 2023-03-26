@@ -169,7 +169,6 @@ export default ({
                     ) : title}
 
                     {(!prison && close) && (
-
                         <Button class="close" icon="solid/times" size="s" shape="pill" onClick={async () => {
                             if (typeof close === "function") {
 
@@ -179,7 +178,6 @@ export default ({
                                     close(false);
                             }
                         }} />
-
                     )}
 
                 </header>

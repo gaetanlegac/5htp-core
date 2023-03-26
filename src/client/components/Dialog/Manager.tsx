@@ -46,6 +46,7 @@ export type TDialogControls = {
 type DialogActions = {
 
     setToasts: ( setter: (old: ComponentChild[]) => ComponentChild[]) => void,
+    setModals: ( setter: (old: ComponentChild[]) => ComponentChild[]) => void,
 
     show: (
         // On utilise une fonction pour pouvoir accéder aux fonctions (close, ...) lors de la déclaration des infos de la toast
@@ -81,9 +82,13 @@ export const createDialog = (app: Application, isToast: boolean): DialogActions 
         let onClose: TOnCloseCallback<TReturnType>;
         const id = idA++;
 
+        const setDialog = isToast
+            ? instance.setToasts
+            : instance.setModals;
+
         const close = (retour: TReturnType) => {
 
-            instance.setToasts(q => q.filter(m => m.id !== id))
+            setDialog(q => q.filter(m => m.id !== id))
 
             if (onClose !== undefined)
                 onClose(retour);
@@ -145,7 +150,7 @@ export const createDialog = (app: Application, isToast: boolean): DialogActions 
 
             render["id"] = id;
 
-            instance.setToasts(q => [...q, render]);
+            setDialog(q => [...q, render]);
         });
 
         return {
@@ -159,6 +164,7 @@ export const createDialog = (app: Application, isToast: boolean): DialogActions 
         show: show,
 
         setToasts: undefined as unknown as DialogActions["setToasts"],
+        setModals: undefined as unknown as DialogActions["setModals"],
 
         confirm: (title: string, content: string | ComponentChild, defaultBtn: 'Yes'|'No' = 'No') => show<boolean>(({ close }) => (
             <div class="card col">
