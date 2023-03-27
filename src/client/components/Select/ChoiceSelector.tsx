@@ -126,16 +126,18 @@ export default React.forwardRef<HTMLDivElement, Props>(({
                        return (
                            <li>
                                <Button size="s" onClick={() => {
-
                                     onChange( current => {
+
+                                        console.log("click select", current, multiple, choice);
+
                                         return multiple 
                                             ? (isCurrent
                                                 ? current.filter(c => c.value !== choice.value)
                                                 : [...(current || []), choice] 
                                             )
                                             : (isCurrent
-                                                ? choice
-                                                : undefined
+                                                ? undefined
+                                                : [choice]
                                             )
                                     });
 
