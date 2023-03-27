@@ -115,21 +115,6 @@ export default React.forwardRef<HTMLDivElement, Props>(({
                />
            )}
 
-           {/*currentList.length !== 0 && (
-               <ul class="col menu">
-                   {currentList.map(choice => (
-                       <Button size="s" onClick={() => {
-                           onChange( current => multiple 
-                               ? current.filter(c => c.value !== choice.value)
-                               : undefined
-                           );
-                       }} suffix={<i src="check" class="fg primary" />}>
-                           {choice.label}
-                       </Button>
-                   ))}
-               </ul>
-            )*/}
-
            {choices === null ? (
                <div class="row h-3 al-center">
                    <i src="spin" />
@@ -144,11 +129,15 @@ export default React.forwardRef<HTMLDivElement, Props>(({
 
                                     onChange( current => {
                                         return multiple 
-                                            ? [...(current || []), choice] 
-                                            : choice
+                                            ? (isCurrent
+                                                ? current.filter(c => c.value !== choice.value)
+                                                : [...(current || []), choice] 
+                                            )
+                                            : (isCurrent
+                                                ? choice
+                                                : undefined
+                                            )
                                     });
-
-                                    console.log("refDropdown?.current?.close", refDropdown, refDropdown?.current?.close);
 
                                     if (!multiple)
                                         refDropdown?.current?.close(true);
