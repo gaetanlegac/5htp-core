@@ -137,7 +137,7 @@ export default React.forwardRef<HTMLDivElement, Props>(({
                                             )
                                             : (isCurrent
                                                 ? undefined
-                                                : [choice]
+                                                : choice
                                             )
                                     });
 
