@@ -68,6 +68,7 @@ export default abstract class Application extends Service<Config, Hooks, /* TODO
         public: process.cwd() + '/public',
 
         // TODO: move to disk
+        var: process.cwd() + '/var',
         typings: process.cwd() + '/var/typings',
         cache: process.cwd() + '/var/cache',
         data: process.cwd() + '/var/data',

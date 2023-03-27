@@ -21,6 +21,7 @@ import type { GlobImportedWithMetas } from 'babel-plugin-glob-import';
 // Core
 import Application, { Service } from '@server/app';
 import context from '@server/context';
+import type DiskDriver from '@server/services/disks/driver';
 import { CoreError, NotFound } from '@common/errors';
 import BaseRouter, {
     TRoute, TErrorRoute, TRouteModule,
@@ -87,6 +88,8 @@ export type Config<
 > = {
 
     debug: boolean,
+
+    disk: DiskDriver,
 
     http: HttpServiceConfig
 

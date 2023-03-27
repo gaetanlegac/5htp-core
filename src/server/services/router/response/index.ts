@@ -8,7 +8,6 @@
 ----------------------------------*/
 
 // Npm
-import fs from 'fs-extra';
 import express from 'express';
 
 // Core
@@ -241,28 +240,29 @@ export default class ServerResponse<
     }
 
     // TODO: https://github.com/adonisjs/http-server/blob/develop/src/Response/index.ts#L430
-    public file( fichier: string ) {
+    public async file( fichier: string ) {
 
         // Securité
         if (fichier.includes('..'))
             throw new Forbidden("Disallowed");
 
-        // Force absolute path
-        if (!fichier.startsWith( this.app.path.root ))
-            fichier = fichier[0] === '/'
-                ? this.app.path.root + '/bin' + fichier
-                : this.app.path.data + '/' + fichier;
+        // // Force absolute path
+        // if (!fichier.startsWith( this.app.path.root ))
+        //     fichier = fichier[0] === '/'
+        //         ? this.app.path.root + '/bin' + fichier
+        //         : this.app.path.data + '/' + fichier;
 
-        console.log(`[response] Serving file "${fichier}"`);
+        const disk = this.router.config.disk;
 
         // Verif existance
-        if (!fs.existsSync(fichier)) {
+        const fileExists = await disk.exists('data', fichier);
+        if (!fileExists) {
             console.log("File " + fichier + " was not found.");
             throw new NotFound();
         }
 
         // envoi fichier
-        this.data = fs.readFileSync(fichier);
+        this.data = await disk.readFile('data', fichier);
         return this.end();
     }
 

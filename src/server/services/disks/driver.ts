@@ -39,6 +39,11 @@ export type TOutputFileOptions = {
     encoding: string
 }
 
+export type TReadFileOptions = {
+    encoding?: 'string'|'buffer',
+    withMetas?: boolean
+}
+
 /*----------------------------------
 - CLASS
 ----------------------------------*/
@@ -56,7 +61,11 @@ export default abstract class FsDriver<
     
     public abstract readDir( bucketName: TBucketName, dirname?: string ): Promise<SourceFile[]>;
 
-    public abstract readFile( bucketName: TBucketName, filename: string ): Promise<string>;
+    public abstract readFile( 
+        bucketName: TBucketName, 
+        filename: string, 
+        options: TReadFileOptions
+    ): Promise<string>;
 
     public abstract createReadStream( bucketName: TBucketName, filename: string );
 
