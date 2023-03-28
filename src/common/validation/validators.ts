@@ -173,9 +173,30 @@ export default class SchemaValidators {
             if (!isEmail(val))
                 throw new InputError("Please enter a valid email address.");
 
-            const retour = normalizeEmail(val);
+            // Disable normalzation !!! We should keep the email as it was entered by the user
+            /*const normalizedEmail = normalizeEmail(val, {
+                all_lowercase: true,
+                gmail_lowercase: true,
+                gmail_remove_dots: false,
+                gmail_remove_subaddress: true,
+                gmail_convert_googlemaildotcom: true,
+              
+                outlookdotcom_lowercase: true,
+                outlookdotcom_remove_subaddress: true,
+              
+                yahoo_lowercase: true,
+                yahoo_remove_subaddress: true,
+              
+                yandex_lowercase: true,
 
-            return retour;
+                icloud_lowercase: true,
+                icloud_remove_subaddress: true,
+            });*/
+
+            const normalizedEmail = val.toLowerCase();
+            console.log("validate email, inou", val, normalizedEmail);
+
+            return normalizedEmail;
         }, opts)
 
     /*----------------------------------
