@@ -24,6 +24,10 @@ type THookOptions = {
 
 export type TPriority = -2 | -1 | 0 | 1 | 2
 
+type TServiceConfig = {
+    debug?: boolean
+}
+
 /*----------------------------------
 - CONFIG
 ----------------------------------*/
@@ -34,7 +38,7 @@ const LogPrefix = '[service]';
 - CLASS
 ----------------------------------*/
 export default abstract class Service<
-    TConfig extends {}, 
+    TConfig extends TServiceConfig, 
     THooks extends THooksList,
     TApplication extends Application
 > {
@@ -88,7 +92,7 @@ export default abstract class Service<
         if (!callbacks)
             return console.info(LogPrefix, `No ${name} hook defined in the current service instance.`);
 
-        console.info(`[hook] Run all ${name} hook (${callbacks.length}).`);
+        this.config.debug && console.info(`[hook] Run all ${name} hook (${callbacks.length}).`);
         return Promise.all( 
             callbacks.map(
                 cb => cb(...args).catch(e => {
@@ -98,7 +102,7 @@ export default abstract class Service<
                 })
             ) 
         ).then(() => {
-            console.info(`[hook] Hooks ${name} executed with success.`);
+            this.config.debug && console.info(`[hook] Hooks ${name} executed with success.`);
         })
     }
 

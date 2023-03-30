@@ -17,8 +17,6 @@ import { history } from '@client/services/router/request/history';
 export type TDataProvider<TProvidedData extends TFetcherList = {}> = 
     (context: TClientOrServerContext/* & TUrlData */) => TProvidedData
 
-
-
 // The function that renders routes
 export type TFrontRenderer<
     TProvidedData extends TFetcherList = {}, 
@@ -42,6 +40,8 @@ export type TPageResource = {
     url: string,
     preload?: boolean
 })
+
+const debug = false;
 
 /*----------------------------------
 - CLASS
@@ -81,7 +81,7 @@ export default class PageResponse<TRouter extends ClientOrServerRouter = ClientO
             this.fetchers = this.dataProvider({ ...this.context, ...this.context.request.data });
 
         // Execute the fetchers for missing data
-        console.log(`[router][page] Fetching api data:` + Object.keys(this.fetchers));
+        debug && console.log(`[router][page] Fetching api data:` + Object.keys(this.fetchers));
         this.data = await this.context.request.api.fetchSync( this.fetchers, this.data );
         return this.data;
     }
