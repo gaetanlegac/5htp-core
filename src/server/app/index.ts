@@ -94,8 +94,7 @@ export default abstract class Application extends Service<Config, Hooks, /* TODO
 
     public constructor() {
 
-        // @ts-ignore: can't pass this to super
-        super();
+        super({}, {});
 
         // Gestion crash
         process.on('unhandledRejection', (error: any, promise: any) => {
