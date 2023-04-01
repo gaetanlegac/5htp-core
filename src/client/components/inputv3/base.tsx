@@ -35,7 +35,7 @@ export type TInputState<TValue> = {
 - HOOKS
 ----------------------------------*/
 export function useInput<TValue>(
-    { value: externalValue, onChange }: InputBaseProps<TValue>, 
+    { value: externalValue, onChange, ...otherProps }: InputBaseProps<TValue>, 
     defaultValue: TValue,
     autoCommit: boolean = false
 ): [
@@ -48,7 +48,7 @@ export function useInput<TValue>(
     const [state, setState] = useState<TInputState<TValue>>({
         value: externalValue !== undefined ? externalValue : defaultValue,
         valueSource: 'external',
-        fieldProps: {},
+        fieldProps: otherProps,
         focus: false,
         changed: false
     });

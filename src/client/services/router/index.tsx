@@ -147,6 +147,7 @@ export default class ClientRouter<
     }
 
     public go( url: string ) {
+        console.log( LogPrefix, "Go to", url);
         history?.replace(url);
     }
 
