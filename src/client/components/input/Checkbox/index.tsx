@@ -65,6 +65,7 @@ export default ({
                     setValue( !value );
                 }}
                 checked={value}
+                {...fieldProps}
             />
 
             <label htmlFor={id} class="col-1 txt-left">
