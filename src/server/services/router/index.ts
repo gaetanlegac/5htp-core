@@ -564,7 +564,7 @@ declare type Routes = {
                 e.message = "We encountered an internal error, and our team has just been notified. Sorry for the inconvenience.";
 
         // Pour déboguer les erreurs HTTP
-        } else if (this.app.env.profile === "dev")
+        } else if (code !== 404 && this.app.env.profile === "dev")
             console.warn(e);
 
         if (request.accepts("html"))
