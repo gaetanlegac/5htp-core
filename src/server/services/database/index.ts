@@ -310,7 +310,7 @@ export default class SQL extends Service<Config, Hooks, Application> {
             return this.database.query(
                 data.map( record => 
                     this.update(tableName, record, where, { ...opts, returnQuery: true })
-                ).join(';\n')
+                ).join('\n')
             )
 
         // Automatic where based on pks
