@@ -203,7 +203,7 @@ export default class SQL extends Service<Config, Hooks, Application> {
                 } else if (typeof value === 'function' && value.string !== undefined)
                     value = value.string;
                 else
-                    value = mysql.escape(value);
+                    value = ' ' +  mysql.escape(value);
 
                 stringBefore += value;
 
