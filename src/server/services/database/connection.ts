@@ -37,6 +37,7 @@ type ConnectionConfig = {
 }
 
 export type DatabaseServiceConfig = {
+    debug: boolean,
     connections: ConnectionConfig[]
 }
 
@@ -207,7 +208,7 @@ export default class DatabaseManager extends Service<DatabaseServiceConfig, THoo
 
             let jsTypeName = mysqlToJs[ mysqlType.name ];
             if (jsTypeName === undefined) {
-                console.warn(`The mySQL data type « ${mysqlType.name} » has not been associated with a JS equivalent in mysqlToJs. Using any instead.`);
+                this.config.debug && console.warn(`Column "${field.table}.${field.name}": The mySQL data type « ${mysqlType.name} » has not been associated with a JS equivalent in mysqlToJs. Using any instead.`);
                 jsTypeName = mysqlToJs['UNKNOWN'];
             }
 
