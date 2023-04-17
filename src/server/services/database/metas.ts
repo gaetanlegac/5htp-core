@@ -298,7 +298,7 @@ export default class MySQLMetasParser {
 
     }
 
-    private parseJsType( name: string, mysqlType: TMySQLType, comment: string | null, isOptional?: boolean ): TJsType {
+    private parseJsType( colName: string, mysqlType: TMySQLType, comment: string | null, isOptional?: boolean ): TJsType {
 
         let typeName: TJsType["name"] | undefined;
         let params: TJsType["params"];
@@ -324,7 +324,7 @@ export default class MySQLMetasParser {
 
             // Equivalent not found
             if (typeName === undefined) {
-                console.warn(`The mySQL data type « ${mysqlType.name} » has not been associated with a JS equivalent in mysqlToJs. Using any instead.`);
+                this.database.config.debug && console.warn(`Column "${colName}": The mySQL data type « ${mysqlType.name} » has not been associated with a JS equivalent in mysqlToJs. Using any instead.`);
                 typeName = mysqlToJs['UNKNOWN'];
             }
         }
@@ -334,7 +334,7 @@ export default class MySQLMetasParser {
         if (!jsTypeUtils)
             throw new Error(`Unable to find the typescript print funvction for js type "${typeName}"`);
 
-        const raw = name + (isOptional ? '?' : '') + ': ' + jsTypeUtils.print( mysqlType.params );
+        const raw = colName + (isOptional ? '?' : '') + ': ' + jsTypeUtils.print( mysqlType.params );
 
         return { name: typeName, params, raw }
     }
