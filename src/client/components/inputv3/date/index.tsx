@@ -5,7 +5,7 @@
 // Npm
 import React from 'react';
 import type { StateUpdater } from 'preact/hooks';
-import DateRangePicker from '@wojtekmaj/react-daterange-picker/dist/entry.nostyle';
+import DateRangePicker from '@wojtekmaj/react-daterange-picker';
 
 // Core
 
