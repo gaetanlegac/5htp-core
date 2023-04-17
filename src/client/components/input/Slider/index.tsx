@@ -1,9 +1,16 @@
 /*----------------------------------
 - DEPENDANCES
 ----------------------------------*/
+
+// Npm
 import React from 'react';
+import { VNode, JSX } from 'preact';
 import Slider from 'react-slider';
-import Champ from '../Base';
+
+// Core libs
+import { useInput, InputBaseProps } from '../../inputv3/base';
+import { default as Validator } from '@common/validation/validator';
+import type SchemaValidators from '@common/validation/validators';
 
 /*----------------------------------
 - TYPES
@@ -14,44 +21,78 @@ type TValeurDefaut = typeof valeurDefaut;
 type TValeurOut = string;
 
 export type Props = {
-    valeur: TValeur,
-    step?: number,
 
+    value: TValeur,
+
+    step?: number,
     min?: number,
     max?: number,
 
-    formater?: (valeur: number) => string
+    format?: (value: number) => string
 }
+
 
 /*----------------------------------
 - COMPOSANT
 ----------------------------------*/
 import './index.less';
-export default Champ<Props, TValeurDefaut, TValeurOut>('slider', { valeurDefaut, saisieManuelle: false }, ({
-    suffixeLabel, attrsChamp, 
-    step, min, max, formater
-}, { valeur, state, setState }, rendre) => {
+export default ({ 
+    // Decoration
+    icon, prefix, required,
+    step, min, max,
+    // State
+    errors,
+    // Behavior
+    type,
+    ...props 
+}: Props & InputBaseProps<number> & Omit<JSX.HTMLAttributes<HTMLInputElement>, 'onChange'>) => {
 
-    if (suffixeLabel === undefined)
-        suffixeLabel = <strong>{formater ? formater(valeur) : valeur}</strong>
+    /*----------------------------------
+    - INIT
+    ----------------------------------*/
 
-    // On copie les attributs pour ne pas modifer l'objet attrsChamp et provoquer des comportements imprévus
-    let attributs = { ...attrsChamp };
+    const [{ value, focus, fieldProps }, setValue, commitValue, setState] = useInput(props, 0);
 
-    return rendre((
-        <Slider {...attributs}
-            step={step}
-            min={min} 
-            max={max} 
+    
+    /*----------------------------------
+    - ATTRIBUTES
+    ----------------------------------*/
 
-            value={valeur}
-            onChange={(valeur: number) => {
-                setState({ valeur });
-            }}
+    let className: string = 'input slider';
 
-            className="champ slider"
-            thumbClassName="thumb"
-            trackClassName="track"
-        />
-    ), { suffixeLabel });
-});
+   
+
+    /*----------------------------------
+    - VALIDATION
+    ----------------------------------*/
+
+
+    /*----------------------------------
+    - RENDER
+    ----------------------------------*/
+    return <>
+        <div class={className}>
+            <div class="contValue">
+                <Slider
+                    step={step}
+                    min={min} 
+                    max={max} 
+
+                    value={value}
+                    onChange={(value: number) => {
+                        setValue(value)
+                    }}
+
+                    className="champ slider"
+                    thumbClassName="thumb"
+                    trackClassName="track"
+                />
+            </div>
+        </div>
+        {errors?.length && (
+            <div class="fg error txt-left">
+                {errors.join('. ')}
+            </div>
+        )}
+    </>
+}
