@@ -71,6 +71,8 @@ export default ({
         
     }, [value]);
 
+    const updateValue = v => setValue( type === 'number' ? parseFloat(v) : v );
+
     const refInput = inputRef || React.useRef<HTMLInputElement>();
     
     /*----------------------------------
@@ -98,7 +100,8 @@ export default ({
     } else if (type === 'longtext') {
 
         prefix = prefix || <i src="text" />;
-        Tag = 'textarea'//TextareaAutosize;
+        Tag = 'textarea';
+        className += ' multiline';
 
     } else if (type === 'number') {
 
@@ -139,42 +142,44 @@ export default ({
     /*----------------------------------
     - RENDER
     ----------------------------------*/
-    return <>
-        <div class={className} onClick={() => refInput.current?.focus()}>
+    return (
+        <div class="col sp-05">
+            <div class={className} onClick={() => refInput.current?.focus()}>
 
-            {prefix}
+                {prefix}
 
-            <div class="contValue">
+                <div class="contValue">
 
-                <Tag {...fieldProps}
-                    // @ts-ignore: Property 'ref' does not exist on type 'IntrinsicAttributes'
-                    ref={refInput}
-                    value={value}
+                    <Tag {...fieldProps}
+                        // @ts-ignore: Property 'ref' does not exist on type 'IntrinsicAttributes'
+                        ref={refInput}
+                        value={value}
 
-                    onFocus={() => setState({ focus: true })}
-                    onBlur={() => setState({ focus: false })}
-                    onChange={(e) => setValue(e.target.value)}
+                        onFocus={() => setState({ focus: true })}
+                        onBlur={() => setState({ focus: false })}
+                        onChange={(e) => updateValue(e.target.value)}
 
-                    onKeyDown={(e) => {
-                        if (onPressEnter && e.key === 'Enter' && value !== undefined) {
-                            commitValue();
-                            onPressEnter(value)
-                        }
-                    }}
-                />
+                        onKeyDown={(e) => {
+                            if (onPressEnter && e.key === 'Enter' && value !== undefined) {
+                                commitValue();
+                                onPressEnter(value)
+                            }
+                        }}
+                    />
 
-                <label>{props.title}{required && (
-                    <span class="fg error">&nbsp;*</span>
-                )}</label>
+                    <label>{props.title}{required && (
+                        <span class="fg error">&nbsp;*</span>
+                    )}</label>
+                </div>
+
+                {suffix}
+                
             </div>
-
-            {suffix}
-            
+            {errors?.length && (
+                <div class="fg error txt-left">
+                    {errors.join('. ')}
+                </div>
+            )}
         </div>
-        {errors?.length && (
-            <div class="fg error txt-left">
-                {errors.join('. ')}
-            </div>
-        )}
-    </>
+    )
 }
