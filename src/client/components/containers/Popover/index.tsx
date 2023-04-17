@@ -71,7 +71,7 @@ export default (props: Props) => {
                     refContent.current, 
                     false, 
                     side, 
-                    frame || document.getElementById('page') || undefined
+                    /*frame || document.getElementById('page') || */undefined
                 )
             );
 
