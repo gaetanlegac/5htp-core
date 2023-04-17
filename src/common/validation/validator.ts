@@ -23,9 +23,6 @@ export type TValidator<TValue> = {
     activer?: (donnees: TObjetDonnees) => boolean,
     onglet?: string, // Sert juste d'identifiant secondaire. Ex: nom onglet correspondant
 
-    // Restrict to a specific set of values
-    in?: TValue[],
-
     // Executé après le validateur propre au type
     dependances?: string[],
     opt?: true,

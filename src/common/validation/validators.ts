@@ -15,6 +15,7 @@ import { InputError } from '@common/errors';
 import FileToUpload from '@client/components/inputv3/file/FileToUpload';
 
 // Speciific
+import Schema from './schema'
 import Validator, { TValidator } from './validator'
 
 // Components
@@ -63,14 +64,13 @@ export default class SchemaValidators {
             return val;
         }, opts)
 
-    public array = (subtype?: Validator<any>, { choice, min, max, ...opts }: TValidator<any[]> & {
+    public array = ( subtype?: Validator<any> | Schema<{}>, { 
+        choice, min, max, ...opts 
+    }: TValidator<any[]> & {
         choice?: any[],
         min?: number, 
         max?: number
     } = {}) => {
-
-        if (subtype !== undefined)
-            subtype.options.in = choice;
 
         return new Validator<any[]>('array', (items, input, output, corriger) => {
 
@@ -86,32 +86,41 @@ export default class SchemaValidators {
 
             // Verif each item
             if (subtype !== undefined) {
-                if (false/*subtype instanceof Schema*/) {
+                if (subtype instanceof Schema) {
 
-                    console.log('TODO: VALIDER VIA SOUS SCHEMA');
+                    items = items.map( item =>
+                        subtype.validate( item, item, item, { }, []).values
+                    )
 
                 } else {
 
                     items = items.map( item =>
                         subtype.validate( item, items, items, corriger )
                     )
+
                 }
             }
 
             return items;
         }, {
             ...opts,
-            in: choice,
             //multiple: true, // Sélection multiple
             //subtype
         })
     }
 
-    public choice = (values: any[], opts: TValidator<any> & {} = {}) => 
+    public choice = (values?: any[], opts: TValidator<any> & {} = {}) => 
         new Validator<any>('choice', (val, input, output) => {
 
-            if (!values.includes(val))
-                throw new InputError("Invalid value. Must be: " + values.join(', '));
+            // Choice object
+            if (typeof val === 'object' && ('value' in val) && typeof val.value !== 'object')
+                val = val.value;
+
+            if (values !== undefined) {
+                const isValid = values.some(v => v.value === val);
+                if (!isValid)
+                    throw new InputError("Invalid value. Must be: " + values.map(v => v.value).join(', '));
+            }
 
             return val;
 
@@ -122,10 +131,6 @@ export default class SchemaValidators {
     ----------------------------------*/
     public string = ({ min, max, ...opts }: TValidator<string> & { min?: number, max?: number } = {}) => 
         new Validator<string>('string', (val, input, output, corriger?: boolean) => {
-
-            // Choice value from Select component
-            if (typeof val === 'object' && val.value)
-                val = val.value;
 
             if (val === '')
                 return undefined;
