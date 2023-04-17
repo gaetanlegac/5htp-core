@@ -28,10 +28,13 @@ type FieldsAttrs<TFormData extends {}> = {
 }
 
 export type Form<TFormData extends {} = {}> = {
+    
     fields: FieldsAttrs<TFormData>,
     data: TFormData,
     options: TFormOptions<TFormData>,
-    validate: (data: TFormData) => TValidationResult<{}>,
+    autosavedData?: Partial<TFormData>,
+
+    validate: (data: Partial<TFormData>) => TValidationResult<{}>,
     set: (data: Partial<TFormData>) => void,
     submit: (additionnalData?: Partial<TFormData>) => Promise<any>,
 } & FormState
@@ -48,30 +51,30 @@ type FormState = {
 export default function useForm<TFormData extends {}>(
     schema: Schema<TFormData>,
     options: TFormOptions<TFormData>
-) {
+): [ Form, FieldsAttrs<TFormData> ] {
 
     const context = useContext();
 
     /*----------------------------------
     - INIT
     ----------------------------------*/
-    let initialData: any;
+    let autosavedData: TFormData | undefined;
     if (options.autoSave && typeof window !== 'undefined') {
         const autosaved = localStorage.getItem('form.' + options.autoSave.id);
         if (autosaved !== null) {
             try {
                 console.log('[form] Parse autosaved from json:', autosaved);
-                initialData = JSON.parse(autosaved);
+                autosavedData = JSON.parse(autosaved);
             } catch (error) {
                 console.error('[form] Failed to decode autosaved data from json:', autosaved);
             }
         }
     }
-    if (initialData === undefined)
-        initialData = options.data || {};
 
-    const fields = React.useRef<FieldsAttrs<TFormData>>(null);
-    const [data, setData] = React.useState<TFormData>(initialData);
+    const initialData: Partial<TFormData> = options.data || {};
+
+    const fields = React.useRef<FieldsAttrs<TFormData> | null>(null);
+    const [data, setData] = React.useState< Partial<TFormData> >(initialData);
     const [state, setState] = React.useState<FormState>({
         isLoading: false,
         errorsCount: 0,
@@ -93,7 +96,7 @@ export default function useForm<TFormData extends {}>(
     /*----------------------------------
     - ACTIONS
     ----------------------------------*/
-    const validate = (allData: TFormData = data, validateAll: boolean = true) => {
+    const validate = (allData: Partial<TFormData> = data, validateAll: boolean = true) => {
 
         const validated = schema.validate(allData, allData, {}, {
             // Ignore the fields where the vlaue has not been changed
@@ -130,7 +133,7 @@ export default function useForm<TFormData extends {}>(
         // Callback
         let submitResult: any;
         if (options.submit)
-            submitResult = await options.submit(allData);
+            submitResult = await options.submit(allData as TFormData);
 
         // Reset autosaved data
         if (options.autoSave)
@@ -149,14 +152,14 @@ export default function useForm<TFormData extends {}>(
         }));
     }
 
-    const saveLocally = (data: TFormData, id: string) => {
+    const saveLocally = (data: Partial<TFormData>, id: string) => {
         console.log('[form] Autosave data for form:', id, ':', data);
         localStorage.setItem('form.' + id, JSON.stringify(data));
     }
 
     // Rebuild the fields attrs when the schema changes
     if (fields.current === null || Object.keys(schema).join(',') !== Object.keys(fields.current).join(',')) {
-        fields.current = {}
+        fields.current = {} as FieldsAttrs<TFormData>
         for (const fieldName in schema.fields) {
 
             const validator = schema.fields[fieldName];
@@ -202,6 +205,7 @@ export default function useForm<TFormData extends {}>(
         validate,
         submit,
         options,
+        autosavedData,
         ...state
     }
 
