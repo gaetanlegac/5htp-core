@@ -1,4 +1,5 @@
 @hInput: @sizeComponent;
+@labelH: 0.6em;
 
 // TODO: Adapter textarea à input/basev2
 .contChamp textarea {
@@ -9,56 +10,93 @@
     padding-top: @spacing * 2 !important;
 }
 
+.input {
+    &.text,
+    &.select {
+
+        > i {
+            color: var(--cTxtDesc);
+        }
+        
+        label {
+            display: flex;
+            align-items: center;
+            color: var(--cTxtImportant);
+            font-size: 0.9em;
+            font-weight: 600;
+            transition: all .1s ease-out;
+        }
+    }
+}
+
+.input.select {
+
+    padding: 0;
+
+    > * {
+        + * {
+            border-top: solid 1px var(--cLine);;
+        }
+    }
+
+    .input.text {
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        height: auto;
+        width: 150px;
+    }
+}
+
 .input.text {
-    
+
     display: flex;
     align-items: center;
+    align-items: flex-start;
     padding: @spacing;
-    gap: @spacing;
+    gap: 1em;
 
     // Inputs don't have to have the same height as the buttons,
     // Since they are not supposed to be on the same row (mobile first design)
     height: @hInput;
-    border-radius: @radius;
+    align-items: center;
 
     --cBg2: #eee;
     //box-shadow: 1px 3px 0 fade(#000,4%), 0 1px 2px 0 fade(#000,2%);
 
-    > i {
-        color: var(--cTxtDesc);
-    }
-
-    .contValue {
-        position: relative;
-        flex: 1;
-        &, * {
-            cursor: text;
-        }
-    }
-
     @gapAround: (@hInput - @labelH) / 2;
     > .btn:first-child { margin-left: 0 - @gapAround / 2; }
 
-    @labelH: 0.6em;
     label {
         position: absolute;
         left: 0; width: 100%;
         top: 0;
-        display: flex;
-        align-items: center;
-
         height: @labelH;
         font-size: 0.8em;
         line-height: 0.8em;
-        color: var(--cTxtDesc);
-        transition: all .1s ease-out;
+
+        color: var(--cTxtImportant);
     }
 
     &.empty:not(.focus)  {
         label {
             height: 100%;
             font-size: 1em;
-            //color: var(--cTxtImportant);
+            color: var(--cTxtBase);
+        }
+    }
+
+    .contValue {
+        position: relative;
+        flex: 1;
+
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: @spacing / 2;
+
+        &, * {
+            cursor: text;
         }
     }
 
@@ -69,10 +107,19 @@
         font-family: inherit;
         width: 100%;
         padding: @labelH 0 0 0;
+        font-size: 1rem;
+    }
+
+    input {
         height: 2.5em;
+    }
+
+    &.multiline {
+        height: auto;
     }
 
     textarea {
         padding: @labelH + @spacing 0 @spacing 0;
+        min-height: 4em;
     }
 }

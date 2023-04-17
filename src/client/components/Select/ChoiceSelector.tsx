@@ -69,36 +69,7 @@ export default React.forwardRef<HTMLDivElement, Props>(({
     ...otherProps
 }: Props, ref) => {
 
-    /*----------------------------------
-    - INIT
-    ----------------------------------*/
-
-    const choicesViaFunc = typeof initChoices === 'function';
-    if (choicesViaFunc && enableSearch === undefined)
-        enableSearch = true;
-
-    const [search, setSearch] = React.useState<{
-        keywords: string,
-        loading: boolean
-    }>({
-        keywords: '',
-        loading: choicesViaFunc
-    });
-
-    const [choices, setChoices] = React.useState<Choices>( choicesViaFunc ? [] : initChoices );
-
-    /*----------------------------------
-    - ACTIONS
-    ----------------------------------*/
-
-    React.useEffect(() => {
-        if (choicesViaFunc) {
-            initChoices(search.keywords).then((searchResults) => {
-                setSearch(s => ({ ...s, loading: false }))
-                setChoices(searchResults);
-            })
-        }
-    }, [initChoices, search.keywords]);
+   
 
     /*----------------------------------
     - RENDER

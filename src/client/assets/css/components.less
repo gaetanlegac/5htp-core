@@ -32,7 +32,8 @@
 
 .card,
 .btn,
-.table,
+.input.text,
+.input.select,
 i.solid {
 
     .build-theme-bg( #fff, #8E8E8E);
@@ -48,16 +49,6 @@ i.solid {
 }
 
 .input.text {
-    border: solid 0.25em #eee;
-
-    &:hover {
-        border-color: #ddd;
-    }
-    
-    &.focus {
-        border-color: @c1;
-    }
-
     &.error {
         border-color: @cError;
     }
