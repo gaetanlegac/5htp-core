@@ -20,7 +20,7 @@ export type InputBaseProps<TValue> = {
     errors?: string[],
 
     value: TValue,
-    onChange?: StateUpdater<TValue>,
+    onChange?: (value: TValue) => void,
 }
 
 export type TInputState<TValue> = {
@@ -57,7 +57,7 @@ export function useInput<TValue>(
         setState({ value, valueSource: 'internal', changed: true });
 
         if (autoCommit)
-            commitValue(value);
+            commitValue();
     };
 
     const commitValue = () => {
