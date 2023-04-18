@@ -15,6 +15,7 @@ import type Driver from './driver';
 type TMountpointList = { [name: string]: Driver }
 
 type Config<MountpointList extends TMountpointList> = {
+    debug: boolean,
     default: keyof MountpointList,
 }
 
@@ -36,7 +37,7 @@ export default class DisksManager<
     public constructor( 
         public app: TApplication, 
         public config: TConfig,
-        public mounted:  MountpointList
+        public mounted: MountpointList
     ) {
 
         super(app, config);

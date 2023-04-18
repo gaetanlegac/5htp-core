@@ -12,6 +12,9 @@ import ConfigParser, { TEnvConfig } from './config';
 import { default as Service, AnyService } from './service';
 import CommandsManager from './commands';
 
+// Crore servoces
+import type DisksManager from '@server/services/disks';
+
 // Built-in
 import type { default as Router, Request as ServerRequest } from '@server/services/router';
 
@@ -84,6 +87,12 @@ export default abstract class Application extends Service<Config, Hooks, /* TODO
     }
 
     private servicesList: AnyService[] = []
+
+     /*----------------------------------
+    - MANDATORY SERVICES
+    ----------------------------------*/
+
+    public abstract disk: DisksManager;
 
     /*----------------------------------
     - INIT

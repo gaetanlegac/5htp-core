@@ -262,7 +262,7 @@ export default class ServerResponse<
         }
 
         // envoi fichier
-        this.data = await disk.readFile('data', fichier);
+        this.data = await disk.readFile('data', fichier, {});
         return this.end();
     }
 

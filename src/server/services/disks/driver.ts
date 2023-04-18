@@ -73,7 +73,12 @@ export default abstract class FsDriver<
 
     public abstract move( bucketName: TBucketName, source: string, destination: string, options: { overwrite?: boolean }): Promise<void>;
 
-    public abstract outputFile( bucketName: TBucketName, filename: string, content: string, encoding: TOutputFileOptions ): Promise<{
+    public abstract outputFile( 
+        bucketName: TBucketName, 
+        filename: string, 
+        content: string | Buffer, 
+        options?: TOutputFileOptions 
+    ): Promise<{
         path: string
     }>;
 

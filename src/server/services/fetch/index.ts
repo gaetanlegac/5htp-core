@@ -12,6 +12,7 @@ import request from 'request';
 // Core: general
 import type Application from '@server/app';
 import Service from '@server/app/service';
+import type FsDriver from '../disks/driver';
 
 /*----------------------------------
 - SERVICE TYPES
@@ -74,7 +75,9 @@ export default class FetchService extends Service<Config, Hooks, Application> {
     public async image( 
         imageFileUrl: string, 
         { width, height, fit, quality }: TImageConfig, 
-        saveToPath?: string
+        saveToBucket: string,
+        saveToPath?: string,
+        disk?: FsDriver
     ): Promise<Buffer | null> {
 
         // Download
@@ -97,10 +100,14 @@ export default class FetchService extends Service<Config, Hooks, Application> {
             return null;
         })
 
+        // Define target disk
+        if (disk === undefined)
+            disk = this.app.disk.default;
+
         // Save file
         if (saveToPath !== undefined && processedBuffer !== null) {
             console.log(LogPrefix, `Saving ${imageFileUrl} logo to ${saveToPath}`);
-            fs.outputFileSync(saveToPath, processedBuffer);
+            await disk.outputFile(saveToBucket, saveToPath, processedBuffer);
         }
 
         // We return the original, because Vibrant.js doesn't support webp
