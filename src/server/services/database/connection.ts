@@ -38,7 +38,8 @@ type ConnectionConfig = {
 
 export type DatabaseServiceConfig = {
     debug: boolean,
-    connections: ConnectionConfig[]
+    connections: ConnectionConfig[],
+    connectionsLimit: number
 }
 
 export type THooks = {
@@ -136,7 +137,7 @@ export default class DatabaseManager extends Service<DatabaseServiceConfig, THoo
 
             // Pool
             waitForConnections: true,
-            connectionLimit: 100,
+            connectionLimit: this.config.connectionsLimit, 
             queueLimit: 0,
 
             // Dates & timezone
