@@ -1,6 +1,7 @@
 @toast-zindex: 999;
 
-#modals, #toasts {
+#modals, 
+#toasts {
 
     z-index: @toast-zindex;
 
@@ -60,7 +61,7 @@
         // Desktop = vertically center the modal
         @media (min-width: 900px) {
             justify-content: center;
-            padding: @spacing;
+            //padding: @spacing;
         }
 
         // Pour les animations (ex: conffetis
@@ -79,7 +80,6 @@
             min-width: 300px;
             max-height: 100vh;
             box-shadow: none;
-            padding: @spacing * 2;
             overflow-y: auto;
 
             // Pas d'anim quand pas card, 
