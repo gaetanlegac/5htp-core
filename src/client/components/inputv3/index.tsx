@@ -58,7 +58,7 @@ export default ({
     - INIT
     ----------------------------------*/
 
-    const [{ value, focus, fieldProps }, setValue, commitValue, setState] = useInput(props, '');
+    const [{ value, focus, fieldProps }, setValue, commitValue, setState] = useInput(props, '' );
 
     // Trigger onchange oly when finished typing
     const refCommit = React.useRef<NodeJS.Timeout | null>(null);
@@ -71,7 +71,17 @@ export default ({
         
     }, [value]);
 
-    const updateValue = v => setValue( type === 'number' ? parseFloat(v) : v );
+    const updateValue = v => {
+        if (type === 'number') {
+
+            // Fix on Safari: the browser allows to input text in input number
+            const numberValue = parseFloat(v);
+            if (!Number.isNaN( numberValue ))
+                setValue(numberValue);
+
+        } else
+            setValue(v);
+    }
 
     const refInput = inputRef || React.useRef<HTMLInputElement>();
     
@@ -154,12 +164,12 @@ export default ({
                         // @ts-ignore: Property 'ref' does not exist on type 'IntrinsicAttributes'
                         ref={refInput}
                         value={value}
-
                         onFocus={() => setState({ focus: true })}
                         onBlur={() => setState({ focus: false })}
                         onChange={(e) => updateValue(e.target.value)}
 
-                        onKeyDown={(e) => {
+                        onKeyDown={(e: KeyboardEvent) => {
+
                             if (onPressEnter && e.key === 'Enter' && value !== undefined) {
                                 commitValue();
                                 onPressEnter(value)
