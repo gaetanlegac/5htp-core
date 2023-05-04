@@ -69,9 +69,6 @@ type TColsToUpsert<TData extends TObjetDonnees> = (
 
 const LogPrefix = '[database]'
 
-const equalities = (data: TObjetDonnees, keys = Object.keys(data)) => 
-    keys.map(k => '' + k + ' = ' + mysql.escape( data[k] ))
-
 /*----------------------------------
 - CORE
 ----------------------------------*/
@@ -191,7 +188,7 @@ export default class SQL extends Service<Config, Hooks, Application> {
 
                         const keyword = prefix === '&' ? ' AND ' : ', '
 
-                        value = Object.keys(value).length === 0 ? '1' : equalities(value).join( keyword );
+                        value = Object.keys(value).length === 0 ? '1' : this.equalities(value).join( keyword );
                         
                     // String: `SET :${column} = ${data}` => `SET balance = 10`
                     } else {
@@ -213,6 +210,9 @@ export default class SQL extends Service<Config, Hooks, Application> {
 
         }).join(' ').trim();
     }
+
+    public equalities = (data: TObjetDonnees, keys = Object.keys(data)) => 
+        keys.map(k => '' + k + ' = ' + mysql.escape( data[k] ))
 
     /*----------------------------------
     - OPERATIONS: LOW LEVELf
@@ -336,8 +336,8 @@ export default class SQL extends Service<Config, Hooks, Application> {
         }
 
         // Create equalities
-        const egalitesData = equalities(data).join(', ')
-        const egalitesWhere = equalities(where).join(' AND ')
+        const egalitesData = this.equalities(data).join(', ')
+        const egalitesWhere = this.equalities(where).join(' AND ')
 
         // Build query
         return this.database.query(`
@@ -509,7 +509,7 @@ export default class SQL extends Service<Config, Hooks, Application> {
 
         const whereSql = typeof where === 'function' && where['string'] !== undefined
             ? where['string']
-            : equalities(where).join(' AND ');
+            : this.equalities(where).join(' AND ');
 
         return this.database.query(`DELETE FROM ${table} WHERE ${whereSql};`, opts);   
     }
