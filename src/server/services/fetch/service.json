@@ -1,0 +1,6 @@
+{
+    "id": "Core/Fetch",
+    "name": "Fetch",
+    "parent": "app",
+    "dependences": []
+}

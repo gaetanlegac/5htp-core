@@ -1,0 +1,6 @@
+{
+    "id": "Core/Database/SQL",
+    "name": "SQL",
+    "parent": "app",
+    "dependences": []
+}

@@ -11,7 +11,7 @@ import { ReactClientContext } from '@/client/context';
 import DialogManager from '@client/components/Dialog/Manager'
 
 // Core components
-import Router from '@client/services/router/components/router';
+import RouterComponent from '@client/services/router/components/router';
 import type { TClientOrServerContext } from '@common/router';
 
 /*----------------------------------
@@ -35,7 +35,7 @@ export default function App ({ context }: {
             
             {!layout ? <>
                 {/* TODO: move to app, because here, we're not aware that the router service has been defined */}
-                <Router service={context.router} />
+                <RouterComponent service={context.Router} />
             </> : <>
                 <layout.Component context={context} />
             </>}

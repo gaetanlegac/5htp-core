@@ -2,8 +2,11 @@
 - DEPENDANCES
 ----------------------------------*/
 
+// Core
+import type { Application } from '@server/app';
+import Service, { TRegisteredServicesIndex } from '@server/app/service';
+
 // Specific
-import type Application from '@server/app';
 import type { default as Router } from '.';
 import type ServerRequest from './request';
 import type RequestService from './request/service';
@@ -11,37 +14,21 @@ import type RequestService from './request/service';
 /*----------------------------------
 - SERVICE
 ----------------------------------*/
-export default abstract class RouterService<TRouter extends Router = Router> {
+export default abstract class RouterService<
+    TConfig extends {} = {}
+> extends Service<TConfig, {}, Application> {
 
-    protected router!: TRouter;
-    protected app!: Application;
-
-    public constructor(
-        
+    public constructor( 
+        // Parent is always a router in RouterService
+        public router: Router, 
+        config: TConfig,
+        services: TRegisteredServicesIndex,
+        app: Application
     ) {
 
+        super(router, config, services, app);
+        
     }
-
-    /*
-        We can't pass the router instance in the routerservice constructor
-        Because we instanciate the routerservice in the router instanciation itself
-        So if we do:
-        public router = new Router(this, {
-            ...,
-            services: () => ({
-
-                auth: new AuthService(this.router, this.users),
-
-            }),
-        )
-        We would have a cicular reference in typings, which will make router typed as any
-    */
-    public attach( router: TRouter ) {
-        this.router = router;
-        this.app = router.app;
-    }
-    
-    public abstract register(): Promise<void>;
 
     public abstract requestService( request: ServerRequest<TRouter> ): RequestService | null;
 

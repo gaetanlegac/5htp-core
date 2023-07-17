@@ -68,6 +68,10 @@ export type TRegisterPageArgs<TProvidedData extends TFetcherList = {}, TRouter e
 ] | [
     path: string,
     options: Partial<TRoute["options"]>,
+    renderer: TFrontRenderer<TProvidedData>
+] | [
+    path: string,
+    options: Partial<TRoute["options"]>,
     controller: TDataProvider<TProvidedData> | null,
     renderer: TFrontRenderer<TProvidedData>
 ])
@@ -119,7 +123,7 @@ type THookName = 'location.change' | 'page.changed'
 
 type Config<TAdditionnalContext extends {} = {}> = {
     preload: string[], // List of globs
-    context: () => TAdditionnalContext
+    context: (router: ClientRouter) => TAdditionnalContext
 }
 
 /*----------------------------------

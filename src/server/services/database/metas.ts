@@ -4,10 +4,11 @@
 
 // Npm
 import fs from 'fs-extra';
+import path from 'path';
 import type mysql from 'mysql2/promise';
 
 // Core
-import Application from '@server/app';
+import Container from '@server/app/container';
 import { ucfirst } from '@common/data/chaines';
 
 // Database
@@ -120,13 +121,14 @@ export default class MySQLMetasParser {
     public constructor( 
         private database: DatabaseConnection,
         public app = database.app,
+        public debug = database.config.debug
     ) {
 
     }
 
     public async load( toLoad: string[] ) {
         
-        console.info(`${toLoad.length} databases to load`);
+        this.debug && console.info(`${toLoad.length} databases to load`);
         if (toLoad.length === 0)
             return {};
 
@@ -139,12 +141,12 @@ export default class MySQLMetasParser {
         if (this.app.env.profile === 'dev')
             this.genTypesDef(metas);
 
-        console.log(`Databases are loaded.`);
+            this.debug && console.log(`Databases are loaded.`);
         return metas;
     }
 
     private async query( databases: string[] ) {
-        console.log(`Loading tables metadatas for the following databases: ${databases.join(', ')} ...`);
+        this.debug && console.log(`Loading tables metadatas for the following databases: ${databases.join(', ')} ...`);
         return (await this.database.connection.query(`
             SELECT
 
@@ -170,7 +172,7 @@ export default class MySQLMetasParser {
 
     private importTables( dbColumns: TDatabaseColumn[] ): TDatabasesList {
 
-        console.log(`Processing ${dbColumns.length} rows of metadatas`);
+        this.debug && console.log(`Processing ${dbColumns.length} rows of metadatas`);
 
         const tablesIndex: TDatabasesList = {};
 
@@ -366,8 +368,11 @@ export default class MySQLMetasParser {
             }
         }
 
-        fs.outputFileSync( modelsTypesPath, types.join('\n') );
-        console.log(LogPrefix, `Wrote database types to ${modelsTypesPath}`);
+        fs.outputFileSync( 
+            path.join( Container.path.server.generated, 'models.ts'), 
+            types.join('\n') 
+        );
+        this.debug && console.log(LogPrefix, `Wrote database types to ${modelsTypesPath}`);
         
     }
 }

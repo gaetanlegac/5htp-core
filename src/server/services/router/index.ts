@@ -10,18 +10,17 @@
 ----------------------------------*/
 
 // Node
-import path from 'path';
-
 // Npm
 import type express from 'express';
 import { v4 as uuid } from 'uuid';
-import fs from 'fs-extra';
 import type { GlobImportedWithMetas } from 'babel-plugin-glob-import';
 
 // Core
-import Application, { Service } from '@server/app';
+import type { Application } from '@server/app';
+import Service, { AnyService } from '@server/app/service';
+import type { TRegisteredServicesIndex } from '@server/app/service/container';
 import context from '@server/context';
-import type DiskDriver from '@server/services/disks/driver';
+import type DisksManager from '@server/services/disks';
 import { CoreError, NotFound } from '@common/errors';
 import BaseRouter, {
     TRoute, TErrorRoute, TRouteModule,
@@ -29,14 +28,14 @@ import BaseRouter, {
 } from '@common/router';
 import { buildRegex, getRegisterPageArgs } from '@common/router/register';
 import { layoutsList, getLayout } from '@common/router/layouts';
-import { TFetcherList, TFetcher } from '@common/router/request/api';
+import { TFetcherList } from '@common/router/request/api';
 import type { TFrontRenderer } from '@common/router/response/page';
 import type { TSsrUnresolvedRoute, TRegisterPageArgs } from '@client/services/router';
 
 // Specific
 import RouterService from './service';
 import ServerRequest from "./request";
-import ServerResponse, { TRouterContext } from './response';
+import ServerResponse, { TRouterContext, TRouterContextServices } from './response';
 import Page from './response/page';
 import HTTP, { Config as HttpServiceConfig } from './http';
 import DocumentRenderer from './response/page/document';
@@ -49,7 +48,7 @@ export { default as RouterService } from './service';
 export { default as RequestService } from './request/service';
 export type { default as Request, UploadedFile } from "./request";
 export type { default as Response, TRouterContext } from "./response";
-export type { TRoute } from '@common/router';
+export type { TRoute, TAnyRoute } from '@common/router';
 
 export type TApiRegisterArgs<TRouter extends ServerRouter> = ([
     path: string,
@@ -78,10 +77,6 @@ export type HttpHeaders = { [cle: string]: string }
 
 const LogPrefix = '[router]';
 
-export type TRouterServicesList = {
-    [serviceName: string]: RouterService<ServerRouter>
-}
-
 export type Config<
     TServiceList extends TRouterServicesList = TRouterServicesList,
     TAdditionnalSsrData extends {} = {}
@@ -89,24 +84,23 @@ export type Config<
 
     debug: boolean,
 
-    disk: DiskDriver,
+    disk?: string, // Disk driver ID
 
     http: HttpServiceConfig
 
-    // Set it as a function, so when we instanciate the services, we can callthis.router to pass the router instance in roiuter services
-    services: TServiceList,
+    context: (
+        request: ServerRequest<ServerRouter>, 
+        app: Application
+    ) => TAdditionnalSsrData,
+}
 
-    context: (request: ServerRequest<ServerRouter>) => TAdditionnalSsrData,
+export type Services = {
+    disks?: DisksManager
+} & TRegisteredServicesIndex< RouterService<ServerRouter> >
 
-    // Protections against bots
-    // TODO: move to Protection service
-    /*security: {
-        recaptcha: {
-            prv: string,
-            pub: string
-        },
-        iphub: string
-    },*/
+// Set it as a function, so when we instanciate the services, we can callthis.router to pass the router instance in roiuter services
+type TRouterServicesList = {
+    [serviceName: string]: RouterService<ServerRouter>
 }
 
 export type Hooks = {
@@ -119,12 +113,12 @@ export type Hooks = {
 export default class ServerRouter<
     TConfig extends Config = Config,
     TApplication extends Application = Application
-> extends Service<TConfig, Hooks, TApplication> implements BaseRouter {
+> extends Service<TConfig, Hooks, TApplication, Services> implements BaseRouter {
 
     // Services
     public http: HTTP;
-    public services: TConfig["services"];
-    public render: DocumentRenderer;
+    public render: DocumentRenderer<this>;
+    protected routerServices: {[serviceId: string]: RouterService} = {}
 
     // Indexed
     public routes: TRoute[] = []; // API + pages front front
@@ -135,43 +129,58 @@ export default class ServerRouter<
     - SERVICE
     ----------------------------------*/
 
-    public constructor(app: TApplication, config: TConfig) {
+    public constructor( 
+        parent: AnyService, 
+        config: TConfig,
+        services: TRegisteredServicesIndex<RouterService>,
+        app: TApplication, 
+    ) {
 
-        super(app, config);
+        super(parent, config, services, app);
 
         this.http = new HTTP(config.http, this);
         this.render = new DocumentRenderer(this);
-        this.services = config.services;
 
     }
 
-    public async register() {
+    /*----------------------------------
+    - LIFECYCLE
+    ----------------------------------*/
 
-        // Since route registering requires all services to be ready,
-        // We load routes only when all services are ready
-        this.app.on('ready', async () => {
-            // Use require to avoid circular references
-            this.registerRoutes([
-                ...require("metas:@/server/routes/**/*.ts"),
-                ...require("metas:@/client/pages/**/*.tsx"),
-                ...require("metas:@client/pages/**/*.tsx")
-            ]);
-        })
-    }
+    protected async start() { 
 
-    public async start() {
-        this.startServices();
-    }
+        // Detect router services
+        for (const serviceName in this.services) {
 
-    private async startServices() {
-        console.log(LogPrefix, `Starting router services`);
-
-        for (const serviceId in this.services) {
-            const service = this.services[serviceId];
-            service.attach(this);
-            await service.register();
+            const routerService = this.services[serviceName];
+            if (routerService instanceof RouterService)
+                this.routerServices[ serviceName ] = routerService;
         }
+
+        console.log("this.routerServices", Object.keys( this.routerServices ));
     }
+
+    public async ready() {
+
+         // Use require to avoid circular references
+         this.registerRoutes([
+            ...require("metas:@/server/routes/**/*.ts"),
+            ...require("metas:@/client/pages/**/*.tsx"),
+            ...require("metas:@client/pages/**/*.tsx")
+        ]);
+
+        // Start HTTP server
+        await this.http.start();
+
+    }
+
+    public async shutdown() {
+
+    }
+
+    /*----------------------------------
+    - ACTIONS
+    ----------------------------------*/
 
     private registerRoutes(defModules: GlobImportedWithMetas<TRouteModule>) {
 
@@ -181,8 +190,14 @@ export default class ServerRouter<
             if (!register)
                 continue;
 
-            console.log(LogPrefix, `Register file:`, routeModule.matches.join('/'));
-            register(this.app);
+            this.config.debug && console.log(LogPrefix, `Register file:`, routeModule.matches.join('/'));
+            try {
+                register(this.app.services);
+            } catch (error) {
+                console.error("Failed to register route file:", routeModule);
+                console.error('Register function:', register.toString());
+                throw error;
+            }
         }
 
         this.afterRegister();
@@ -281,15 +296,12 @@ export default class ServerRouter<
 
     private async afterRegister() {
 
-        console.info("Pre-Loading request services");
-        //await TrackingService.LoadCache();
-
         // Generate typescript typings
         if (this.app.env.profile === 'dev')
             this.genTypings();
 
         // Ordonne par ordre de priorité
-        console.info("Loading routes ...");
+        this.config.debug && console.info("Loading routes ...");
         this.routes.sort((r1, r2) => {
 
             const prioDelta = r2.options.priority - r1.options.priority;
@@ -304,12 +316,12 @@ export default class ServerRouter<
             return 0;
         })
         // - Génère les définitions de route pour le client
-        console.info(`Registered routes:`);
+        this.config.debug && console.info(`Registered routes:`);
         for (const route of this.routes) {
 
             const chunkId = route.options["id"];
 
-            console.info('-',
+            this.config.debug && console.info('-',
                 route.method,
                 route.path,
                 ' :: ', JSON.stringify(route.options)
@@ -324,13 +336,13 @@ export default class ServerRouter<
 
         }
 
-        console.info(`Registered error pages:`);
+        this.config.debug && console.info(`Registered error pages:`);
         for (const code in this.errors) {
 
             const route = this.errors[code];
             const chunkId = route.options["id"];
 
-            console.info('-', code,
+            this.config.debug && console.info('-', code,
                 ' :: ', JSON.stringify(route.options)
             );
 
@@ -340,19 +352,19 @@ export default class ServerRouter<
             });
         }
 
-        console.info(`Registered layouts:`);
+        this.config.debug && console.info(`Registered layouts:`);
         for (const layoutId in layoutsList) {
 
             const layout = layoutsList[layoutId];
 
-            console.info('-', layoutId, layout);
+            this.config.debug && console.info('-', layoutId, layout);
         }
 
-        console.info(this.routes.length + " routes where registered.");
+        this.config.debug && console.info(this.routes.length + " routes where registered.");
     }
 
     private genTypings() {
-        fs.outputFileSync( path.join(this.app.path.typings, 'routes.d.ts'), `
+        /*fs.outputFileSync( path.join(this.app.path.typings, 'routes.d.ts'), `
 declare type Routes = {
         ${this.routes.map( route => `
             '${route.path}': {
@@ -363,7 +375,7 @@ declare type Routes = {
         `).join(',')}
     }
 }
-        `);
+        `);*/
     }
 
     /*----------------------------------
@@ -469,6 +481,21 @@ declare type Routes = {
         });
     }
 
+    public createContextServices( request: ServerRequest<this> ) {
+
+        const contextServices: Partial<TRouterContextServices<this>> = {}
+        for (const serviceName in this.routerServices) {
+
+            const routerService = this.routerServices[serviceName];
+            const requestService = routerService.requestService( request );
+            if (requestService !== null)
+                contextServices[ serviceName ] = requestService;
+
+        }
+
+        return contextServices;
+    }
+
     public async resolve(request: ServerRequest<this>): Promise<ServerResponse<this>> {
 
         console.info(LogPrefix, request.ip, request.method, request.domain, request.path);
@@ -541,7 +568,7 @@ declare type Routes = {
         request.res.json(responseData);
     }
 
-    private async handleError(e: CoreError, request: ServerRequest<ServerRouter>) {
+    private async handleError( e: CoreError, request: ServerRequest<ServerRouter> ) {
 
         const code = 'http' in e ? e.http : 500;
         const route = this.errors[code];

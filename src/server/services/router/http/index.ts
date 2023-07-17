@@ -22,7 +22,9 @@ import cookieParser from 'cookie-parser';
 import * as csp from 'express-csp-header';
 
 // Core
-import Application, { Service } from '@server/app';
+import type { Application } from '@server/app';
+import Container from '@server/app/container';
+import Service from '@server/app/service';
 import type Router from '..';
 
 // Middlewaees (core)
@@ -33,6 +35,8 @@ import { MiddlewareFormData } from './multipart';
 ----------------------------------*/
 
 export type Config = {
+
+    debug?: boolean,
 
     // Access
     domain: string,
@@ -58,16 +62,18 @@ export type Hooks = {
 /*----------------------------------
 - FUNCTION
 ----------------------------------*/
-export default class HttpServer extends Service<Config, Hooks, Application> {
+export default class HttpServer {
 
     public http: http.Server | https.Server;
     public express: express.Express;
 
     public publicUrl: string;
 
-    public constructor( config: Config, public router: Router ) {
-
-        super( router.app, config );
+    public constructor( 
+        public config: Config, 
+        public router: Router,
+        public app = router.app
+    ) {
 
         // Init
         this.publicUrl = this.app.env.name === 'local'
@@ -85,9 +91,6 @@ export default class HttpServer extends Service<Config, Hooks, Application> {
     /*----------------------------------
     - HOOKS
     ----------------------------------*/
-    public async register() {
-
-    }
 
     public async start() {
 
@@ -113,7 +116,7 @@ export default class HttpServer extends Service<Config, Hooks, Application> {
         routes.use('/public', cors());
         routes.use(
             '/public',
-            expressStaticGzip( this.app.path.root + '/bin/public', {
+            expressStaticGzip( Container.path.root + '/bin/public', {
                 enableBrotli: true,
                 serveStatic: {
                     setHeaders: function setCustomCacheControl(res, path) {

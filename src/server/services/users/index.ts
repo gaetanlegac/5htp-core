@@ -8,7 +8,7 @@ import type express from 'express';
 import type http from 'http';
 
 // Core
-import Application from '@server/app';
+import { Application } from '@server/app';
 import Service from '@server/app/service';
 import { 
     default as Router, Request as ServerRequest,
@@ -68,13 +68,25 @@ export default abstract class UsersManagementService<
     TRequest extends ServerRequest<Router> = ServerRequest<Router>,
 > extends Service<TConfig, THooks, TApplication> {
 
-    public async register() {
-       
-    }
+    /*----------------------------------
+    - LIFECYCLE
+    ----------------------------------*/
 
     public async start() {
+        
+    }
+
+    public async ready() {
 
     }
+
+    public async shutdown() {
+
+    }
+
+	/*----------------------------------
+    - ACTIONS
+    ----------------------------------*/
 
     public abstract login( ...args: any[] ): Promise<{ user: TUser, token: string }>;
     public abstract decodeSession( jwt: TJwtSession, req: THttpRequest ): Promise<TUser>;

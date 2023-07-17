@@ -9,9 +9,8 @@ import dottie from 'dottie';
 const safeStringify = require('fast-safe-stringify'); // remplace les références circulairs par un [Circular]
 
 // Core: general
-import type Application from '@server/app';
-import Service from '@server/app/service';
-import { callableInstance } from '@common/data/objets';
+import { Application, Services } from '@server/app';
+import Service, { AnyService, TRegisteredServicesIndex } from '@server/app/service';
 import { NotFound } from '@common/errors';
 
 // Services
@@ -24,9 +23,7 @@ import type { TMetasTable } from './metas';
 
 export { default as Repository } from './repository';
 
-export type Config = {
-
-}
+export type Config = DatabaseServiceConfig
 
 export type Hooks = {
 
@@ -79,23 +76,46 @@ export default class SQL extends Service<Config, Hooks, Application> {
 
     public database: Database;
 
-    public constructor( app: Application, config: DatabaseServiceConfig ) {
-        
-        super(app, {});
+    public constructor( 
+        parent: AnyService, 
+        config: Config,
+        drivers: TRegisteredServicesIndex,
+        app: Application, 
+    ) {
 
-        this.database = new Database(app, config);
+        super(parent, config, drivers, app);
+
+        this.database = new Database(this, config);
     }
 
-    public async register() {
-        await this.database.register();
+    public static createInstance(
+        parent: AnyService, 
+        config: Config,
+        services: TRegisteredServicesIndex,
+        app: Application
+    ) {
+        return Services.callableInstance(
+            new SQL(parent, config, services, app),
+            'sql'
+        )
     }
+
+    /*----------------------------------
+    - LIFECYCLE
+    ----------------------------------*/
 
     public async start() {
+
         await this.database.start();
+        
     }
 
-    public callableInstance() {
-        return callableInstance( this, 'sql' );
+    public async ready() {
+
+    }
+
+    public async shutdown() {
+
     }
 
     /*----------------------------------

@@ -7,10 +7,11 @@ import path from 'path';
 
 // Npm
 import hInterval from 'human-interval';
-import fs from 'fs-extra';
 
 // Core
-import Application, { Service } from '@server/app';
+import type { Application } from '@server/app';
+import Service, { AnyService, TRegisteredService } from '@server/app/service';
+import type { default as DisksManager, Driver } from '../disks';
 
 // Specific
 import registerCommands from './commands';
@@ -56,7 +57,8 @@ type TCacheGetOnlyArgs = [
 ----------------------------------*/
 
 export type Config = {
-    debug: boolean
+    debug: boolean,
+    disk: string, // TODO: keyof disks
 }
 
 export type Hooks = {
@@ -69,34 +71,58 @@ export type Hooks = {
 export default class Cache extends Service<Config, Hooks, Application> {
 
     public commands = registerCommands(this);
-    
-    private cacheDir = this.app.path.cache;
 
     public data: {[key: string]: CacheEntry | undefined} = {};
-    
-    public async register() {
 
-        
+    private disk: Driver;
 
+    public constructor( 
+        parent: AnyService, 
+        config: Config,
+        services: {
+            disks: TRegisteredService< DisksManager >,
+        },
+        app: Application, 
+    ) {
+
+        super(parent, config, services, app);
+
+        this.disk = this.services.disks.get(config.disk)
     }
 
-    public async start() {
+    /*----------------------------------
+    - LIFECYCLE
+    ----------------------------------*/
+
+    protected async start() {
 
         setInterval(() => this.cleanMem(), 10000);
 
         // Restore persisted data
-        await this.restore();
+        //await this.restore();
     }
 
-    private restore() {
-        const files = fs.readdirSync( this.cacheDir );
+    public async ready() {
+
+    }
+
+    public async shutdown() {
+
+    }
+
+    /*----------------------------------
+    - ACTIONS
+    ----------------------------------*/
+    private async restore() {
+        const files = await this.disk.readDir('data', 'cache')
         for (const file of files) {
 
-            if (!file.endsWith('.json'))
+            if (!file.name.endsWith('.json'))
                 continue;
 
-            const entryKey = file.substring(0, file.length - 5);
-            this.data[ entryKey ] = fs.readJSONSync( path.join(this.cacheDir, file) );
+            const entryKey = file.name.substring(0, file.name.length - 5);
+            const filePath = path.join('cache', file.name);
+            this.data[ entryKey ] = await this.disk.readJSON('data', filePath);
             console.log(LogPrefix, `Restored cache entry ${entryKey}`);
         }
     }
@@ -229,7 +255,7 @@ export default class Cache extends Service<Config, Hooks, Application> {
         }
     };
 
-    public del( key?: string ): void {
+    public del( key: string ): void {
 
         if (key === undefined) {
             this.data = {};

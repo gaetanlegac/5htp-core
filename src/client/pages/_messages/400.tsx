@@ -6,7 +6,7 @@
 import React from 'react';
 
 // Core
-import { router } from '@app';
+import { Router } from '@app';
 import { Button } from '@client/components';
 
 // App
@@ -15,7 +15,7 @@ import useHeader from '@client/pages/useHeader';
 /*----------------------------------
 - CONTROLEUR
 ----------------------------------*/
-router.error( 400, ({ message, modal }) => {
+Router.error( 400, ({ message, modal }) => {
 
     useHeader({
         title: 'Bad request',

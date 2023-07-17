@@ -24,10 +24,12 @@ export const getRegisterPageArgs = (...args: TRegisterPageArgs) => {
     let controller: TDataProvider|null;
     let renderer: TFrontRenderer;
 
-    if (args.length === 3)
-        ([path, controller, renderer] = args)
-    else
+    if (args.length === 4)
         ([path, options, controller, renderer] = args)
+    else if (typeof args[1] === 'object')
+        ([path, options, renderer] = args)
+    else
+        ([path, controller, renderer] = args)
 
     // Automatic layout form the nearest _layout folder
     const layout = getLayout(path, options);

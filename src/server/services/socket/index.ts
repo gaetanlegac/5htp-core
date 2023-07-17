@@ -9,8 +9,10 @@ import { IncomingMessage } from 'http';
 import cookie from 'cookie';
 
 // Core
-import Application, { Service } from '@server/app';
+import type { Application } from '@server/app';
+import Service, { AnyService, TRegisteredService } from '@server/app/service';
 import SocketScope, { WebSocket } from './scope';
+import type Router from '@server/services/router';
 export type { WebSocket, default as SocketScope } from './scope';
 import type UsersManagementService from '../users';
 
@@ -20,8 +22,9 @@ import type UsersManagementService from '../users';
 
 
 export type Config<TUser extends {}> = {
-    server: ServerOptions["server"],
-    users: UsersManagementService<TUser>,
+    debug?: boolean,
+    //server: ServerOptions["server"],
+    //users: UsersManagementService<TUser>,
     port: number,
 }
 
@@ -40,33 +43,44 @@ export default class WebSocketCommander<
     // Services
     public ws!: WebSocketServer;
     public users: UsersManagementService<TUser>;
+    public router: Router;
 
     // Context
     public scopes: {[path: string]: SocketScope<TUser>} = {}
 
-    public constructor( app: Application, config: TConfig ) {
-        super(app, config);
+    public constructor( 
+        parent: AnyService, 
+        config: TConfig,
+        services: {
+            users: TRegisteredService< UsersManagementService<TUser> >,
+            router: Router
+        },
+        app: Application, 
+    ) {
 
-        this.users = config.users;
+        super(parent, config, services, app);
+
+        this.users = this.services.users;
+        this.router = this.services.router;
     }
+    
+    /*----------------------------------
+    - LIFECYCLE
+    ----------------------------------*/
 
-    public async register() {
+    public loading: Promise<void> | undefined = undefined;
+    protected async start() {
 
         this.app.on('cleanup', async () => {
             this.closeAll();
         });
 
-
         this.users.on('disconnect', async (userId: string) => {
             this.disconnect(userId, 'Logout');
         });
-    }
-
-    public loading: Promise<void> | undefined = undefined;
-    public async start() {
 
         console.info(`Loading socket commander`);
-        this.ws = new WebSocketServer({ server: this.config.server })
+        this.ws = new WebSocketServer({ server: this.router.http.http })
             .on('connection', (socket: WebSocket, req: IncomingMessage) => {
 
                 // Resolve scope
@@ -106,6 +120,18 @@ export default class WebSocketCommander<
 
         console.info(`Socket commander bound to http server.`);
     }
+
+    public async ready() {
+
+    }
+
+    public async shutdown() {
+
+    }
+
+	/*----------------------------------
+    - ACTIONS
+    ----------------------------------*/
 
     public open(path: string) {
 

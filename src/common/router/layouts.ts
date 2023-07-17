@@ -42,8 +42,10 @@ export const getLayout = (routePath: string, routeOptions?: TRouteOptions): Layo
 
     // options.id has been injected via the babel plugon
     const chunkId = routeOptions["id"];
-    if (chunkId === undefined)
+    if (chunkId === undefined) {
+        console.error("Route informations where ID cas not injected:", routeOptions);
         throw new Error(`ID has not injected for the following page route: ${routePath}`);
+    }
     
     // Layout via name
     if (routeOptions.layout !== undefined) {

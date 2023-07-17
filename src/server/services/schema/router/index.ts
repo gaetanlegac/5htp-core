@@ -8,28 +8,40 @@ import {
     RouterService
 } from '@server/services/router';
 
-import RequestValidator, { TConfig } from './request';
+import RequestValidator, { TConfig } from '../request';
 
 /*----------------------------------
 - TYPES
 ----------------------------------*/
 
-type TRouterWithSchema<TAuthService extends AuthenticationRouterService> = Router<RouterConfig<{ auth: TAuthService }>>
+type TRouterWithSchema<TAuthService extends SchemaRouterService> = Router<RouterConfig<{ auth: TAuthService }>>
 
 /*----------------------------------
 - SERVICE
 ----------------------------------*/
-export default class AuthenticationRouterService<
+export default class SchemaRouterService<
     TUser extends {} = {}
 > extends RouterService {
 
-    public constructor( protected config: TConfig ) {
-        super();
-    }
+    /*----------------------------------
+    - LIFECYCLE
+    ----------------------------------*/
 
-    public async register() {
+    public async start() {
         
     }
+
+    public async ready() {
+
+    }
+
+    public async shutdown() {
+
+    }
+
+    /*----------------------------------
+    - ROUTER SERVICE LIFECYCLE
+    ----------------------------------*/
 
     public requestService( request: ServerRequest< TRouterWithSchema<this>> ): RequestValidator {
         return new RequestValidator( request, this.config );

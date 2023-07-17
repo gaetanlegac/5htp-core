@@ -6,7 +6,8 @@
 import yargsParser from 'yargs-parser';
 
 // Core
-import Application, { Service } from '@server/app';
+import type { Application } from '@server/app';
+import Service from '@server/app/service';
 import { NotFound } from '@common/errors';
 
 /*----------------------------------
@@ -48,16 +49,6 @@ export default class CommandsManager extends Service<Config, Hooks, Application>
     public priority = 2 as 2;
 
     public commandsIndex: CommandsList = {}
-
-    public async register() {
-
-        
-
-    }
-
-    public async start() {
-       
-    }
 
     /*----------------------------------
     - DEFINITIONS

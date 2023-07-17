@@ -3,62 +3,92 @@
 ----------------------------------*/
 
 // Core
-import Application, { Service } from '@server/app';
+import type { Application } from '@server/app';
+import Service, { AnyService } from '@server/app/service';
+import type { TRegisteredServicesIndex } from '@server/app/service/container';
 
 // Specific
 import type Driver from './driver';
+export type { default as Driver } from './driver';
 
 /*----------------------------------
 - TYPES
 ----------------------------------*/
 
-type TMountpointList = { [name: string]: Driver }
-
-type Config<MountpointList extends TMountpointList> = {
+type Config = {
     debug: boolean,
-    default: keyof MountpointList,
+    default: string,//keyof MountpointList,
 }
 
 export type Hooks = {
 
 }
 
+type TMountpointList = { [name: string]: Driver }
+
 /*----------------------------------
 - SERVICE
 ----------------------------------*/
 export default class DisksManager<
     MountpointList extends TMountpointList = {},
-    TConfig extends Config<MountpointList> = Config<MountpointList>,
+    TConfig extends Config = Config,
     TApplication extends Application = Application
 > extends Service<TConfig, Hooks, TApplication> {
 
     public default: Driver;
 
+    public mounted: TMountpointList = this.services;
+
     public constructor( 
-        public app: TApplication, 
-        public config: TConfig,
-        public mounted: MountpointList
+        parent: AnyService, 
+        config: TConfig,
+        drivers: TRegisteredServicesIndex< Driver >,
+        app: TApplication, 
     ) {
 
-        super(app, config);
+        super(parent, config, drivers, app);
 
-        if (Object.keys( mounted ).length === 0)
-            throw new Error("At least one disk should be mounted.");
-
-        const defaultDisk = mounted[ config.default ];
-        if (defaultDisk === undefined)
-            console.log(`Default disk "${config.default as string}" not mounted.`);
-
-        this.default = defaultDisk;
+        if (Object.keys( drivers ).length === 0)
+            throw new Error("At least one disk driver should be mounted.");
 
     }
 
-    public async register() {
-
-    }
+    /*----------------------------------
+    - LIFECYCLE
+    ----------------------------------*/
 
     public async start() {
 
+        const defaultDisk = this.mounted[ this.config.default ];
+        if (defaultDisk === undefined)
+            console.log(`Default disk "${this.config.default as string}" not mounted.`);
+
+        this.default = defaultDisk;
+        
+    }
+
+    public async ready() {
+
+    }
+
+    public async shutdown() {
+
+    }
+
+    /*----------------------------------
+    - LIFECYCLE
+    ----------------------------------*/
+
+    public get( diskName?: 'default' | keyof MountpointList ): Driver {
+
+        const disk = diskName == 'default' || diskName === undefined
+            ? this.default 
+            : this.mounted[diskName];
+
+        if (disk === undefined)
+            throw new Error(`Disk "${diskName as string}" not found.`);
+
+        return disk;
     }
 
 }

@@ -10,8 +10,9 @@ import fs from 'fs-extra';
 import request from 'request';
 
 // Core: general
-import type Application from '@server/app';
-import Service from '@server/app/service';
+import type { Application } from '@server/app';
+import Service, { AnyService } from '@server/app/service';
+import type DisksManager from '../disks';
 import type FsDriver from '../disks/driver';
 
 /*----------------------------------
@@ -19,11 +20,16 @@ import type FsDriver from '../disks/driver';
 ----------------------------------*/
 
 export type Config = {
-
+    debug?: boolean,
+    disk?: string
 }
 
 export type Hooks = {
 
+}
+
+export type Services = {
+    disks: DisksManager
 }
 
 /*----------------------------------
@@ -47,15 +53,46 @@ const LogPrefix = `[services][fetch]`
 - SERVICE
 -  Tools that helps to consume external resources (including apis, ..)
 -----------------------------------*/
-export default class FetchService extends Service<Config, Hooks, Application> {
+export default class FetchService extends Service<Config, Hooks, Application, Services> {
 
-    public async register() {
+    private disk?: FsDriver;
+
+    public constructor(
+        parent: AnyService, 
+        config: Config,
+        services: Services,
+        app: Application
+    ) {
+
+        super(parent, config, services, app);
+
+        if (this.services.disks)
+            this.disk = this.services.disks.get( config.disk );
         
     }
+
+    /*----------------------------------
+    - LIFECYCLE
+    ----------------------------------*/
 
     public async start() {
+
+        
+        
         
     }
+
+    public async ready() {
+
+    }
+
+    public async shutdown() {
+
+    }
+
+    /*----------------------------------
+    - ACTIONS
+    ----------------------------------*/
 
     public toBuffer( uri: string ): Promise<Buffer> {
         return new Promise<Buffer>((resolve, reject) => {
@@ -80,6 +117,10 @@ export default class FetchService extends Service<Config, Hooks, Application> {
         disk?: FsDriver
     ): Promise<Buffer | null> {
 
+        // Define target disk
+        if (this.disk === undefined)
+            throw new Error(`Please provide a Disks service in order to download files.`);
+
         // Download
         let imageBuffer: Buffer;
         try {
@@ -92,7 +133,7 @@ export default class FetchService extends Service<Config, Hooks, Application> {
         // Resize
         const processing = sharp( imageBuffer )
             // Max dimensions (save space)
-            .resize(width, height, { fit })
+            .resize(width, height, { fit }) 
 
         // Convert to webp and finalize
         const processedBuffer = await processing.webp({ quality }).toBuffer().catch(e => {
@@ -100,14 +141,10 @@ export default class FetchService extends Service<Config, Hooks, Application> {
             return null;
         })
 
-        // Define target disk
-        if (disk === undefined)
-            disk = this.app.disk.default;
-
         // Save file
         if (saveToPath !== undefined && processedBuffer !== null) {
             console.log(LogPrefix, `Saving ${imageFileUrl} logo to ${saveToPath}`);
-            await disk.outputFile(saveToBucket, saveToPath, processedBuffer);
+            await this.disk.outputFile(saveToBucket, saveToPath, processedBuffer);
         }
 
         // We return the original, because Vibrant.js doesn't support webp

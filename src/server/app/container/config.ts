@@ -63,6 +63,8 @@ export type AppConfig = {
     identity: Config.Identity,
 }
 
+const debug = false;
+
 /*----------------------------------
 - LOADE
 ----------------------------------*/
@@ -76,7 +78,7 @@ export default class ConfigParser {
     }
 
     private loadYaml( filepath: string ) {
-        console.info(`Loading config ${filepath}`);
+        debug && console.info(`Loading config ${filepath}`);
         const rawConfig = fs.readFileSync(filepath, 'utf-8');
         return yaml.parse(rawConfig);
     }
@@ -96,6 +98,7 @@ export default class ConfigParser {
 
     public identity() {
         const identityFile = this.appDir + '/identity.yaml';
+        debug && console.info(`Loading identity ${identityFile}`);
         return this.loadYaml( identityFile );
     }
 }

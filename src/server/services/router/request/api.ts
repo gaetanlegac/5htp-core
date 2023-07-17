@@ -20,7 +20,7 @@ import ApiClientService, {
 ----------------------------------*/
 export default class ApiClientRequest extends RequestService implements ApiClientService {
 
-    public async start() {
+    protected async start() {
 
     }
 

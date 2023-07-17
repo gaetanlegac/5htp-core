@@ -6,9 +6,10 @@
 import hInterval from 'human-interval';
 
 // Core
+import type { Application } from '@server/app';
 import Service from '@server/app/service';
 import type CacheService from '../cache';
-import type SQL from '../database';
+import type SQL from '.';
 
 /*----------------------------------
 - CONST
@@ -76,8 +77,7 @@ export default class StatsService extends Service<TStatsServiceConfig> {
 
     }
 
-    public async register() {}
-    public async start() {}
+    protected async start() {}
 
     public async fetchStats<TDonnees extends TObjDonneesStats>(
         

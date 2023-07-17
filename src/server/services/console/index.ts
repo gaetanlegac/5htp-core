@@ -3,12 +3,13 @@
 ----------------------------------*/
 // Npm
 import { v4 as uuid } from 'uuid';
-import { Logger, ILogObject } from "tslog";
+import log from 'ololog';
 import { format as formatSql } from 'sql-formatter';
 import highlight from 'cli-highlight';
 
 // Core libs
-import Application, { Service, TPriority } from '@server/app';
+import type { Application } from '@server/app';
+import Service from '@server/app/service';
 import context from '@server/context';
 import type ServerRequest from '@server/services/router/request';
 import { SqlError } from '@server/services/database/debug';
@@ -73,7 +74,7 @@ export type TRequestLogs = {
     time: number
 }
 
-export type TQueryLogs = ChannelInfos & {
+export type TDbQueryLog = ChannelInfos & {
     date: Date, 
     query: string,
     time: number,
@@ -84,6 +85,7 @@ export type TLog = ILogObject &  ChannelInfos
 /*----------------------------------
 - TYPES: BUG REPORT
 ----------------------------------*/
+
 export type ServerBug = {
     // Context
     hash: string,
@@ -129,9 +131,6 @@ const logFields = [
 ----------------------------------*/
 export default class Console extends Service<Config, Hooks, Application> {
 
-    // Load before all
-    public priority: TPriority = 2;
-
     // Services
     public logger!: Logger;
 
@@ -139,7 +138,7 @@ export default class Console extends Service<Config, Hooks, Application> {
     public logs: TLog[] = [];
     public clients: TGuestLogs[] = [];
     public requests: TRequestLogs[] = [];
-    public sqlQueries: TQueryLogs[] = [];
+    public sqlQueries: TDbQueryLog[] = [];
     // Bug ID => Timestamp latest send
     private sentBugs: {[bugId: string]: number} = {};
 
@@ -150,17 +149,17 @@ export default class Console extends Service<Config, Hooks, Application> {
     public error = console.error;
 
     /*----------------------------------
-    - INSTANCE
+    - LIFECYCLE
     ----------------------------------*/
-    public async register() {
 
-    }
-
-    public async start() {
+    protected async start() {
 
         const envConfig = this.config[ this.app.env.profile ];
 
-        this.logger = new Logger({
+        /*const origConsole = console;
+        console.log = (...args: unknown[]) => log(...args)*/
+
+        /*this.logger = new Logger({
             overwriteConsole: true,
             //type: this.app.env.profile === 'dev' ? 'pretty' : 'hidden',
             requestId: (): string => {
@@ -168,6 +167,7 @@ export default class Console extends Service<Config, Hooks, Application> {
                 return channelId === undefined ? channelType : channelType + ':' + channelId;
             },
             displayRequestId: false,
+            hideLogPositionForProduction: this.app.env.profile === 'prod',
             prettyInspectOptions: {
                 depth: 2
             }
@@ -181,7 +181,7 @@ export default class Console extends Service<Config, Hooks, Application> {
             warn: this.logEntry.bind(this),
             error: this.logEntry.bind(this),
             fatal: this.logEntry.bind(this),
-        }, envConfig.level);
+        }, envConfig.level);*/
 
         setInterval(() => this.clean(), 10000);
 
@@ -189,16 +189,24 @@ export default class Console extends Service<Config, Hooks, Application> {
         this.app.on('error', this.createBugReport.bind(this));
     }
 
+    public async ready() {
+
+    }
+
+    public async shutdown() {
+
+    }
+
+    /*----------------------------------
+    - ACTIONS
+    ----------------------------------*/
+
     private clean() {
         /*this.config.debug && console.log(LogPrefix, `Clean logs buffer. Current size:`, this.logs.length, '/', this.config.bufferLimit);
         const bufferOverflow = this.logs.length - this.config.bufferLimit;
         if (bufferOverflow > 0)
             this.logs = this.logs.slice(bufferOverflow);*/
     }
-
-    /*----------------------------------
-    - LOGGING
-    ----------------------------------*/
 
     public async createBugReport( error: Error, request?: ServerRequest ) {
 
@@ -277,16 +285,21 @@ export default class Console extends Service<Config, Hooks, Application> {
         this.logs.push(miniLog as TLog);
     }
 
-    public client(client: TGuestLogs) {
+    public client( client: TGuestLogs ) {
         this.clients.push(client);
     }
 
-    public request(request: TRequestLogs) {
+    public request( request: TRequestLogs ) {
 
         if (request.id === 'admin')
             return;
 
         this.requests.push( request );
+    }
+
+    public database( dbQuery: TDbQueryLog ) {
+
+        this.requests.push( dbQuery );
     }
 
     /*----------------------------------
@@ -333,7 +346,7 @@ export default class Console extends Service<Config, Hooks, Application> {
 
     public getQueries( channelType: ChannelInfos["channelType"], channelId?: string ) {
 
-        const filters: Partial<TQueryLogs> = { channelType };
+        const filters: Partial<TDbQueryLog> = { channelType };
         if (channelId !== undefined)
             filters.channelId = channelId;
 
@@ -347,7 +360,7 @@ export default class Console extends Service<Config, Hooks, Application> {
 
     public async getLogs( channelType: ChannelInfos["channelType"], channelId?: string ) {
 
-        const filters: Partial<TQueryLogs> = { channelType };
+        const filters: Partial<TDbQueryLog> = { channelType };
         if (channelId !== undefined)
             filters.channelId = channelId;
 

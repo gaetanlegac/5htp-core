@@ -6,7 +6,8 @@
 import crypto, { Encoding } from 'crypto';
 
 // Core
-import Application, { Service } from '@server/app';
+import type { Application } from '@server/app';
+import Service from '@server/app/service';
 import { Forbidden } from '@common/errors';
 
 /*----------------------------------
@@ -45,13 +46,25 @@ type TDecryptOptions = {
 ----------------------------------*/
 export default class AES<TConfig extends Config = Config> extends Service<TConfig, Hooks, Application> {
 
-    public async register() {
+    /*----------------------------------
+    - LIFECYCLE
+    ----------------------------------*/
+
+    public async start() {
         
     }
 
-    public async start() {
+    public async ready() {
 
     }
+
+    public async shutdown() {
+
+    }
+
+	/*----------------------------------
+    - ACTIONS
+    ----------------------------------*/
 
     public encrypt( keyName: keyof TConfig["keys"], data: any, options: TEncryptOptions = {
         encoding: 'base64url'

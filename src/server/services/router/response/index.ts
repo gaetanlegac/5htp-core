@@ -11,11 +11,11 @@
 import express from 'express';
 
 // Core
-import Application from '@server/app';
+import { Application } from '@server/app';
 import type ServerRouter from '@server/services/router';
 import ServerRequest from '@server/services/router/request';
-import { TRoute } from '@common/router';
-import { NotFound, Forbidden } from '@common/errors';
+import { TRoute, TAnyRoute } from '@common/router';
+import { NotFound, Forbidden, Anomaly } from '@common/errors';
 import BaseResponse, { TResponseData } from '@common/router/response';
 import Page from './page';
 
@@ -49,8 +49,6 @@ export type TRouterContext<TRouter extends ServerRouter = ServerRouter> = (
     &
     TRouterContextServices<TRouter>
 )
-
-type TRouterContextWithPage = With<TRouterContext, 'page'>
 
 export type TRouterContextServices<TRouter extends ServerRouter> = (
     // Custom context via servuces
@@ -92,7 +90,7 @@ export default class ServerResponse<
         this.app = this.router.app;
     }
 
-    public async runController( route: TRoute, additionnalData: {} = {} ) {
+    public async runController( route: TAnyRoute, additionnalData: {} = {} ) {
 
         this.route = route;
 
@@ -128,17 +126,9 @@ export default class ServerResponse<
     private async createContext( route: TRoute ): Promise<TRequestContext> {
 
 
-        const contextServices: Partial<TRouterContextServices<TRouter>> = {}
-        for (const serviceName in this.router.services) {
+        const contextServices = this.router.createContextServices(this.request);
 
-            const routerService = this.router.services[serviceName];
-            const requestService = routerService.requestService( this.request );
-            if (requestService !== null)
-                contextServices[ serviceName ] = requestService;
-
-        }
-
-        const customSsrData = this.router.config.context(this.request);
+        const customSsrData = this.router.config.context(this.request, this.app);
 
         const context: TRequestContext = {
             // Router context
@@ -160,7 +150,7 @@ export default class ServerResponse<
 
     public forSsr( page: Page<TRouter> ): TBasicSSrData {
 
-        const customSsrData = this.router.config.context(this.request);
+        const customSsrData = this.router.config.context(this.request, this.app);
 
         return {
             request: {
@@ -251,8 +241,12 @@ export default class ServerResponse<
         //     fichier = fichier[0] === '/'
         //         ? this.app.path.root + '/bin' + fichier
         //         : this.app.path.data + '/' + fichier;
+        // Disk not provided = file response disabled
+        if (this.router.services.disks === undefined)
+            throw new Anomaly("Router: Unable to return file response in router, because no disk has been given in the router config.");
 
-        const disk = this.router.config.disk;
+        // Retirve disk driver
+        const disk = this.router.services.disks.get('default');
 
         // Verif existance
         const fileExists = await disk.exists('data', fichier);

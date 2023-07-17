@@ -3,7 +3,8 @@
 ----------------------------------*/
 
 // Core
-import Application, { Service } from '@server/app';
+import type { Application } from '@server/app';
+import Service from '@server/app/service';
 import { NotFound } from '@common/errors';
 import context from '@server/context';
 
@@ -37,14 +38,10 @@ export default class CronManager extends Service<Config, Hooks, Application> {
     public static timer: NodeJS.Timeout;
 
     /*----------------------------------
-    - HOOKS
+    - LIFECICLE
     ----------------------------------*/
 
-    public async register() {
-
-    }
-
-    public async start() {
+    protected async start() {
         
         this.app.on('cleanup', () => this.cleanup());
 
@@ -56,10 +53,13 @@ export default class CronManager extends Service<Config, Hooks, Application> {
 
         }, 10000);
     }
-
-    public async cleanup() {
-        clearInterval(CronManager.timer);
-        CronManager.taches = {}
+  
+    public async ready() {
+  
+    }
+  
+    public async shutdown() {
+  
     }
 
     /*----------------------------------

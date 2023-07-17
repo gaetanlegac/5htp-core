@@ -18,6 +18,8 @@
         // Décorateurs
         "experimentalDecorators": true,
 
+        "inlineSourceMap": true,
+
         // React
         "jsx": "react-jsx",
         "jsxImportSource": "preact",

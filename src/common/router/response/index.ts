@@ -6,7 +6,7 @@
 import { FunctionalComponent } from "preact";
 
 // Core
-import { TRoute } from "..";
+import { TAnyRoute } from "..";
 import type ClientRequest from '@client/services/router';
 import Page from '@client/services/router/response/page'
 
@@ -26,7 +26,7 @@ export default abstract class BaseResponse<
 
     public data?: TData;
     public request: TRequest;
-    public route?: TRoute;
+    public route?: TAnyRoute;
 
     public constructor(
         request: TRequest,
@@ -36,7 +36,7 @@ export default abstract class BaseResponse<
         this.request = request as TRequest;
     }
 
-    public setRoute(route: TRoute) {
+    public setRoute(route: TAnyRoute) {
         this.route = route;
         return this;
     }

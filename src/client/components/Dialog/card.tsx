@@ -169,7 +169,7 @@ export default ({
                     ) : title}
 
                     {(!prison && close) && (
-                        <Button class="close" icon="solid/times" size="s" shape="pill" onClick={async () => {
+                        <Button class="close" icon="times" size="s" shape="pill" onClick={async () => {
                             if (typeof close === "function") {
 
                                 if (onClose !== undefined)

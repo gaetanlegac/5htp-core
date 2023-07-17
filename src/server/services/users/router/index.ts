@@ -5,10 +5,8 @@
 // Npm
 
 // Core
-import type Application from '@server/app';
-
 import { 
-    default as Router, Request as ServerRequest, TRoute,
+    default as Router, Request as ServerRequest, TAnyRoute,
     RouterService
 } from '@server/services/router';
 
@@ -35,34 +33,43 @@ export default class AuthenticationRouterService<
     TRequest extends ServerRequest<Router> = ServerRequest<Router>,
 > extends RouterService {
 
-    public constructor( 
-        public users: UsersService<TUser, Application>,
-        public config = users.config
-    ) {
+    /*----------------------------------
+    - LIFECYCLE
+    ----------------------------------*/
 
-        super();
+    public users = this.services.users;
 
-    }
-
-    public async register() {
+    protected async start() {
 
         // Decode current user
         this.router.on('request', async (request: TRequest) => {
 
             // TODO: Typings. (context.user ?)
-            const decoded = await this.users.decode( request.req, true);
+            const decoded = await this.services.users.decode( request.req, true);
 
             request.user = decoded || null;
         })
 
         // Check route permissions
-        this.router.on('resolved', async (route: TRoute, request: TRequest) => {
+        this.router.on('resolved', async (route: TAnyRoute, request: TRequest) => {
 
             if (route.options.auth !== undefined)
                 // TODO: How to pas the router type to router config ? Circular rfeerence ?
-                this.users.check(request, route.options.auth);
+                this.services.users.check(request, route.options.auth);
         })
     }
+
+    protected async ready() {
+
+    }
+
+    protected async shutdown() {
+
+    }
+
+    /*----------------------------------
+    - ROUTER SERVICE LIFECYCLE
+    ----------------------------------*/
 
     public requestService( request: TRequest ): UsersRequestService<TUser> {
         return new UsersRequestService( request, this );

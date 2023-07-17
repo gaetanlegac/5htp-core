@@ -7,7 +7,8 @@
 */
 
 // Core
-import Application, { Service } from '@server/app';
+import type { Application } from '@server/app';
+import Service from '@server/app/service';
 import markdown from '@common/data/markdown';
 
 // Speciic
@@ -108,14 +109,25 @@ export default class Email extends Service<Config, Hooks, Application> {
     
     private transporters = this.config.transporters;
 
-    public async register() {
-
-    }
+    /*----------------------------------
+    - LIFECYCLE
+    ----------------------------------*/
 
     public async start() {
         
     }
 
+    public async ready() {
+
+    }
+
+    public async shutdown() {
+
+    }
+
+    /*----------------------------------
+    - ACTIONS
+    ----------------------------------*/
 
     public async send( to: string, subject: string, markdown: string, options?: TOptions );
     public async send( emails: TEmail | TEmail[], options?: TOptions ): Promise<void>;

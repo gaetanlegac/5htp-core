@@ -3,7 +3,8 @@
 ----------------------------------*/
 
 // Core
-import Application, { Service } from '@server/app';
+import type { Application } from '@server/app';
+import Service from '@server/app/service';
 
 /*----------------------------------
 - CONFIG
@@ -51,11 +52,7 @@ export type TReadFileOptions = {
 export default abstract class FsDriver<
     Config extends TDrivercnfig = TDrivercnfig,
     TBucketName = keyof Config["buckets"]
-> {
-
-    public constructor( public app: Application, public config: Config ) {
-
-    }
+> extends Service<Config, {}, Application> {
 
     public abstract mount(): Promise<void>;
     

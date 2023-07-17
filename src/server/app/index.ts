@@ -2,28 +2,19 @@
 - DEPENDANCES
 ----------------------------------*/
 
-import '../patch';
-
-// Npm
-import fs from 'fs-extra';
-
 // Core
-import ConfigParser, { TEnvConfig } from './config';
-import { default as Service, AnyService } from './service';
+import AppContainer from './container';
+import ApplicationService, { AnyService } from './service';
 import CommandsManager from './commands';
-
-// Crore servoces
-import type DisksManager from '@server/services/disks';
+import ServicesContainer, { TRegisteredService, TServiceMetas } from './service/container';
 
 // Built-in
 import type { default as Router, Request as ServerRequest } from '@server/services/router';
+export { default as Services } from './service/container';
 
 /*----------------------------------
 - TYPES
 ----------------------------------*/
-
-export { default as Service } from './service';
-export type { TPriority } from './service';
 
 type Config = {
 
@@ -52,86 +43,62 @@ declare global {
     interface User { }
 }
 
+export const Service = ServicesContainer;
+
 /*----------------------------------
 - FUNCTIONS
 ----------------------------------*/
-export default abstract class Application extends Service<Config, Hooks, /* TODO: this ? */Application> {
+export class Application extends ApplicationService<Config, Hooks, /* TODO: this ? */Application> {
 
     /*----------------------------------
     - PROPERTIES
     ----------------------------------*/
 
     public side = 'server' as 'server';
-
-    // Context
-    public hmr: __WebpackModuleApi.Hot | undefined = module.hot;
-
-    public path = {
-        root: process.cwd(),
-        public: process.cwd() + '/public',
-
-        // TODO: move to disk
-        var: process.cwd() + '/var',
-        typings: process.cwd() + '/var/typings',
-        cache: process.cwd() + '/var/cache',
-        data: process.cwd() + '/var/data',
-        log: process.cwd() + '/var/log',
+    public metas: TServiceMetas = {
+        id: 'application',
+        name: 'Application',
+        parent: 'root',
+        dependences: [],
+        class: () => ({ 'default': Application })
     }
 
-    public pkg = fs.readJSONSync(this.path.root + '/package.json');
+    // Shortcuts to ApplicationContainer
+    public container = AppContainer;
+    public env = AppContainer.Environment;
+    public identity = AppContainer.Identity;
 
     // Status
+    public debug: boolean = false;
     public launched: boolean = false;
-    public status = {
-        services: false
-    }
 
-    private servicesList: AnyService[] = []
-
-     /*----------------------------------
-    - MANDATORY SERVICES
-    ----------------------------------*/
-
-    public abstract disk: DisksManager;
+    // All service instances by service id
+    public allServices: {[serviceId: string]: AnyService} = {}
 
     /*----------------------------------
     - INIT
     ----------------------------------*/
 
-    public env: TEnvConfig;
-    public identity: Config.Identity;
-
     public constructor() {
 
-        super({}, {});
+        // Application itself doesnt have configuration
+        // Configuration must be handled by application services
+        super({}, {}, {}, {});
+
+        this.app = this;
 
         // Gestion crash
         process.on('unhandledRejection', (error: any, promise: any) => {
             // We don't log the error here because it's the role of the app to decidehiw to log errors
             this.runHook('error', error);
         });
-
-        // Load config files
-        const configParser = new ConfigParser( this.path.root );
-        this.env = configParser.env();
-        this.identity = configParser.identity();
-    }
-
-    /*----------------------------------
-    - REGISTER
-    ----------------------------------*/
-
-    // Require a service at file scope
-    //  Only use in files where a service is strictly required 
-    public use<ServiceType extends Service<{}, {}, this>>( serviceName: string ): ServiceType | undefined {
-        return this[ serviceName ];
     }
 
     /*----------------------------------
     - COMMANDS
     ----------------------------------*/
 
-    private commandsManager = new CommandsManager(this, { debug: true });
+    private commandsManager = new CommandsManager(this, { debug: true }, {}, this);
 
     public command( ...args: Parameters<CommandsManager["command"]> ) {
         return this.commandsManager.command(...args);
@@ -140,119 +107,80 @@ export default abstract class Application extends Service<Config, Hooks, /* TODO
     /*----------------------------------
     - LAUNCH
     ----------------------------------*/
-
-    public async register() {
-
-    }
     
-    public async start() {
+    protected async start() {
 
         console.log(`5HTP Core`, process.env.npm_package_version);
 
-        console.info(`[boot] Connect disk`);
-        await this.initDisk();
+        // Handle errors & crashs
+        this.on('error', this.error.bind(this))
 
-        console.info(`[boot] Start services`);
-        await this.startServices()
+        this.debug && console.info(`[boot] Start services`);
+        await this.startServices();
 
-        console.info(`[boot] App ready`);
+        this.debug && console.info(`[boot] App ready`);
+        await this.ready();
         await this.runHook('ready');
 
-        console.info(`[boot] Run application-specific boot instructions ...`);
-        await this.boot();
-
-        console.info(`[boot] Application is ready.`);
+        this.debug && console.info(`[boot] Application is ready.`);
         this.launched = true;
+    }
+
+    public async ready() {
+
 
     }
 
-    private async initDisk() {
-        console.info(`[boot] Ensure runtime dirs ...`);
-        await Promise.all([
-            fs.ensureDir( this.path.cache ),
-            fs.ensureDir( this.path.log ),
-            fs.ensureDir( this.path.data ),
-        ]);
+    // Default error handler
+    public async error( e: Error ) {
+        console.error( e );
     }
 
-    public registerService( service: AnyService ) {
-        console.log(`[app] Register service`, service.constructor?.name);
-        this.servicesList.push(service);
+    public async shutdown() {
+
     }
 
+    // TODO: move to servie class
+    // So we can do public myService = Services.use() inside service class ded
     public async startServices() {
 
-        console.log(`[app] Sorting ${this.servicesList.length} services by priority`);
-        this.servicesList.sort((s1, s2) => s2.priority - s1.priority);
+        const propsNames = Object.getOwnPropertyNames(this);
+        
+        for (const propName of propsNames) {
 
-        console.log(`[app] Starting ${this.servicesList.length} services.`);
-        for (const service of this.servicesList) {
-            const serviceClassName = service.constructor?.name;
-            console.log(`[app] Start service`, serviceClassName);
-            service.status = 'starting';
+            // Don't check services prop as it will trigger an error (it's a proxy)
+            // TODO: exclude all properties coming from the Service class itself
+            if (propName === 'services' || typeof this[ propName ] !== 'object')
+                continue;
 
-            if (service.register)
-                await service.register();
+            // Check if this property is a service registration
+            const registered = this[ propName ] as TRegisteredService;
+            if (registered?.type !== 'service')
+                continue;
+
+            // Instanciate the service
+            const service = this.registerService( propName, registered );
+            this[ propName ] = service;
 
             // Register commands
             if (service.commands)
-                this.commandsManager.fromList(service.commands);
+                this.commandsManager.fromList( service.commands );
 
             // Start service
-            if (service.start) {
-                service.started = service.start();
-                await service.started.catch(e => {
-                    console.error("Catched error while starting service " + serviceClassName + '. Exiting process if mode production.', e);
-                    if (this.env.profile === 'prod')
-                        process.exit();
-                    else
-                        throw e;
-                })
-            }
-
-            service.status = 'running';
+            await this.startService( service );
         }
 
-        console.log(`[app] All ${this.servicesList.length} services were started.`);
-    }
-
-    public abstract boot(): Promise<void>;
-
-    // TODO: make it work
-    private activateHMR() {
-
-        if (!module.hot) return;
-
-        console.info(`Activating HMR ...`);
-
-        module.hot.accept();
-        module.hot.accept( this.path.root + '/.cache/commun/routes.ts' );
-
-        module.hot.addDisposeHandler((data) => {
-
-            console.info(`Cleaning application ...`);
-
-            // Services hooks
-            /*for (const id in this.services) {
-                const service = this.services[id]
-                if (service.cleanup) {
-                    console.info(`Cleaning ${id} service ...`);
-                    service.cleanup();
-                }
-            }*/
-
-            // Application specific hooks
-            this.runHook('cleanup');
-
-            /*
-            console.log("[nettoyage] Arrêt serveur socket ...");
-            if (socket !== undefined)
-                socket.serveur.close()
-
-            console.log("[nettoyage] Reset du cache requêtes JSQL ...");
-            QueryParser.clearCache();*/
-
-        });
+        // Check if any setup service has not been used
+        const unused: string[] = []
+        for (const serviceNS in ServicesContainer.registered)
+            if (this.allServices[ serviceNS ] === undefined)
+                unused.push(serviceNS);
+        
+        if (unused.length !== 0)
+            console.warn(`${unused.length} services were setup, but are not used anywhere:`, 
+                unused.join(', '));
     }
 
 }
+
+export default Application

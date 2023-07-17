@@ -1,5 +1,11 @@
-import Application from '@/server';
+// Load Application container
+import './app/container';
 
-const app = new Application();
+// Load services setup
+import '@/server/config/*.ts';
 
-app.start();
+// Load Application
+import application from './app/instance';
+
+// Start application
+application.start();

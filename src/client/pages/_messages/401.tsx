@@ -6,7 +6,7 @@
 import React from 'react';
 
 // Core
-import { router } from '@app';
+import { Router } from '@app';
 import { Button } from '@client/components';
 
 // App
@@ -19,7 +19,7 @@ import useHeader from '@client/pages/useHeader';
 /*----------------------------------
 - CONTROLEUR
 ----------------------------------*/
-router.error( 401, ({ message, request, page }) => {
+Router.error( 401, ({ message, request, page }) => {
 
     request.response?.redirect('/');
 

@@ -2,8 +2,6 @@
 - DEPENDANCES
 ----------------------------------*/
 
-import { Layout } from './layouts';
-
 // types
 import type {
     default as ClientRouter,
@@ -22,9 +20,6 @@ import type { TUserRole } from '@server/services/users';
 import type { TAppArrowFunction } from '@common/app';
 
 // Specfic
-import type ApiClient from './request/api';
-import type Request from './request';
-import type Response from './response';
 import type { default as Page, TFrontRenderer } from './response/page';
 
 /*----------------------------------
@@ -57,12 +52,13 @@ export type TErrorRoute<RouterContext extends TClientOrServerContext = TClientOr
     options: TRouteOptions
 }
 
-export type TClientOrServerContext<
-    TClientOnlyContextKeys extends keyof ClientRouterContext = keyof (ClientRouterContext | ServerRouterContext)
-> = (
+export type TAnyRoute<RouterContext extends TClientOrServerContext = TClientOrServerContext> =
+    TRoute<RouterContext> | TErrorRoute<RouterContext>
+
+export type TClientOrServerContext = (
     (
-        {[serverContextKey in keyof ServerRouterContext/*Omit<ClientRouterContext, TClientOnlyContextKeys>*/]: undefined} 
-        & 
+        //{[serverContextKey in keyof ServerRouterContext/*Omit<ClientRouterContext, TClientOnlyContextKeys>*/]: undefined} 
+        //& 
         ClientRouterContext
     )
     | 
@@ -72,8 +68,8 @@ export type TClientOrServerContext<
         //  When we destructure the context from the page controller
         //  While making reference to a key only available in client context
         // So here, we put the
-        {[clientContextKey in keyof ClientRouterContext/*Omit<ClientRouterContext, TClientOnlyContextKeys>*/]: undefined} 
-        & 
+        //{[clientContextKey in keyof ClientRouterContext/*Omit<ClientRouterContext, TClientOnlyContextKeys>*/]: undefined} 
+        //& 
         ServerRouterContext
     )
 )

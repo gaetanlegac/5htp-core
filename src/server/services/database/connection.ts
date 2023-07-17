@@ -6,13 +6,11 @@
 import mysql from 'mysql2/promise';
 
 // Core: general
-import Application from '@server/app';
-import Service from '@server/app/service';
 import { Anomaly } from '@common/errors';
 
 // Core: specific
+import type SQL from '.';
 import { SqlError } from './debug';
-import type Console from '../console';
 import MetadataParser, { TDatabasesList, TMetasTable, TColumnTypes, TMetasColonne } from './metas';
 import { TMySQLTypeName, mysqlToJs, js as jsTypes } from './datatypes';
 import Bucket from './bucket';
@@ -71,7 +69,7 @@ type TSelectQueryResult = any;
 /*----------------------------------
 - SERVICES
 ----------------------------------*/
-export default class DatabaseManager extends Service<DatabaseServiceConfig, THooks, Application> {
+export default class DatabaseManager {
 
     private initialized = false;
     public connection!: mysql.Pool;
@@ -80,13 +78,19 @@ export default class DatabaseManager extends Service<DatabaseServiceConfig, THoo
     public tables: TDatabasesList = {};
     public metas = new MetadataParser(this);
 
+    public status: 'disconnected' | 'connected' = 'disconnected'
+
+    public constructor(
+        protected sql: SQL,
+        protected config: DatabaseServiceConfig,
+        public app = sql.app
+    ) {
+        
+    }
+
     /*----------------------------------
     - HOOKS
     ----------------------------------*/
-
-    public async register() {
-
-    }
     
     public loading: Promise<void> | undefined = undefined;
     public async start() {
@@ -100,13 +104,13 @@ export default class DatabaseManager extends Service<DatabaseServiceConfig, THoo
                 await this.connect(connectionConfig)
                 break;
             } catch (error) {
-                console.warn(LogPrefix, `Failed to connect to ${connectionConfig.name}: ` + error);
+                this.config.debug && console.warn(LogPrefix, `Failed to connect to ${connectionConfig.name}: ` + error);
                 connectionErrors.push(connectionConfig.name + ': ' + error);
             }
         }
 
         // Coudnt connect to any database
-        if (this.connectionConfig === undefined)
+        if (this.status !== 'connected')
             throw new Anomaly(`Couldnt connect to any database.`, { connectionErrors });
 
         // Disconnect from the database when the app is terminated
@@ -125,7 +129,7 @@ export default class DatabaseManager extends Service<DatabaseServiceConfig, THoo
     ----------------------------------*/
     public async connect(config: ConnectionConfig) {
 
-        console.info(LogPrefix, `Trying to connect to ${config.name} ...`);
+        this.config.debug && console.info(LogPrefix, `Trying to connect to ${config.name} ...`);
         this.connection = mysql.createPool({
 
             // Identification
@@ -160,10 +164,10 @@ export default class DatabaseManager extends Service<DatabaseServiceConfig, THoo
             }
         })
 
-        this.connectionConfig = config;
-
         this.tables = await this.metas.load( config.databases );
-        console.info(LogPrefix, `Successfully connected to ${config.name}.`);
+        this.connectionConfig = config; // Memorise configuration if connection succeed
+        this.status = 'connected';
+        this.config.debug && console.info(LogPrefix, `Successfully connected to ${config.name}.`);
     }
 
     private typeCast( field: mysql.Field, next: Function ) {
@@ -332,8 +336,11 @@ export default class DatabaseManager extends Service<DatabaseServiceConfig, THoo
         const startTime = Date.now();
         return this.connection.query(query).then(([rows, fields]) => {
 
-            if (opts.log !== false)
-                this.log(query, startTime);
+            this.sql.runHook('afterQuery', {
+                date: new Date(),
+                query: query.trim(),
+                time: Date.now() - startTime,
+            });
 
             return rows as unknown as TResult;
 
@@ -342,21 +349,5 @@ export default class DatabaseManager extends Service<DatabaseServiceConfig, THoo
             throw new SqlError(error, query);
 
         })
-    }
-
-    private log( query: string, startTime: number ) {
-
-        const console = this.app.use<Console>('console');
-        if (!console) return;
-
-        const { channelType, channelId } = console.getChannel();
-        if (channelId !== 'admin')
-            console.sqlQueries.push({
-                channelType,
-                channelId,
-                date: new Date(),
-                query: query.trim(),
-                time: Date.now() - startTime,
-            });
     }
 }

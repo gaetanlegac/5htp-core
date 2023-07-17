@@ -127,7 +127,7 @@ export default ({ service: router }: { service: Router }) => {
         return history?.listen(async (locationUpdate) => {
 
             // Load the concerned route
-            const request = new ClientRequest(locationUpdate.location, context.router);
+            const request = new ClientRequest(locationUpdate.location, context.Router);
             await resolvePage(request);
             
             // Scroll to the selected content via url hash

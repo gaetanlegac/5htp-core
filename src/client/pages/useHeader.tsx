@@ -15,7 +15,8 @@ export type Props = {
     error?: boolean,
 
     title: string,
-    subtitle: string,
+    subtitle?: string,
+    description?: string,
 }
 
 /*----------------------------------
