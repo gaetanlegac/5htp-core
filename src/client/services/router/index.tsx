@@ -61,6 +61,8 @@ export type Response = ClientResponse<ClientRouter> | ServerResponse<ServerRoute
 - TYPES: ROUTES LOADING
 ----------------------------------*/
 
+// WARN: To be updated with the mplemenations list of Router.page
+//      (both server and client side)
 export type TRegisterPageArgs<TProvidedData extends TFetcherList = {}, TRouter extends Router = Router> = ([
     path: string,
     controller: TDataProvider<TProvidedData> | null,
@@ -218,6 +220,25 @@ export default class ClientRouter<
 
         return currentRoute;
     }
+
+    public page(
+        path: string,
+        controller: TDataProvider<{}> | null,
+        renderer: TFrontRenderer<{}>
+    ): TRoute;
+
+    public page(
+        path: string,
+        options: Partial<TRoute["options"]>,
+        renderer: TFrontRenderer<{}>
+    ): TRoute;
+
+    public page(
+        path: string,
+        options: Partial<TRoute["options"]>,
+        controller: TDataProvider<{}> | null,
+        renderer: TFrontRenderer<{}>
+    ): TRoute;
 
     public page(...args: TRegisterPageArgs): TRoute {
 
