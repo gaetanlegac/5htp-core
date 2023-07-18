@@ -10,6 +10,8 @@ import {
     isURL
 } from 'validator';
 
+import normalizeUrl, { Options as NormalizeUrlOptions } from 'normalize-url';
+
 // Core
 import { InputError } from '@common/errors';
 import FileToUpload from '@client/components/inputv3/file/FileToUpload';
@@ -157,15 +159,24 @@ export default class SchemaValidators {
             
         }, opts)
 
-    public url = (opts: TValidator<string> & {} = {}) => 
+    public url = (opts: TValidator<string> & {
+        normalize?: NormalizeUrlOptions
+    } = {}) => 
         new Validator<string>('url', (inputVal, input, output, corriger?) => {
 
             let val = this.string(opts).validate(inputVal, input, output, corriger);
 
+            // Check if URL
             if (!isURL(val, {
                 // https://www.npmjs.com/package/validator
             }))
                 throw new InputError(`Please provide a valid URL.`);
+
+            // Normalize
+            if (opts.normalize !== undefined)
+                val = normalizeUrl(val, opts.normalize);
+
+            console.log("@@@@@@@@@@@@@NORMALISZE URL", opts.normalize, val);
 
             return val;
         }, opts)
