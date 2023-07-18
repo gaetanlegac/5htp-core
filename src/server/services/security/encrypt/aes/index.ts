@@ -11,11 +11,6 @@ import Service from '@server/app/service';
 import { Forbidden } from '@common/errors';
 
 /*----------------------------------
-- CONFIG
-----------------------------------*/
-
-
-/*----------------------------------
 - SERVICE CONFIG
 ----------------------------------*/
 
@@ -33,6 +28,14 @@ export type Hooks = {
 
 }
 
+export type Services = {
+    
+}
+
+/*----------------------------------
+- TYPES
+----------------------------------*/
+
 type TEncryptOptions = {
     encoding: Encoding
 }
@@ -44,7 +47,7 @@ type TDecryptOptions = {
 /*----------------------------------
 - SERVICE
 ----------------------------------*/
-export default class AES<TConfig extends Config = Config> extends Service<TConfig, Hooks, Application> {
+export default class AES<TConfig extends Config = Config> extends Service<TConfig, Hooks, Application, Services> {
 
     /*----------------------------------
     - LIFECYCLE

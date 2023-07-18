@@ -29,6 +29,10 @@ export type Hooks = {
 
 }
 
+export type Services = {
+
+}
+
 /*----------------------------------
 - DEFINITIONS TYPES
 ----------------------------------*/
@@ -72,7 +76,7 @@ const LogPrefix = '[database]'
 
 // TODO: build callable instance sithut instanciating the service
 
-export default class SQL extends Service<Config, Hooks, Application> {
+export default class SQL extends Service<Config, Hooks, Application, Services> {
 
     public database: Database;
 

@@ -14,6 +14,10 @@ export type THooks = {
 
 }
 
+export type Services = {
+
+}
+
 /*----------------------------------
 - TYPE
 ----------------------------------*/
@@ -52,7 +56,7 @@ export type TReadFileOptions = {
 export default abstract class FsDriver<
     Config extends TDrivercnfig = TDrivercnfig,
     TBucketName = keyof Config["buckets"]
-> extends Service<Config, {}, Application> {
+> extends Service<Config, {}, Application, Services> {
 
     public abstract mount(): Promise<void>;
     

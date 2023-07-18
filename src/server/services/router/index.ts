@@ -96,7 +96,9 @@ export type Config<
 
 export type Services = {
     disks?: DisksManager
-} & TRegisteredServicesIndex< RouterService<ServerRouter> >
+} & {
+    [routerServiceId: string]: RouterService
+}
 
 // Set it as a function, so when we instanciate the services, we can callthis.router to pass the router instance in roiuter services
 type TRouterServicesList = {
@@ -132,7 +134,7 @@ export default class ServerRouter<
     public constructor( 
         parent: AnyService, 
         config: TConfig,
-        services: TRegisteredServicesIndex<RouterService>,
+        services: Services,
         app: TApplication, 
     ) {
 

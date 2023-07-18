@@ -65,10 +65,14 @@ export type Hooks = {
 
 }
 
+export type Services = {
+    disks: DisksManager,
+}
+
 /*----------------------------------
 - SERVICE
 ----------------------------------*/
-export default class Cache extends Service<Config, Hooks, Application> {
+export default class Cache extends Service<Config, Hooks, Application, Services> {
 
     public commands = registerCommands(this);
 
@@ -79,9 +83,7 @@ export default class Cache extends Service<Config, Hooks, Application> {
     public constructor( 
         parent: AnyService, 
         config: Config,
-        services: {
-            disks: TRegisteredService< DisksManager >,
-        },
+        services: Services,
         app: Application, 
     ) {
 

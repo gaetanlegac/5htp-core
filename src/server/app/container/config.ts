@@ -35,6 +35,7 @@ export type TEnvConfig = {
 type AppIdentityConfig = {
 
     name: string,
+    identifier: string,
     description: string,
     author: {
         name: string,

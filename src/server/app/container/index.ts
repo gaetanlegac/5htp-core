@@ -8,19 +8,22 @@ import './patch';
 import path from 'path';
 
 // Core
-import Services from '../service/container';
+import type { StartedServicesIndex } from '../service';
+import Services, { ServicesContainer } from '../service/container';
 import ConfigParser, { TEnvConfig } from './config';
 
 /*----------------------------------
 - CLASS
 ----------------------------------*/
-export class ApplicationContainer {
+export class ApplicationContainer<
+    TServicesIndex extends StartedServicesIndex = StartedServicesIndex
+> {
 
     /*----------------------------------
     - INIT
     ----------------------------------*/
 
-    public Services = Services;
+    public Services = Services as ServicesContainer<TServicesIndex>;
     public Environment: TEnvConfig;
     public Identity: Config.Identity;
 

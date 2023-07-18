@@ -53,7 +53,7 @@ export default class S3Driver<
     public constructor( 
         public parent: AnyService, 
         public config: TConfig,
-        public services: TRegisteredServicesIndex,
+        public services: {},
         public app: Application
     ) {
 

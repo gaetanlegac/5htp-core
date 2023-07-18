@@ -32,37 +32,27 @@ export type Hooks = {
 
 }
 
+export type Services<TUser extends {}> = {
+    users: UsersManagementService<TUser, Application>,
+    router: Router
+}
+
 /*----------------------------------
 - MANAGER
 ----------------------------------*/
 export default class WebSocketCommander<
     TUser extends {},
-    TConfig extends Config<TUser>= Config<TUser>
-> extends Service<TConfig, Hooks, Application> {
+    TConfig extends Config<TUser>= Config<TUser>,
+    TServices extends Services<TUser> = Services<TUser>
+> extends Service<TConfig, Hooks, Application, TServices> {
 
     // Services
     public ws!: WebSocketServer;
-    public users: UsersManagementService<TUser>;
-    public router: Router;
+    public users!: TServices["users"];
+    public router!: Router;
 
     // Context
     public scopes: {[path: string]: SocketScope<TUser>} = {}
-
-    public constructor( 
-        parent: AnyService, 
-        config: TConfig,
-        services: {
-            users: TRegisteredService< UsersManagementService<TUser> >,
-            router: Router
-        },
-        app: Application, 
-    ) {
-
-        super(parent, config, services, app);
-
-        this.users = this.services.users;
-        this.router = this.services.router;
-    }
     
     /*----------------------------------
     - LIFECYCLE
@@ -70,10 +60,6 @@ export default class WebSocketCommander<
 
     public loading: Promise<void> | undefined = undefined;
     protected async start() {
-
-        this.app.on('cleanup', async () => {
-            this.closeAll();
-        });
 
         this.users.on('disconnect', async (userId: string) => {
             this.disconnect(userId, 'Logout');
@@ -126,7 +112,7 @@ export default class WebSocketCommander<
     }
 
     public async shutdown() {
-
+        this.closeAll();
     }
 
 	/*----------------------------------
