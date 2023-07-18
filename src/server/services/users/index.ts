@@ -58,6 +58,10 @@ export type THooks = {
     
 }
 
+export type TServices = {
+
+}
+
 /*----------------------------------
 - SERVICE
 ----------------------------------*/
@@ -66,7 +70,7 @@ export default abstract class UsersManagementService<
     TApplication extends Application,
     TJwtSession extends {} = {},
     TRequest extends ServerRequest<Router> = ServerRequest<Router>,
-> extends Service<TConfig, THooks, TApplication> {
+> extends Service<TConfig, THooks, TApplication, TServices> {
 
     /*----------------------------------
     - LIFECYCLE

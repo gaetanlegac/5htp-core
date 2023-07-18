@@ -11,12 +11,16 @@ import type { default as Router } from '.';
 import type ServerRequest from './request';
 import type RequestService from './request/service';
 
+export type Services = {
+    
+}
+
 /*----------------------------------
 - SERVICE
 ----------------------------------*/
 export default abstract class RouterService<
     TConfig extends {} = {}
-> extends Service<TConfig, {}, Application> {
+> extends Service<TConfig, {}, Application, Services> {
 
     public constructor( 
         // Parent is always a router in RouterService
@@ -30,6 +34,6 @@ export default abstract class RouterService<
         
     }
 
-    public abstract requestService( request: ServerRequest<TRouter> ): RequestService | null;
+    public abstract requestService( request: ServerRequest<Router> ): RequestService | null;
 
 }

@@ -167,7 +167,7 @@ export class Application extends ApplicationService<Config, Hooks, /* TODO: this
                 this.commandsManager.fromList( service.commands );
 
             // Start service
-            await this.startService( service );
+            await this.startService( propName, service );
         }
 
         // Check if any setup service has not been used

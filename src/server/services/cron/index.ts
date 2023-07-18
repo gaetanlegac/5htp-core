@@ -28,11 +28,15 @@ export type Hooks = {
 
 }
 
+export type Services = {
+
+}
+
 /*----------------------------------
 - CLASSE
 ----------------------------------*/
 
-export default class CronManager extends Service<Config, Hooks, Application> {
+export default class CronManager extends Service<Config, Hooks, Application, Services> {
 
     public static taches: { [nom: string]: CronTask } = {}
     public static timer: NodeJS.Timeout;

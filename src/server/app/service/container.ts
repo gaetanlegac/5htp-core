@@ -4,7 +4,7 @@
 
 // Specific
 import type { 
-    AnyService, 
+    AnyService, StartedServicesIndex,
     // Hooks
     THookCallback, THooksIndex 
 } from ".";
@@ -46,13 +46,15 @@ const LogPrefix = '[service]';
 /*----------------------------------
 - CLASS
 ----------------------------------*/
-export class ServicesContainer {
+export class ServicesContainer<
+    TServicesIndex extends StartedServicesIndex = StartedServicesIndex
+> {
 
     public registered: TRegisteredServicesIndex = {}
 
-    public setup( 
-        serviceId: string, 
-        serviceConfig: {} 
+    public setup<TServiceId extends keyof TServicesIndex>( 
+        serviceId: keyof TServicesIndex, 
+        serviceConfig: TServicesIndex[TServiceId]["config"]
     ): TRegisteredService {
 
         // Check if the service is installed & has been indexed
@@ -86,11 +88,11 @@ export class ServicesContainer {
         return service;
     }
 
-    public use( 
-        serviceId: string, 
+    public use<TServiceId extends keyof TServicesIndex>( 
+        serviceId: TServiceId, 
         // TODO: Only subservices types supported by the parent service
-        subServices: TRegisteredServicesIndex = {}
-    ): TRegisteredService {
+        subServices: TServicesIndex[TServiceId]["services"] = {}
+    ): TServicesIndex[TServiceId]/*: TRegisteredService*/ {
 
         // Check of the service has been configurated
         const registered = this.registered[ serviceId ];
@@ -102,7 +104,9 @@ export class ServicesContainer {
 
         // Return the service metas
         // The parent service will take care of instanciating & starting it
-        return registered;
+        return registered as TServicesIndex[TServiceId];
+        // Make typescript think we return te sercice instance
+        // So when we do "public myService = Services.use('...')", myService is typed as the service instance
     }
 
     public callableInstance = <TInstance extends object, TCallableName extends keyof TInstance>(

@@ -41,6 +41,10 @@ export type Hooks = {
 
 }
 
+export type Services = {
+
+}
+
 /*----------------------------------
 - TYPES: EMAILS
 ----------------------------------*/
@@ -105,7 +109,7 @@ type TOptions = {
 /*----------------------------------
 - FONCTIONS
 ----------------------------------*/
-export default class Email extends Service<Config, Hooks, Application> {
+export default class Email extends Service<Config, Hooks, Application, Services> {
     
     private transporters = this.config.transporters;
 

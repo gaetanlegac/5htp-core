@@ -24,25 +24,27 @@ export type Hooks = {
 
 }
 
-type TMountpointList = { [name: string]: Driver }
+export type Services = {
+
+}
 
 /*----------------------------------
 - SERVICE
 ----------------------------------*/
 export default class DisksManager<
-    MountpointList extends TMountpointList = {},
+    MountpointList extends Services = {},
     TConfig extends Config = Config,
     TApplication extends Application = Application
-> extends Service<TConfig, Hooks, TApplication> {
+> extends Service<TConfig, Hooks, TApplication, MountpointList> {
 
-    public default: Driver;
+    public default!: Driver;
 
-    public mounted: TMountpointList = this.services;
+    public mounted: MountpointList = this.services;
 
     public constructor( 
         parent: AnyService, 
         config: TConfig,
-        drivers: TRegisteredServicesIndex< Driver >,
+        drivers: MountpointList,
         app: TApplication, 
     ) {
 

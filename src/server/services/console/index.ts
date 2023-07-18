@@ -38,6 +38,10 @@ export type Hooks = {
 
 }
 
+export type Services = {
+
+}
+
 /*----------------------------------
 - TYPES
 ----------------------------------*/
@@ -129,7 +133,7 @@ const logFields = [
 /*----------------------------------
 - LOGGER
 ----------------------------------*/
-export default class Console extends Service<Config, Hooks, Application> {
+export default class Console extends Service<Config, Hooks, Application, Services> {
 
     // Services
     public logger!: Logger;

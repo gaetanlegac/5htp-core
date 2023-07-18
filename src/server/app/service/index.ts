@@ -11,7 +11,7 @@ import type { TServiceMetas, TRegisteredServicesIndex, TRegisteredService } from
 - TYPES: OPTIONS
 ----------------------------------*/
 
-export type AnyService = Service<{}, {}, Application, TStartedServicesIndex>
+export type AnyService = Service<{}, {}, Application, {}>
 
 type TServiceConfig = {
     debug?: boolean
@@ -52,7 +52,7 @@ export default abstract class Service<
     TConfig extends TServiceConfig, 
     THooks extends THooksList,
     TApplication extends Application,
-    TServicesIndex extends StartedServicesIndex = StartedServicesIndex
+    TServicesIndex extends StartedServicesIndex
 > {
 
     public started?: Promise<void>;
@@ -65,20 +65,22 @@ export default abstract class Service<
     public static createInstance?: (
         parent: AnyService, 
         config: TServiceConfig,
-        services: TRegisteredServicesIndex,
+        services: StartedServicesIndex,
         app: Application
     ) => Service<TServiceConfig, THooksList, Application, StartedServicesIndex>;
 
     public constructor( 
         public parent: AnyService, 
         public config: TConfig,
-        services: TRegisteredServicesIndex,
+        // Make this argument appear as instanciated sercices index
+        // But actually, Setup.use returns a registered service, not yet launched
+        services: TServicesIndex,
         public app: TApplication
     ) {
 
         // Instanciate subservices
         for (const localName in services)
-            this.registerService( localName, services[localName] );
+            this.registerService( localName, services[localName] as unknown as TRegisteredService );
         
     }
 
@@ -89,8 +91,8 @@ export default abstract class Service<
     public async launch() {
 
         // Instanciate subservices
-        for (const localName in this.services)
-            await this.startService( this.services[localName] );
+        for (const localName in this.registered)
+            await this.startService( localName, this.registered[localName] );
 
         // Start service
         if (this.start)
@@ -112,11 +114,18 @@ export default abstract class Service<
     - SUBSERVICES
     ----------------------------------*/
 
-    public services: TRegisteredServicesIndex = {} as TRegisteredServicesIndex/*new Proxy({}, {
+    public registered: TRegisteredServicesIndex = {} as TRegisteredServicesIndex;
+
+    public services: TServicesIndex = {} as TServicesIndex;
+    
+    /*new Proxy({}, {
         get: (target, prop, recever) => {
             if (!( prop in target )) {
                 
-                throw new Error(`You made reference to the "${prop}" service, but this one hasn't been loaded yet. Loaded services: ` + Object.keys(this.services).join(', '));
+                throw new Error(`You made reference to the "${prop}" service, but this one hasn't been loaded or started yet. 
+                    Registered services: ${Object.keys(this.services).join(', ')} ; 
+                    Loaded services: ${Object.keys(this.services).join(', ')}
+                `);
             }
         }
     }) as TRegisteredServicesIndex*/
@@ -144,7 +153,7 @@ export default abstract class Service<
         }
 
         // Bind to app
-        this.services[ localName ] = service;
+        this.registered[ localName ] = service;
         service.bindings.push(this.constructor.name + '.' + localName);
         this.app.allServices[ registered.metas.id ] = service;
 
@@ -152,26 +161,33 @@ export default abstract class Service<
         
     }
 
-    protected async startService( service: AnyService ) {
+    protected async startService( localName: string, service: AnyService ) {
 
         // Service already started
-        if (service.started)
-            return;
+        if (!service.started) {
 
-        // Start servuce & eventually his subservices
-        console.log(`[app] Start service`, service.metas.id);
-        service.status = 'starting';
-        service.started = service.launch();
-        await service.started.catch(e => {
-            console.error("Catched error while starting service " + service.metas.id, e);
-            if (this.app.env.profile === 'prod')
-                process.exit();
-            else
-                throw e;
-        })
+            // Start servuce & eventually his subservices
+            console.log(`[app] Start service`, service.metas.id);
+            service.status = 'starting';
+            service.started = service.launch();
+            await service.started.catch(e => {
+                console.error("Catched error while starting service " + service.metas.id, e);
+                if (this.app.env.profile === 'prod')
+                    process.exit();
+                else
+                    throw e;
+            })
 
-        console.log(`[app] Service`, service.metas.id, 'started (bound to:', service.bindings.join(', '),')');
-        service.status = 'running';
+            // Bind to app
+            console.log(`[app] Service`, service.metas.id, 'started (bound to:', service.bindings.join(', '),')');
+            service.status = 'running';
+        }
+
+        // Bind as subservice
+        this.services[ localName ] = service;
+        // If a class property with the same nalme as the service was provided
+        if ((localName in this) && this[localName] === undefined)
+            this[ localName ] = service;
     }
 
     /*----------------------------------
