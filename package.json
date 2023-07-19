@@ -97,6 +97,6 @@
 		"babel-plugin-glob-import": "^0.0.7"
 	},
 	"peerDependencies": {
-		"5htp": "0.3.0-1"
+		"5htp": "0.3.0-3"
 	}
 }
