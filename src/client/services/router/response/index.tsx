@@ -86,7 +86,7 @@ export default class ClientPageResponse<
             route: this.route,
             api: this.request.api,
 
-            ...this.request.router.config.context()
+            ...this.request.router.config.context( this.request.router )
         }
 
         context.context = context;
