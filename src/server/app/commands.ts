@@ -41,10 +41,14 @@ export type Hooks = {
 
 }
 
+export type Services = {
+
+}
+
 /*----------------------------------
 - SERVICE
 ----------------------------------*/
-export default class CommandsManager extends Service<Config, Hooks, Application> {
+export default class CommandsManager extends Service<Config, Hooks, Application, Services> {
 
     public priority = 2 as 2;
 
