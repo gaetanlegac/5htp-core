@@ -6,6 +6,7 @@
 import type { Application } from "..";
 import type { Command } from "../commands"; 
 import type { TServiceMetas, TRegisteredServicesIndex, TRegisteredService } from './container';
+import ServicesContainer from './container';
 
 /*----------------------------------
 - TYPES: OPTIONS
@@ -62,18 +63,27 @@ export default abstract class Service<
     public metas!: TServiceMetas;
     public bindings: string[] = []
 
+    public app: TApplication;
+
     public constructor( 
-        public parent: AnyService, 
+        public parent: AnyService | 'self', 
         public config: TConfig,
         // Make this argument appear as instanciated sercices index
         // But actually, Setup.use returns a registered service, not yet launched
         services: TServicesIndex,
-        public app: TApplication
+        app: TApplication | 'self'
     ) {
+
+        if (this.parent === 'self') 
+            this.parent = this;
+
+        this.app = app === 'self'
+            ? this as unknown as TApplication
+            : app
 
         // Instanciate subservices
         for (const localName in services)
-            this.registerService( localName, services[localName] as unknown as TRegisteredService );
+            this.bindService( localName, services[localName] as unknown as TRegisteredService );
         
     }
 
@@ -88,8 +98,8 @@ export default abstract class Service<
     public async launch() {
 
         // Instanciate subservices
-        for (const localName in this.registered)
-            await this.startService( localName, this.registered[localName] );
+        for (const localName in this.services)
+            await this.startService( localName, this.services[localName] );
 
         // Start service
         if (this.start)
@@ -127,49 +137,77 @@ export default abstract class Service<
         }
     }) as TRegisteredServicesIndex*/
 
-    protected registerService( localName: string, registered: TRegisteredService ): AnyService {
+    // this.use immediatly instanciate the subservice for few reasons:
+    // - The subservice instance can be accesses from another service in the constructor, no matter the order of loading of the services
+    // - Consistency: the subserviuce proprties shouldn't be assogned to two different values according depending on the app lifecycle
+    public use<TServiceId extends keyof TServicesIndex>( 
+        serviceId: TServiceId, 
+        // TODO: Only subservices types supported by the parent service
+        subServices: TServicesIndex[TServiceId]["services"] = {}
+    ) {
 
-        // Service already instabciates on the app scope
-        let service = this.app.allServices[ registered.metas.id ];
+        // Check of the service has been configurated
+        const registered = ServicesContainer.registered[ serviceId ];
+        if (registered === undefined)
+            throw new Error(`Unable to use service "${serviceId}": This one hasn't been setup.`);
 
-        // Service not yet instanciated
-        if (service === undefined) {
+        // Bind subservices
+        registered.subServices = subServices;
 
-            // Instanciate
-            console.log(`[app] Load service`, registered.metas.id);
-            const ServiceClass = registered.metas.class().default;
-
-            // Create class instance
-            service = new ServiceClass(this, registered.config, registered.subServices, this.app)
-                .getServiceInstance()
-
-            // Bind his own metas
-            service.metas = registered.metas;
-
-        } else {
-            console.warn(`[app] Service`, registered.metas.id, 'already instanciated in this app.');
+        // Check if not already instanciated
+        const existing = ServicesContainer.allServices[ serviceId ];
+        if (existing !== undefined) {
+            console.info("Service", serviceId, "already instanciated through another service.");
+            return existing;
         }
 
-        // Bind to app
-        this.registered[ localName ] = service;
-        service.bindings.push(this.constructor.name + '.' + localName);
-        this.app.allServices[ registered.metas.id ] = service;
+        // Instanciate
+        console.log(`[app] Load service`, registered.metas.id);
+        const ServiceClass = registered.metas.class().default;
+
+        // Create class instance
+        const service = new ServiceClass(this, registered.config, registered.subServices, this.app || this)
+            .getServiceInstance()
+
+        // Bind his own metas
+        service.metas = registered.metas;
+        ServicesContainer.allServices[ registered.metas.id ] = service;
 
         return service;
+    }
+
+    protected bindService( localName: string, service: AnyService ) {
+
+        const serviceScope = this.constructor.name + '.' + localName;
+
+        // Fix the parent service (the app could be provided as parent because the dev called this.use() in the app class definition)
+        service.parent = this;
+
+        // Bind subservice to service
+        //console.log(`Binding service ${serviceScope}`);
+        service.bindings.push(serviceScope);
+
+        // Since now we have the localname, we can bind the service in this.service too
+        this.services[localName] = service;
+
+        // For serices that have been passed through this.use
+        if ((localName in this) && this[localName] === undefined)
+            this[ localName ] = service;
         
     }
 
     protected async startService( localName: string, service: AnyService ) {
-
         // Service already started
         if (!service.started) {
 
+            const serviceScope = this.constructor.name + '.' + localName;
+
             // Start servuce & eventually his subservices
-            console.log(`[app] Start service`, service.metas.id);
+            console.log(`[app] Start service`, serviceScope);
             service.status = 'starting';
             service.started = service.launch();
             await service.started.catch(e => {
-                console.error("Catched error while starting service " + service.metas.id, e);
+                console.error("Catched error while starting service " + serviceScope, e);
                 if (this.app.env.profile === 'prod')
                     process.exit();
                 else
@@ -177,15 +215,9 @@ export default abstract class Service<
             })
 
             // Bind to app
-            console.log(`[app] Service`, service.metas.id, 'started (bound to:', service.bindings.join(', '),')');
+            console.log(`[app] Service`, serviceScope, 'started (bound to:', service.bindings.join(', '),')');
             service.status = 'running';
         }
-
-        // Bind as subservice
-        this.services[ localName ] = service;
-        // If a class property with the same nalme as the service was provided
-        if ((localName in this) && this[localName] === undefined)
-            this[ localName ] = service;
     }
 
     /*----------------------------------

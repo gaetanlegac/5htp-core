@@ -53,6 +53,19 @@ export default class WebSocketCommander<
 
     // Context
     public scopes: {[path: string]: SocketScope<TUser>} = {}
+
+    public constructor(
+        parent: AnyService, 
+        config: TConfig,
+        services: Services,
+        app: TApplication, 
+    ) {
+        super(parent, config, services, app);
+        
+        this.users = this.services.users;
+        this.router = this.services.router;
+        
+    }
     
     /*----------------------------------
     - LIFECYCLE

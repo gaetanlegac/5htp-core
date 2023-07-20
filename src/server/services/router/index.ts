@@ -158,8 +158,6 @@ export default class ServerRouter<
             if (routerService instanceof RouterService)
                 this.routerServices[ serviceName ] = routerService;
         }
-
-        console.log("this.routerServices", Object.keys( this.routerServices ));
     }
 
     public async ready() {

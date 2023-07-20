@@ -24,7 +24,9 @@ export default abstract class RouterService<
 
     public constructor( 
         // Parent is always a router in RouterService
-        public router: Router, 
+        // Warning: for now, it's possible that router is actually the app
+        //      It's fixed with a not very clean way in Service.bindService
+        router: Router, 
         config: TConfig,
         services: TRegisteredServicesIndex,
         app: Application

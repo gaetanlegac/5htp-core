@@ -74,9 +74,7 @@ export class Application extends ApplicationService<Config, Hooks, /* TODO: this
     public launched: boolean = false;
 
     // Mandatory services
-    public Console = ServicesContainer.use('Core/Console');
-    // All service instances by service id
-    public allServices: {[serviceId: string]: AnyService} = {}
+    public Console = this.use('Core/Console');
 
     /*----------------------------------
     - INIT
@@ -84,9 +82,11 @@ export class Application extends ApplicationService<Config, Hooks, /* TODO: this
 
     public constructor() {
 
+        const self = 'self' as unknown as Application;
+
         // Application itself doesnt have configuration
         // Configuration must be handled by application services
-        super({} as AnyService, {}, {}, {} as Application);
+        super(self, {}, {}, self);
 
         // We can't pass this in super so we assign here
         this.parent = this;
@@ -120,7 +120,7 @@ export class Application extends ApplicationService<Config, Hooks, /* TODO: this
         // Handle errors & crashs
         this.on('error', e => this.Console.createBugReport(e))
 
-        this.debug && console.info(`[boot] Start services`);
+        console.info(`[boot] Start services`);
         await this.startServices();
 
         this.debug && console.info(`[boot] App ready`);
@@ -157,17 +157,25 @@ export class Application extends ApplicationService<Config, Hooks, /* TODO: this
 
             // Don't check services prop as it will trigger an error (it's a proxy)
             // TODO: exclude all properties coming from the Service class itself
-            if (propName === 'services' || typeof this[ propName ] !== 'object')
+            if (propName === 'services' || this[ propName ] === undefined)
                 continue;
 
             // Check if this property is a service registration
-            const registered = this[ propName ] as TRegisteredService;
-            if (registered?.type !== 'service')
+            const service = this[ propName ] as TRegisteredService;
+            const isService = (
+                service instanceof ApplicationService
+                ||
+                (
+                    typeof service === 'function'
+                    &&
+                    service.serviceInstance instanceof ApplicationService
+                )
+            )
+            if (!isService)
                 continue;
 
             // Instanciate the service
-            const service = this.registerService( propName, registered );
-            this[ propName ] = service;
+            this.bindService( propName, service );
 
             // Register commands
             if (service.commands)
@@ -180,7 +188,7 @@ export class Application extends ApplicationService<Config, Hooks, /* TODO: this
         // Check if any setup service has not been used
         const unused: string[] = []
         for (const serviceNS in ServicesContainer.registered)
-            if (this.allServices[ serviceNS ] === undefined)
+            if (ServicesContainer.allServices[ serviceNS ] === undefined)
                 unused.push(serviceNS);
         
         if (unused.length !== 0)

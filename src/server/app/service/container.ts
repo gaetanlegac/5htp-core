@@ -52,6 +52,9 @@ export class ServicesContainer<
 
     public registered: TRegisteredServicesIndex = {}
 
+    // All service instances by service id
+    public allServices: {[serviceId: string]: AnyService} = {}
+
     public setup<TServiceId extends keyof TServicesIndex>( 
         serviceId: keyof TServicesIndex, 
         serviceConfig: TServicesIndex[TServiceId]["config"]
@@ -88,27 +91,6 @@ export class ServicesContainer<
         return service;
     }
 
-    public use<TServiceId extends keyof TServicesIndex>( 
-        serviceId: TServiceId, 
-        // TODO: Only subservices types supported by the parent service
-        subServices: TServicesIndex[TServiceId]["services"] = {}
-    ) {
-
-        // Check of the service has been configurated
-        const registered = this.registered[ serviceId ];
-        if (registered === undefined)
-            throw new Error(`Unable to use service "${serviceId}": This one hasn't been setup.`);
-
-        // Bind subservices
-        registered.subServices = subServices;
-
-        // Return the service metas
-        // The parent service will take care of instanciating & starting it
-        return registered as ReturnType< TServicesIndex[TServiceId]["getServiceInstance"] >;
-        // Make typescript think we return te sercice instance
-        // So when we do "public myService = Services.use('...')", myService is typed as the service instance
-    }
-
     public callableInstance = <TInstance extends object, TCallableName extends keyof TInstance>(
         instance: TInstance, 
         funcName: TCallableName
@@ -132,6 +114,9 @@ export class ServicesContainer<
                 callable[ method ] = typeof instance[ method ] === 'function'
                     ? instance[ method ].bind( instance )
                     : instance[ method ];
+
+        // Allow us to recognize a callable as a service 
+        callable.serviceInstance = instance;
 
         return callable as TInstance[TCallableName] & TInstance;
     }

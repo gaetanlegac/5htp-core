@@ -42,7 +42,7 @@ export default class AuthenticationRouterService<
     protected async start() {
 
         // Decode current user
-        this.router.on('request', async (request: TRequest) => {
+        this.parent.on('request', async (request: TRequest) => {
 
             // TODO: Typings. (context.user ?)
             const decoded = await this.services.users.decode( request.req, true);
@@ -51,7 +51,7 @@ export default class AuthenticationRouterService<
         })
 
         // Check route permissions
-        this.router.on('resolved', async (route: TAnyRoute, request: TRequest) => {
+        this.parent.on('resolved', async (route: TAnyRoute, request: TRequest) => {
 
             if (route.options.auth !== undefined)
                 // TODO: How to pas the router type to router config ? Circular rfeerence ?

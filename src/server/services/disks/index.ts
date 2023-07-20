@@ -53,6 +53,14 @@ export default class DisksManager<
         if (Object.keys( drivers ).length === 0)
             throw new Error("At least one disk driver should be mounted.");
 
+        console.log('start disks service', Object.keys( drivers ), Object.keys( this.mounted ), Object.keys( this.services ));
+
+        const defaultDisk = drivers[ this.config.default ];
+        if (defaultDisk === undefined)
+            console.log(`Default disk "${this.config.default as string}" not mounted.`);
+
+        this.default = defaultDisk;
+
     }
 
     /*----------------------------------
@@ -60,12 +68,6 @@ export default class DisksManager<
     ----------------------------------*/
 
     public async start() {
-
-        const defaultDisk = this.mounted[ this.config.default ];
-        if (defaultDisk === undefined)
-            console.log(`Default disk "${this.config.default as string}" not mounted.`);
-
-        this.default = defaultDisk;
         
     }
 

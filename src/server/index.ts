@@ -5,7 +5,8 @@ import './app/container';
 import '@/server/config/*.ts';
 
 // Load Application
-import application from './app/instance';
+import Application from '@/server';
+const application = new Application;
 
 // Start application
 application.start();
