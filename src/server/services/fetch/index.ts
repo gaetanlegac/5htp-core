@@ -65,9 +65,6 @@ export default class FetchService extends Service<Config, Hooks, Application, Se
     ) {
 
         super(parent, config, services, app);
-
-        if (this.services.disks)
-            this.disk = this.services.disks.get( config.disk );
         
     }
 
@@ -77,7 +74,8 @@ export default class FetchService extends Service<Config, Hooks, Application, Se
 
     public async start() {
 
-        
+        if (this.services.disks)
+            this.disk = this.services.disks.get( this.config.disk );
         
         
     }
@@ -114,7 +112,7 @@ export default class FetchService extends Service<Config, Hooks, Application, Se
         { width, height, fit, quality }: TImageConfig, 
         saveToBucket: string,
         saveToPath?: string,
-        disk?: FsDriver
+        disk?: string
     ): Promise<Buffer | null> {
 
         // Define target disk
