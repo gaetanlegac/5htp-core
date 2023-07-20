@@ -40,7 +40,7 @@ import * as appRoutes from '@/client/pages/**/*.tsx';
 - CONFIG
 ----------------------------------*/
 
-const debug = true;
+const debug = false;
 const LogPrefix = '[router]'
 
 /*----------------------------------
