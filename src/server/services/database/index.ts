@@ -92,16 +92,8 @@ export default class SQL extends Service<Config, Hooks, Application, Services> {
         this.database = new Database(this, config);
     }
 
-    public static createInstance(
-        parent: AnyService, 
-        config: Config,
-        services: TRegisteredServicesIndex,
-        app: Application
-    ) {
-        return Services.callableInstance(
-            new SQL(parent, config, services, app),
-            'sql'
-        )
+    public getServiceInstance() {
+        return Services.callableInstance(this, 'sql')
     }
 
     /*----------------------------------

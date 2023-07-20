@@ -92,7 +92,7 @@ export class ServicesContainer<
         serviceId: TServiceId, 
         // TODO: Only subservices types supported by the parent service
         subServices: TServicesIndex[TServiceId]["services"] = {}
-    ): TServicesIndex[TServiceId]/*: TRegisteredService*/ {
+    ) {
 
         // Check of the service has been configurated
         const registered = this.registered[ serviceId ];
@@ -104,7 +104,7 @@ export class ServicesContainer<
 
         // Return the service metas
         // The parent service will take care of instanciating & starting it
-        return registered as TServicesIndex[TServiceId];
+        return registered as ReturnType< TServicesIndex[TServiceId]["getServiceInstance"] >;
         // Make typescript think we return te sercice instance
         // So when we do "public myService = Services.use('...')", myService is typed as the service instance
     }

@@ -62,13 +62,6 @@ export default abstract class Service<
     public metas!: TServiceMetas;
     public bindings: string[] = []
 
-    public static createInstance?: (
-        parent: AnyService, 
-        config: TServiceConfig,
-        services: StartedServicesIndex,
-        app: Application
-    ) => Service<TServiceConfig, THooksList, Application, StartedServicesIndex>;
-
     public constructor( 
         public parent: AnyService, 
         public config: TConfig,
@@ -82,6 +75,10 @@ export default abstract class Service<
         for (const localName in services)
             this.registerService( localName, services[localName] as unknown as TRegisteredService );
         
+    }
+
+    public getServiceInstance() {
+        return this;
     }
 
     /*----------------------------------
@@ -141,11 +138,12 @@ export default abstract class Service<
             // Instanciate
             console.log(`[app] Load service`, registered.metas.id);
             const ServiceClass = registered.metas.class().default;
-            // Create class instance
-            service = ServiceClass.createInstance !== undefined
-                ? ServiceClass.createInstance(this, registered.config, registered.subServices, this.app)
-                : new ServiceClass(this, registered.config, registered.subServices, this.app);
 
+            // Create class instance
+            service = new ServiceClass(this, registered.config, registered.subServices, this.app)
+                .getServiceInstance()
+
+            // Bind his own metas
             service.metas = registered.metas;
 
         } else {
