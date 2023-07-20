@@ -6,11 +6,11 @@
 import React from 'react';
 
 // Core
-import Dropdown, { TDropdownControl, Props as DropdownProps } from '@client/components/dropdown';
+import { Props as DropdownProps } from '@client/components/dropdown';
 import Input from '@client/components/inputv3';
 
 // Specific
-import ChoiceSelector, { 
+import { 
     Props as SelectorProps, 
     Choice,
 } from './ChoiceSelector';
@@ -23,6 +23,8 @@ export type Props = DropdownProps & SelectorProps & {
     title: string,
     errors?: string[],
 }
+
+export { Choice } from './ChoiceSelector';
 
 const ChoiceElement = ({ choice, currentList, onChange, multiple, includeCurrent }: {
     choice: Choice,
