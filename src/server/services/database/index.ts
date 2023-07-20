@@ -4,7 +4,7 @@
 
 // Npm
 import mysql from 'mysql2/promise';
-import type { ResultSetHeader } from 'mysql2';
+import type { OkPacket } from 'mysql2';
 import dottie from 'dottie';
 const safeStringify = require('fast-safe-stringify'); // remplace les références circulairs par un [Circular]
 
@@ -46,6 +46,7 @@ export type TSelectQueryOptions = TQueryOptions & {
 export type TUpdateQueryOptions<TData extends TObjetDonnees = TObjetDonnees> = TQueryOptions;
 
 export type TInsertQueryOptions<TData extends TObjetDonnees = TObjetDonnees> = TQueryOptions & {
+    bulk?: boolean,
     upsert?: TColsToUpsert<TData>, // When "*", we use table.upsertableColumns
     upsertMode?: 'increment'
     try?: boolean
@@ -69,6 +70,20 @@ type TColsToUpsert<TData extends TObjetDonnees> = (
 ----------------------------------*/
 
 const LogPrefix = '[database]'
+
+const emptyOkPacket = {
+    constructor: {
+        name: 'OkPacket'
+    },
+    fieldCount: 0,
+    affectedRows: 0,
+    changedRows: 0,
+    insertId: 0,
+    serverStatus: 0,
+    warningCount: 0,
+    message: '',
+    procotol41: true,
+} as OkPacket
 
 /*----------------------------------
 - CORE
@@ -317,7 +332,7 @@ export default class SQL extends Service<Config, Hooks, Application, Services> {
         data: TData, 
         where?: (keyof TData)[] | TObjetDonnees, 
         opts?: TUpdateQueryOptions<TData>
-    ]): Promise<ResultSetHeader> {
+    ]): Promise<OkPacket> {
 
         let [tableName, data, where, opts] = args;
 
@@ -385,7 +400,7 @@ export default class SQL extends Service<Config, Hooks, Application, Services> {
         path: string, 
         data: TData | TData[], 
         opts: TInsertQueryOptions<TData> = {}
-    ): Promise<ResultSetHeader> {
+    ): Promise<OkPacket> {
 
         const table = this.database.getTable(path);
 
@@ -394,39 +409,54 @@ export default class SQL extends Service<Config, Hooks, Application, Services> {
             data = [data];
         else if (data.length === 0) {
             console.warn(LogPrefix, `Insert nothing in ${path}. Cancelled.`);
-            return {
-                fieldCount: 0,
-                affectedRows: 0,
-                changedRows: 0,
-                insertId: 0,
-                serverStatus: 0,
-                warningStatus: 0,
-                info: undefined
-            };
+            return emptyOkPacket;
         }
 
-        let querySuffix: string = '';
-
         // Upsert
+        let upsertStatement: string = '';
         if (opts.upsert !== undefined)
-            querySuffix += ' ' + this.buildUpsertStatement<TData>(table, opts as With<TInsertQueryOptions<TData>, 'upsert'>);
+            upsertStatement = ' ' + this.buildUpsertStatement<TData>(table, opts as With<TInsertQueryOptions<TData>, 'upsert'>);
         
         // Create basic insert query
-        const query = this.buildInsertStatement(table, data, opts) + querySuffix;
+        if (opts.bulk === false) {
 
-        const queryResult = await this.database.query<mysql.OkPacket>(query + ';', opts);
+            const okPacket = { ...emptyOkPacket }
 
-        return {
-            fieldCount: queryResult.fieldCount,
-            affectedRows: queryResult.affectedRows,
-            changedRows: queryResult.changedRows,
-            insertId: queryResult.insertId,
-            serverStatus: queryResult.serverStatus,
-            warningCount: queryResult.warningCount,
-            message: queryResult.message,
-            procotol41: queryResult.procotol41,
-        };
-        
+            for (const row of data) {
+
+                const query = this.buildInsertStatement(table, [row], opts) + upsertStatement;
+
+                const queryResult = await this.database.query<mysql.OkPacket>(query + ';', opts)
+
+                okPacket.fieldCount += queryResult.fieldCount;
+                okPacket.affectedRows += queryResult.affectedRows;
+                okPacket.changedRows += queryResult.changedRows;
+                okPacket.insertId = queryResult.insertId;
+                okPacket.serverStatus += queryResult.serverStatus;
+                okPacket.warningCount += queryResult.warningCount;
+            }
+
+            return okPacket;
+
+        } else {
+            const query = this.buildInsertStatement(table, data, opts) + upsertStatement;
+
+            const queryResult = await this.database.query<mysql.OkPacket>(query + ';', opts);
+
+            return {
+                constructor: {
+                    name: 'OkPacket'
+                },
+                fieldCount: queryResult.fieldCount,
+                affectedRows: queryResult.affectedRows,
+                changedRows: queryResult.changedRows,
+                insertId: queryResult.insertId,
+                serverStatus: queryResult.serverStatus,
+                warningCount: queryResult.warningCount,
+                message: queryResult.message,
+                procotol41: queryResult.procotol41,
+            };
+        }
         // OLD: return [data, queryResult?.insertId, queryResult];
     }
 
