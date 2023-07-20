@@ -11,6 +11,7 @@ import highlight from 'cli-highlight';
 import type { Application } from '@server/app';
 import Service from '@server/app/service';
 import context from '@server/context';
+import type { ServerBug } from '@common/errors';
 import type ServerRequest from '@server/services/router/request';
 import { SqlError } from '@server/services/database/debug';
 
@@ -86,25 +87,6 @@ export type TDbQueryLog = ChannelInfos & {
 
 export type TLog = ILogObject &  ChannelInfos
 
-/*----------------------------------
-- TYPES: BUG REPORT
-----------------------------------*/
-
-export type ServerBug = {
-    // Context
-    hash: string,
-    date: Date, // Timestamp
-    channelType?: string, 
-    channelId?: string,
-
-    user: string | null | undefined,
-    ip: string | null | undefined,
-    
-    // Error
-    error: Error,
-    stacktrace: string,
-    logs: string,
-}
 
 /*----------------------------------
 - CONST
@@ -188,9 +170,6 @@ export default class Console extends Service<Config, Hooks, Application, Service
         }, envConfig.level);*/
 
         setInterval(() => this.clean(), 10000);
-
-        // Send email report
-        this.app.on('error', this.createBugReport.bind(this));
     }
 
     public async ready() {
@@ -263,7 +242,7 @@ export default class Console extends Service<Config, Hooks, Application, Service
             logs: logsHtml
         }
 
-        await this.runHook('bugReport', bugReport);
+        await this.app.reportBug( bugReport );
     }
 
     public getChannel() {

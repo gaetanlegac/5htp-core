@@ -7,6 +7,7 @@ import AppContainer from './container';
 import ApplicationService, { AnyService } from './service';
 import CommandsManager from './commands';
 import ServicesContainer, { TRegisteredService, TServiceMetas } from './service/container';
+import type { ServerBug } from '../services/console';
 
 // Built-in
 import type { default as Router, Request as ServerRequest } from '@server/services/router';
@@ -48,7 +49,7 @@ export const Service = ServicesContainer;
 /*----------------------------------
 - FUNCTIONS
 ----------------------------------*/
-export class Application extends ApplicationService<Config, Hooks, /* TODO: this ? */Application> {
+export class Application extends ApplicationService<Config, Hooks, /* TODO: this ? */Application, {}> {
 
     /*----------------------------------
     - PROPERTIES
@@ -72,6 +73,8 @@ export class Application extends ApplicationService<Config, Hooks, /* TODO: this
     public debug: boolean = false;
     public launched: boolean = false;
 
+    // Mandatory services
+    public Console = ServicesContainer.use('Core/Console');
     // All service instances by service id
     public allServices: {[serviceId: string]: AnyService} = {}
 
@@ -83,8 +86,10 @@ export class Application extends ApplicationService<Config, Hooks, /* TODO: this
 
         // Application itself doesnt have configuration
         // Configuration must be handled by application services
-        super({}, {}, {}, {});
+        super({} as AnyService, {}, {}, {} as Application);
 
+        // We can't pass this in super so we assign here
+        this.parent = this;
         this.app = this;
 
         // Gestion crash
@@ -113,7 +118,7 @@ export class Application extends ApplicationService<Config, Hooks, /* TODO: this
         console.log(`5HTP Core`, process.env.npm_package_version);
 
         // Handle errors & crashs
-        this.on('error', this.error.bind(this))
+        this.on('error', e => this.Console.createBugReport(e))
 
         this.debug && console.info(`[boot] Start services`);
         await this.startServices();
@@ -132,8 +137,10 @@ export class Application extends ApplicationService<Config, Hooks, /* TODO: this
     }
 
     // Default error handler
-    public async error( e: Error ) {
-        console.error( e );
+    public async reportBug( bug: ServerBug ) {
+
+        console.error( bug.error );
+
     }
 
     public async shutdown() {

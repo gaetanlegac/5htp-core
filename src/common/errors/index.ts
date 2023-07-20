@@ -17,6 +17,26 @@ type TDetailsErreur = {
 }
 
 /*----------------------------------
+- TYPES: BUG REPORT
+----------------------------------*/
+
+export type ServerBug = {
+    // Context
+    hash: string,
+    date: Date, // Timestamp
+    channelType?: string, 
+    channelId?: string,
+
+    user: string | null | undefined,
+    ip: string | null | undefined,
+    
+    // Error
+    error: Error,
+    stacktrace: string,
+    logs: string,
+}
+
+/*----------------------------------
 - ERREURS
 ----------------------------------*/
 export abstract class CoreError extends Error {
