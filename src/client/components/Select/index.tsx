@@ -24,7 +24,7 @@ export type Props = DropdownProps & SelectorProps & {
     errors?: string[],
 }
 
-export { Choice } from './ChoiceSelector';
+export type { Choice } from './ChoiceSelector';
 
 const ChoiceElement = ({ choice, currentList, onChange, multiple, includeCurrent }: {
     choice: Choice,
