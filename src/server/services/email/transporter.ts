@@ -6,6 +6,7 @@
 
 // Core
 import type Application from "@server/app";
+import Service from '@server/app/service';
 import type EmailService from '@server/services/email';
 
 // Specific
@@ -23,16 +24,28 @@ export type TBasicConfig = {
 /*----------------------------------
 - CLASS 
 ----------------------------------*/
-export abstract class Transporter<TConfig extends {} = {}> {
+export abstract class Transporter<TConfig extends TBasicConfig = TBasicConfig>
+    extends Service<TConfig, {}, Application, {}> {
 
-    public constructor( 
-        protected app: Application & { email: EmailService },
-        protected config: TBasicConfig & TConfig,
+    /*----------------------------------
+    - LIFECYCLE
+    ----------------------------------*/
 
-        protected email = app.email
-    ) {
+    protected async start() {
+        
+    }
+
+    protected async ready() {
 
     }
+
+    protected async shutdown() {
+
+    }
+
+    /*----------------------------------
+    - ACTIONS
+    ----------------------------------*/
 
     public abstract send( emails: TCompleteEmail[] ): Promise<void>;
 }

@@ -28,9 +28,6 @@ export type Config = {
         transporter: string,
         from: TPerson
     },
-    transporters: {
-        [transporterName: string]: Transporter
-    },
     bugReport: {
         from: TPerson,
         to: TPerson
@@ -111,14 +108,14 @@ type TOptions = {
 ----------------------------------*/
 export default class Email extends Service<Config, Hooks, Application, Services> {
     
-    private transporters = this.config.transporters;
+    private transporters = this.services;
 
     /*----------------------------------
     - LIFECYCLE
     ----------------------------------*/
 
     public async start() {
-        
+
     }
 
     public async ready() {
