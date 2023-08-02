@@ -121,6 +121,7 @@ export const mysqlToJs = {
 
     // Strings
     'VARCHAR': 'string',
+    'BLOB': 'string',
     'CHAR': 'string',
     'VAR_STRING': 'string',
     'LONGTEXT': 'string',
