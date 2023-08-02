@@ -225,7 +225,7 @@ export default class HttpServer {
         // Impossible donc de créer un serveur http ici, on le fera dans start.js
         console.info("Lancement du serveur web");
         this.http.listen(this.config.port, () => {
-            console.info(`Serveur web démarré sur ${this.publicUrl}`);
+            console.info(`Web server ready on ${this.publicUrl}`);
         });
 
     }
