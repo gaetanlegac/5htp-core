@@ -107,13 +107,16 @@ export const mysqlToJs = {
     'POINT': 'float',
         
     // Integres
-    'INT': 'int',
-    'BIGINT': 'int',
+    'BIT': 'int',
     'LONG': 'int',
     'LONGLONG': 'int',
+
     'TINYINT': 'int',
     'SMALLINT': 'int',
     'MEDIUMINT': 'int',
+    'INT': 'int',
+    'INTEGER': 'int',
+    'BIGINT': 'int',
 
     // Dates
     'DATE': 'date',
@@ -121,10 +124,18 @@ export const mysqlToJs = {
 
     // Strings
     'VARCHAR': 'string',
+    'BINARY': 'string',
+    'VARBINARY': 'string',
+    'TINYBLOB': 'string',
+    'TINY_BLOB': 'string',
+    'MEDIUM_BLOB': 'string',
     'BLOB': 'string',
+    'LONG_BLOB': 'string',
     'CHAR': 'string',
     'VAR_STRING': 'string',
     'LONGTEXT': 'string',
+    'TINYTEXT': 'string',
+    'MEDIUMTEXT': 'string',
     'TEXT': 'string',
     'ENUM': 'enum',
 
