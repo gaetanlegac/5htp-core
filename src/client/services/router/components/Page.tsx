@@ -22,6 +22,7 @@ export default ({ page, isCurrent }: { page: Page, isCurrent?: boolean }) => {
         page.loading  ? null : page.data 
     );
     page.setAllData = setApiData;
+    context.data = apiData;
  
     React.useEffect(() => {
 
@@ -50,7 +51,7 @@ export default ({ page, isCurrent }: { page: Page, isCurrent?: boolean }) => {
             // URL params
             {...context.request.data} 
             // API data
-            {...apiData} 
+            data={apiData}
         />
         
     ) : null

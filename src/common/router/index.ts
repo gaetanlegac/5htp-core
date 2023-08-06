@@ -20,7 +20,7 @@ import type { TUserRole } from '@server/services/users';
 import type { TAppArrowFunction } from '@common/app';
 
 // Specfic
-import type { default as Page, TFrontRenderer } from './response/page';
+import type { default as Page, TFrontRenderer, TDataProvider } from './response/page';
 
 /*----------------------------------
 - TYPES: ROUTES
@@ -81,6 +81,7 @@ export type TRouteOptions = {
 
     // Injected by the page plugin
     filepath?: string,
+    data?: TDataProvider
 
     // Indexing
     bodyId?: string,

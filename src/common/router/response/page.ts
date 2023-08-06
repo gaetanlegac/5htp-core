@@ -2,10 +2,11 @@
 - DEPENDANCES
 ----------------------------------*/
 
-import type { ComponentChild, FunctionComponent } from 'preact';
+// Npm
+import type { VNode } from 'preact';
 
 // Core libs
-import { ClientOrServerRouter, TClientOrServerContext } from '@common/router';
+import { ClientOrServerRouter, TClientOrServerContext, TRoute, TErrorRoute } from '@common/router';
 import { TFetcherList, TDataReturnedByFetchers } from '@common/router/request/api';
 import { history } from '@client/services/router/request/history';
 
@@ -14,21 +15,30 @@ import { history } from '@client/services/router/request/history';
 ----------------------------------*/
 
 // The function that fetch data from the api before to pass them as context to the renderer
-export type TDataProvider<TProvidedData extends TFetcherList = {}> = 
-    (context: TClientOrServerContext/* & TUrlData */) => TProvidedData
+export type TDataProvider<TProvidedData extends TFetcherList = TFetcherList> = (
+    context: TClientOrServerContext & {
+        // URL query parameters
+        // TODO: typings
+        data: {[key: string]: string | number}
+    }
+) => TProvidedData
 
 // The function that renders routes
 export type TFrontRenderer<
-    TProvidedData extends TFetcherList = {}, 
-    TAdditionnalData = {},
+    TProvidedData extends TFetcherList = TFetcherList, 
+    TAdditionnalData extends {} = {},
     TRouter = ClientOrServerRouter,
-> = FunctionComponent<(
-    TClientOrServerContext 
-    & 
-    TDataReturnedByFetchers<TProvidedData>
-    &
-    TAdditionnalData
-)>;
+> = ( 
+    context: (
+        TClientOrServerContext 
+        &
+        TAdditionnalData
+        &
+        {
+            data: TDataReturnedByFetchers<TProvidedData>
+        }
+    )
+) => VNode<any> | null
 
 // Script or CSS resource
 export type TPageResource = {
@@ -46,7 +56,7 @@ const debug = false;
 /*----------------------------------
 - CLASS
 ----------------------------------*/
-export default class PageResponse<TRouter extends ClientOrServerRouter = ClientOrServerRouter> {
+export default abstract class PageResponse<TRouter extends ClientOrServerRouter = ClientOrServerRouter> {
 
     // Metadata
     public chunkId: string;
@@ -65,7 +75,7 @@ export default class PageResponse<TRouter extends ClientOrServerRouter = ClientO
     public data: TObjetDonnees = {};
 
     public constructor(
-        public dataProvider: TDataProvider | null,
+        public route: TRoute | TErrorRoute,
         public renderer: TFrontRenderer,
         public context: TClientOrServerContext
     ) {
@@ -77,8 +87,12 @@ export default class PageResponse<TRouter extends ClientOrServerRouter = ClientO
     public async fetchData() {
 
         // Load the fetchers list to load data if needed
-        if (this.dataProvider)
-            this.fetchers = this.dataProvider({ ...this.context, ...this.context.request.data });
+        const dataFetcher = this.route.options.data;
+        if (dataFetcher)
+            this.fetchers = dataFetcher({
+                ...this.context,
+                data: this.context.request.data
+            });
 
         // Execute the fetchers for missing data
         debug && console.log(`[router][page] Fetching api data:` + Object.keys(this.fetchers));

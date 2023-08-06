@@ -10,7 +10,7 @@ import { getLayout } from './layouts';
 
 // types
 import type { TRouteOptions } from '.';
-import type { TDataProvider, TFrontRenderer } from './response/page';
+import type { TFrontRenderer } from './response/page';
 import type { TRegisterPageArgs } from '@client/services/router';
 
 /*----------------------------------
@@ -21,20 +21,17 @@ export const getRegisterPageArgs = (...args: TRegisterPageArgs) => {
 
     let path: string;
     let options: Partial<TRouteOptions> = {};
-    let controller: TDataProvider|null;
     let renderer: TFrontRenderer;
 
-    if (args.length === 4)
-        ([path, options, controller, renderer] = args)
-    else if (typeof args[1] === 'object')
-        ([path, options, renderer] = args)
+    if (args.length === 2)
+        ([path, renderer] = args)
     else
-        ([path, controller, renderer] = args)
+        ([path, options, renderer] = args)
 
     // Automatic layout form the nearest _layout folder
     const layout = getLayout(path, options);
 
-    return { path, options, controller, renderer, layout }
+    return { path, options, renderer, layout }
 
 }
 

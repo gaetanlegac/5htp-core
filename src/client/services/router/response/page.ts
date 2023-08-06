@@ -6,8 +6,8 @@
 import type { ComponentChild } from 'preact';
 
 // Core
-import type { TClientOrServerContext, Layout } from '@common/router';
-import PageResponse, { TDataProvider, TFrontRenderer } from "@common/router/response/page";
+import type { TClientOrServerContext, Layout, TRoute, TErrorRoute } from '@common/router';
+import PageResponse, { TFrontRenderer } from "@common/router/response/page";
 
 // Specific
 import type ClientRouter from '..';
@@ -29,15 +29,13 @@ export default class ClientPage<TRouter = ClientRouter> extends PageResponse<TRo
     public scrollToId: string;
 
     public constructor(
-        public dataProvider: TDataProvider | null,
+        public route: TRoute | TErrorRoute,
         public component: TFrontRenderer,
         public context: TClientOrServerContext,
-        public layout?: Layout,
-
-        public route = context.route
+        public layout?: Layout
     ) {
 
-        super(dataProvider, component, context);
+        super(route, component, context);
 
         this.bodyId = context.route.options.bodyId;
         this.scrollToId = context.request.hash;

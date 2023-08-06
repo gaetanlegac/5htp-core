@@ -20,7 +20,7 @@ import BaseRouter, {
 import { getLayout } from '@common/router/layouts';
 import { getRegisterPageArgs, buildRegex } from '@common/router/register';
 import { TFetcherList } from '@common/router/request/api';
-import type { TFrontRenderer, TDataProvider } from '@common/router/response/page';
+import type { TFrontRenderer } from '@common/router/response/page';
 
 import App from '@client/app/component';
 import type ClientApplication from '@client/app';
@@ -61,20 +61,17 @@ export type Response = ClientResponse<ClientRouter> | ServerResponse<ServerRoute
 - TYPES: ROUTES LOADING
 ----------------------------------*/
 
-// WARN: To be updated with the mplemenations list of Router.page
+// WARN: To be updated with the mplemenations list of Router.page AND the routes babel plugin
 //      (both server and client side)
-export type TRegisterPageArgs<TProvidedData extends TFetcherList = {}, TRouter extends Router = Router> = ([
+export type TRegisterPageArgs<
+    TProvidedData extends TFetcherList = TFetcherList, 
+    TRouter extends Router = Router
+> = ([
     path: string,
-    controller: TDataProvider<TProvidedData> | null,
     renderer: TFrontRenderer<TProvidedData>
 ] | [
     path: string,
     options: Partial<TRoute["options"]>,
-    renderer: TFrontRenderer<TProvidedData>
-] | [
-    path: string,
-    options: Partial<TRoute["options"]>,
-    controller: TDataProvider<TProvidedData> | null,
     renderer: TFrontRenderer<TProvidedData>
 ])
 
@@ -221,28 +218,20 @@ export default class ClientRouter<
         return currentRoute;
     }
 
-    public page(
+    public page<TProvidedData extends TFetcherList = TFetcherList>(
         path: string,
-        controller: TDataProvider<{}> | null,
-        renderer: TFrontRenderer<{}>
+        renderer: TFrontRenderer<TProvidedData>
     ): TRoute;
 
-    public page(
+    public page<TProvidedData extends TFetcherList = TFetcherList>(
         path: string,
         options: Partial<TRoute["options"]>,
-        renderer: TFrontRenderer<{}>
-    ): TRoute;
-
-    public page(
-        path: string,
-        options: Partial<TRoute["options"]>,
-        controller: TDataProvider<{}> | null,
-        renderer: TFrontRenderer<{}>
+        renderer: TFrontRenderer<TProvidedData>
     ): TRoute;
 
     public page(...args: TRegisterPageArgs): TRoute {
 
-        const { path, options, controller, renderer, layout } = getRegisterPageArgs(...args);
+        const { path, options, renderer, layout } = getRegisterPageArgs(...args);
 
         // S'il s'agit d'une page, son id doit avoir été injecté via le plugin babel
         const id = options["id"];
@@ -260,7 +249,7 @@ export default class ClientRouter<
                 ...defaultOptions,
                 ...options
             },
-            controller: (context: TClientOrServerContext) => new ClientPage(controller, renderer, context, layout)
+            controller: (context: TClientOrServerContext) => new ClientPage(route, renderer, context, layout)
         };
 
         this.routes.push(route);
@@ -275,7 +264,7 @@ export default class ClientRouter<
 
         const route: TErrorRoute = {
             code,
-            controller: (context: TClientOrServerContext) => new ClientPage(null, renderer, context, layout),
+            controller: (context: TClientOrServerContext) => new ClientPage(route, renderer, context, layout),
             options
         };
 
@@ -391,7 +380,9 @@ export default class ClientRouter<
 
         const response = await this.createResponse(route, request, apiData)
 
-        ReactDOM.hydrate( <App context={response.context} />, document.body, () => {
+        ReactDOM.hydrate((
+            <App context={response.context} />
+        ), document.body, () => {
 
             console.log(`Render complete`);
 
@@ -404,7 +395,7 @@ export default class ClientRouter<
         pageData: {} = {}
     ): Promise<ClientPage> {
 
-        // Load if not done before
+        // Load the route if not done before
         if ('load' in route)
             route = this.routes[route.index] = await this.load(route);
 

@@ -95,8 +95,6 @@ export type Config<
 }
 
 export type Services = {
-    disks?: DisksManager
-} & {
     [routerServiceId: string]: RouterService
 }
 
@@ -113,14 +111,15 @@ export type Hooks = {
 - CLASSE
 ----------------------------------*/
 export default class ServerRouter<
-    TConfig extends Config = Config,
-    TApplication extends Application = Application
-> extends Service<TConfig, Hooks, TApplication, Services> implements BaseRouter {
+    TSubservices extends Services = Services
+> extends Service<Config, Hooks, Application, TSubservices> implements BaseRouter {
 
+    public disks = this.use('Core/Disks') as unknown as DisksManager;
+    
     // Services
     public http: HTTP;
     public render: DocumentRenderer<this>;
-    protected routerServices: {[serviceId: string]: RouterService} = {}
+    protected routerServices: TSubservices = {} as TSubservices
 
     // Indexed
     public routes: TRoute[] = []; // API + pages front front
@@ -133,9 +132,9 @@ export default class ServerRouter<
 
     public constructor( 
         parent: AnyService, 
-        config: TConfig,
-        services: Services,
-        app: TApplication, 
+        config: Config,
+        services: TSubservices,
+        app: Application, 
     ) {
 
         super(parent, config, services, app);
@@ -217,7 +216,7 @@ export default class ServerRouter<
 
     public page(...args: TRegisterPageArgs) {
 
-        const { path, options, controller, renderer, layout } = getRegisterPageArgs(...args);
+        const { path, options, renderer, layout } = getRegisterPageArgs(...args);
 
         const { regex, keys } = buildRegex(path);
 
@@ -226,7 +225,7 @@ export default class ServerRouter<
             path,
             regex,
             keys,
-            controller: (context: TRouterContext<this>) => new Page(controller, renderer, context, layout),
+            controller: (context: TRouterContext<this>) => new Page(route, renderer, context, layout),
             options: {
                 ...defaultOptions,
                 accept: 'html', // Les pages retournent forcémment du html
@@ -249,11 +248,13 @@ export default class ServerRouter<
         // Automatic layout form the nearest _layout folder
         const layout = getLayout('Error ' + code, options);
 
-        this.errors[code] = {
+        const route = {
             code,
-            controller: (context: TRouterContext<this>) => new Page(null, renderer, context, layout),
+            controller: (context: TRouterContext<this>) => new Page(route, renderer, context, layout),
             options
         };
+
+        this.errors[code] = route;
     }
 
     public all = (...args: TApiRegisterArgs<this>) => this.registerApi('*', ...args);

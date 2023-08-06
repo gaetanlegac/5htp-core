@@ -9,8 +9,8 @@ const safeStringify = require('fast-safe-stringify'); // remplace les référenc
 
 // Core
 import { default as Router, TRouterContext } from "@server/services/router";
-import type { Layout } from '@common/router';
-import PageResponse, { TDataProvider, TFrontRenderer } from "@common/router/response/page";
+import type { Layout, TRoute, TErrorRoute } from '@common/router';
+import PageResponse, { TFrontRenderer } from "@common/router/response/page";
 
 // Composants UI
 import App from '@client/app/component';
@@ -34,18 +34,17 @@ const seoLimits = {
 export default class Page<TRouter extends Router = Router> extends PageResponse<TRouter> {
 
     public constructor(
-        public dataProvider: TDataProvider | null,
+        public route: TRoute | TErrorRoute,
         public renderer: TFrontRenderer,
         public context: TRouterContext,
         public layout?: Layout,
 
-        public route = context.route,
         public app = context.app,
         public router = context.request.router,
         
     ) {
 
-        super(dataProvider, renderer, context)
+        super(route, renderer, context)
         
     }
 

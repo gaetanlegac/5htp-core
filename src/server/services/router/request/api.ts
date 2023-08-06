@@ -7,7 +7,8 @@
 import RequestService from './service';
 
 import ApiClientService, { 
-    TApiFetchOptions, TFetcherList, TFetcherArgs, TFetcher 
+    TApiFetchOptions, TFetcherList, TFetcherArgs, TFetcher,
+    TDataReturnedByFetchers
 } from '@common/router/request/api';
 
 /*----------------------------------
@@ -27,6 +28,12 @@ export default class ApiClientRequest extends RequestService implements ApiClien
     /*----------------------------------
     - HIGH LEVEL
     ----------------------------------*/
+
+    public fetch<TProvidedData extends TFetcherList = TFetcherList>( 
+        fetchers: TFetcherList 
+    ): TDataReturnedByFetchers<TProvidedData> {
+        throw new Error("api.fetch shouldn't be called here.");
+    }
 
     public get = <TData extends unknown = unknown>(path: string, data?: TObjetDonnees, opts?: TApiFetchOptions) => 
         this.createFetcher<TData>('GET', path, data, opts);

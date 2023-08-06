@@ -9,7 +9,8 @@ import axios, { AxiosResponse, AxiosError, AxiosRequestConfig } from 'axios';
 import type { TApiResponseData } from '@server/services/router';
 import ApiClientService, { 
     TPostData,
-    TApiFetchOptions, TFetcherList, TFetcherArgs, TFetcher 
+    TApiFetchOptions, TFetcherList, TFetcherArgs, TFetcher,
+    TDataReturnedByFetchers
 } from '@common/router/request/api';
 import { instancierViaCode, NetworkError } from '@common/errors';
 import type ClientApplication from '@client/app';
@@ -46,6 +47,13 @@ export default class ApiClient implements ApiClientService {
     /*----------------------------------
     - HIGH LEVEL
     ----------------------------------*/
+
+    public fetch<TProvidedData extends TFetcherList = TFetcherList>( 
+        fetchers: TFetcherList 
+    ): TDataReturnedByFetchers<TProvidedData> {
+        throw new Error("api.fetch shouldn't be called here.");
+    }
+
     public get = <TData extends unknown = unknown>(path: string, data?: TPostData, opts?: TApiFetchOptions) => 
         this.createFetcher<TData>('GET', path, data, opts);
 
@@ -120,7 +128,7 @@ export default class ApiClient implements ApiClientService {
         /*if (options?.captcha !== undefined)
             await this.gui.captcha.check(options?.captcha);*/
 
-        return await this.fetch<TData>(method, path, data, options).catch((e) => {
+        return await this.execute<TData>(method, path, data, options).catch((e) => {
             this.app.handleError(e);
             throw e; // Throw to break the loop
         })
@@ -141,7 +149,7 @@ export default class ApiClient implements ApiClientService {
         // Fetch all the api data thanks to one http request
         const fetchedData = fetchersCount === 0
             ? 0
-            : await this.fetch("POST", "/api", { 
+            : await this.execute("POST", "/api", { 
                 fetchers: fetchersToRun 
             }).then((res) => {
 
@@ -201,7 +209,7 @@ export default class ApiClient implements ApiClientService {
         return config;
     }
     
-    public fetch<TData = unknown>(...args: TFetcherArgs): Promise<TData> {
+    public execute<TData = unknown>(...args: TFetcherArgs): Promise<TData> {
     
         const config = this.configure(...args);
         
