@@ -12,7 +12,8 @@ import ServicesContainer from './container';
 - TYPES: OPTIONS
 ----------------------------------*/
 
-export type AnyService = Service<{}, {}, Application, {}>
+export type AnyService<TSubServices extends StartedServicesIndex = StartedServicesIndex> = 
+    Service<{}, {}, Application, TSubServices>
 
 type TServiceConfig = {
     debug?: boolean
@@ -140,10 +141,26 @@ export default abstract class Service<
     // this.use immediatly instanciate the subservice for few reasons:
     // - The subservice instance can be accesses from another service in the constructor, no matter the order of loading of the services
     // - Consistency: the subserviuce proprties shouldn't be assogned to two different values according depending on the app lifecycle
-    public use<TServiceId extends keyof TServicesIndex>( 
+    public use<
+        TInstalledServices extends this["app"]["servicesContainer"]["allServices"],
+        TServiceId extends keyof TInstalledServices,
+        TServiceClass extends TInstalledServices[TServiceId],
+        TSubServices extends TServiceClass["services"],
+    >( 
         serviceId: TServiceId, 
-        // TODO: Only subservices types supported by the parent service
-        subServices: TServicesIndex[TServiceId]["services"] = {}
+        subServices?: TSubServices
+    ): (
+        // We can't pass the services types as a generic to TServiceClass
+        // So we overwrite the services property
+        ReturnType< TServiceClass["getServiceInstance"] >
+        &
+        {
+            new (...args: any[]): TServiceClass & { services: TSubServices },
+            services: TSubServices
+        }
+        /*Omit<TServiceClass, 'services'> & {
+            services: TSubServices
+        }*/
     ) {
 
         // Check of the service has been configurated
@@ -152,7 +169,7 @@ export default abstract class Service<
             throw new Error(`Unable to use service "${serviceId}": This one hasn't been setup.`);
 
         // Bind subservices
-        registered.subServices = subServices;
+        registered.subServices = subServices || {};
 
         // Check if not already instanciated
         const existing = ServicesContainer.allServices[ serviceId ];
@@ -176,7 +193,7 @@ export default abstract class Service<
         return service;
     }
 
-    protected bindService( localName: string, service: AnyService ) {
+    public bindService( localName: string, service: AnyService ) {
 
         const serviceScope = this.constructor.name + '.' + localName;
 
@@ -196,7 +213,7 @@ export default abstract class Service<
         
     }
 
-    protected async startService( localName: string, service: AnyService ) {
+    public async startService( localName: string, service: AnyService ) {
         // Service already started
         if (!service.started) {
 

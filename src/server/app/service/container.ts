@@ -53,7 +53,7 @@ export class ServicesContainer<
     public registered: TRegisteredServicesIndex = {}
 
     // All service instances by service id
-    public allServices: {[serviceId: string]: AnyService} = {}
+    public allServices: TServicesIndex = {} as TServicesIndex
 
     public setup<TServiceId extends keyof TServicesIndex>( 
         serviceId: keyof TServicesIndex, 

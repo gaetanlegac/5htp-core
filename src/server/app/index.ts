@@ -4,9 +4,13 @@
 
 // Core
 import AppContainer from './container';
-import ApplicationService, { AnyService } from './service';
+import ApplicationService, { StartedServicesIndex } from './service';
 import CommandsManager from './commands';
-import ServicesContainer, { TRegisteredService, TServiceMetas } from './service/container';
+import ServicesContainer, { 
+    ServicesContainer as ServicesContainerClass, 
+    TRegisteredService, 
+    TServiceMetas 
+} from './service/container';
 import type { ServerBug } from '../services/console';
 
 // Built-in
@@ -49,7 +53,12 @@ export const Service = ServicesContainer;
 /*----------------------------------
 - FUNCTIONS
 ----------------------------------*/
-export class Application extends ApplicationService<Config, Hooks, /* TODO: this ? */Application, {}> {
+export class Application<
+    TServicesContainer extends ServicesContainerClass = ServicesContainerClass
+> extends ApplicationService<Config, Hooks, /* TODO: this ? */Application, {}> {
+
+    public app!: this;
+    public servicesContainer!: TServicesContainer;
 
     /*----------------------------------
     - PROPERTIES
