@@ -19,7 +19,7 @@ export const Link = ({ to, ...props }: {
 } & React.HTMLProps<HTMLAnchorElement>) => {
 
     // External = open in new tab by default
-    if (to[0] !== '/' || to.startsWith('//'))
+    if (to && (to[0] !== '/' || to.startsWith('//')))
         props.target = '_blank';
     // Otherwise, propagate to the router
     else 
