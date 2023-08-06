@@ -14,7 +14,6 @@ import RequestValidator, { TConfig } from '../request';
 - TYPES
 ----------------------------------*/
 
-type TRouterWithSchema<TAuthService extends SchemaRouterService> = Router<RouterConfig<{ auth: TAuthService }>>
 
 /*----------------------------------
 - SERVICE
@@ -43,7 +42,7 @@ export default class SchemaRouterService<
     - ROUTER SERVICE LIFECYCLE
     ----------------------------------*/
 
-    public requestService( request: ServerRequest< TRouterWithSchema<this>> ): RequestValidator {
+    public requestService( request: ServerRequest ): RequestValidator {
         return new RequestValidator( request, this.config );
     }
 }

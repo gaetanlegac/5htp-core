@@ -242,11 +242,11 @@ export default class ServerResponse<
         //         ? this.app.path.root + '/bin' + fichier
         //         : this.app.path.data + '/' + fichier;
         // Disk not provided = file response disabled
-        if (this.router.services.disks === undefined)
+        if (this.router.disks === undefined)
             throw new Anomaly("Router: Unable to return file response in router, because no disk has been given in the router config.");
 
         // Retirve disk driver
-        const disk = this.router.services.disks.get('default');
+        const disk = this.router.disks.get('default');
 
         // Verif existance
         const fileExists = await disk.exists('data', fichier);

@@ -5,7 +5,6 @@
 // Core
 import type { Application } from '@server/app';
 import Service, { AnyService } from '@server/app/service';
-import type { TRegisteredServicesIndex } from '@server/app/service/container';
 
 // Specific
 import type Driver from './driver';
@@ -25,7 +24,7 @@ export type Hooks = {
 }
 
 export type Services = {
-
+    [diskId: string]: Driver
 }
 
 /*----------------------------------

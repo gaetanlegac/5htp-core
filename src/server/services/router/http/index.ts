@@ -194,7 +194,7 @@ export default class HttpServer {
         ----------------------------------*/
 
         // TODO: Migrer dans app
-        routes.use('/chrome', cors());
+        //routes.use('/chrome', cors());
         // TODO: Trouver une solution pour n'autoriser les requetes que depuis l'application & dopamyn.io
         //      https://www.google.com/search?q=http+cors+from+android%7Cwindows%7Cdesktop%7Cmodile+app
         //routes.use('/auth', cors());
