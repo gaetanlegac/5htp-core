@@ -48,10 +48,11 @@ export default ({ page, isCurrent }: { page: Page, isCurrent?: boolean }) => {
         <page.renderer 
             // Services
             {...context} 
-            // URL params
-            {...context.request.data} 
-            // API data
-            data={apiData}
+            // API data & URL params
+            data={{
+                ...apiData,
+                ...context.request.data
+            }}
         />
         
     ) : null
