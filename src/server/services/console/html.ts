@@ -3,8 +3,8 @@
 ----------------------------------*/
 // Npm
 import Ansi2Html from 'ansi-to-html';
-import { Logger, ILogObject } from "tslog"
-import type { Console } from '.';;
+import { formatWithOptions } from 'util';
+import type { default as Console, TJsonLog } from '.';;
 
 var ansi2Html = new Ansi2Html({
     newline: true,
@@ -35,30 +35,31 @@ var ansi2Html = new Ansi2Html({
 /*----------------------------------
 - METHOD
 ----------------------------------*/
-export default (log: ILogObject, c: Console) => {
+export default (log: TJsonLog, c: Console) => {
 
-    if (log.logLevel === 'error') {
+    // Print metas as ANSI
+    const logMetaMarkup = c.logger._prettyFormatLogObjMeta({
+        date: log.time,
+        logLevelId: c.getLogLevelId( log.level ),
+        logLevelName: log.level,
+        // We consider that having the path is useless in this case
+        path: undefined,
+    });
 
-        // Enrichissement erreurs
-        for (const arg of log.argumentsArray) {
+    // Print args as ANSI
+    const logArgsAndErrorsMarkup =  c.logger.runtime.prettyFormatLogObj( log.args, c.logger.settings);
+    const logErrors = logArgsAndErrorsMarkup.errors;
+    const logArgs = logArgsAndErrorsMarkup.args;
+    const logErrorsStr = (logErrors.length > 0 && logArgs.length > 0 ? "\n" : "") + logErrors.join("\n");
+    c.logger.settings.prettyInspectOptions.colors = c.logger.settings.stylePrettyLogs;
+    let ansi = logMetaMarkup + formatWithOptions(c.logger.settings.prettyInspectOptions, ...logArgs) + logErrorsStr;
 
-            // Chemin complet pour pouvoir l'ouvrir dans un éditeyr via un clic
-            if (typeof arg === 'object' && arg.stack !== undefined) for (const stack of arg.stack)
-                stack.filePath = stack.fullFilePath;
-
-        }
-    }
-
-    // BUG: log.date pas pris encompte, affiche la date actuelle
-    //  https://github.com/fullstack-build/tslog/blob/master/src/LoggerWithoutCallSite.ts#L509
-
-    let ansi: string = '';
-    const myStd = { write: (message: string) => ansi += message }
-    c.logger.printPrettyLog(myStd, log);
-
+    // Use HTML spaces
     ansi = ansi.replace(/ {2}/g, '&nbsp;');
     ansi = ansi.replace(/\t/g, '&nbsp;'.repeat(8));
+    ansi = ansi.replace(/\n/g, '<br/>');
 
+    // Convert ANSI to HTML
     const html = ansi2Html.toHtml(ansi)
 
     return html;

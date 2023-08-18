@@ -1,9 +1,14 @@
 /*----------------------------------
 - DEPENDANCES
 ----------------------------------*/
+
+// Node
+import { serialize } from 'v8';
+import { formatWithOptions } from 'util';
+
 // Npm
 import { v4 as uuid } from 'uuid';
-import log from 'ololog';
+import { Logger, IMeta, ILogObj, ISettings } from 'tslog';
 import { format as formatSql } from 'sql-formatter';
 import highlight from 'cli-highlight';
 
@@ -85,8 +90,14 @@ export type TDbQueryLog = ChannelInfos & {
     time: number,
 }
 
-export type TLog = ILogObject &  ChannelInfos
+export type TLogLevel = keyof typeof logLevels
 
+export type TJsonLog = {
+    time: Date,
+    level: TLogLevel,
+    args: unknown[],
+    channel: ChannelInfos
+}
 
 /*----------------------------------
 - CONST
@@ -96,21 +107,12 @@ const LogPrefix = '[console]'
 
 const errorMailInterval = (1 * 60 * 60 * 1000); // 1 hour
 
-const logFields = [
-    'date',
-    'logLevelId',
-    'logLevel',
-
-    'isConstructor',
-    'methodName',
-    'functionName',
-    'typeName',
-
-    'filePath',
-    'lineNumber',
-    'argumentsArray',
-    'stack',
-] as const
+const logLevels = {
+    'log': 0, 
+    'info': 3, 
+    'warn': 4, 
+    'error': 5
+} as const
 
 /*----------------------------------
 - LOGGER
@@ -118,21 +120,16 @@ const logFields = [
 export default class Console extends Service<Config, Hooks, Application, Services> {
 
     // Services
-    public logger!: Logger;
-
+    public logger!: Logger<ILogObj>;
     // Buffers
-    public logs: TLog[] = [];
-    public clients: TGuestLogs[] = [];
-    public requests: TRequestLogs[] = [];
-    public sqlQueries: TDbQueryLog[] = [];
+    public logs: TJsonLog[] = [];
     // Bug ID => Timestamp latest send
     private sentBugs: {[bugId: string]: number} = {};
 
-    // Adapters
-    public log = console.log;
-    public warn = console.warn;
-    public info = console.info;
-    public error = console.error;
+    // Old (still useful???)
+    /*public clients: TGuestLogs[] = [];
+    public requests: TRequestLogs[] = [];
+    public sqlQueries: TDbQueryLog[] = [];*/
 
     /*----------------------------------
     - LIFECYCLE
@@ -140,34 +137,61 @@ export default class Console extends Service<Config, Hooks, Application, Service
 
     protected async start() {
 
-        const envConfig = this.config[ this.app.env.profile ];
+        const origLog = console.log
 
-        /*const origConsole = console;
-        console.log = (...args: unknown[]) => log(...args)*/
-
-        /*this.logger = new Logger({
-            overwriteConsole: true,
-            //type: this.app.env.profile === 'dev' ? 'pretty' : 'hidden',
-            requestId: (): string => {
-                const { channelType, channelId } = this.getChannel();
-                return channelId === undefined ? channelType : channelType + ':' + channelId;
-            },
-            displayRequestId: false,
+        this.logger = new Logger({
+            // Use to improve performance in production
             hideLogPositionForProduction: this.app.env.profile === 'prod',
+            type: 'pretty',
             prettyInspectOptions: {
                 depth: 2
+            },
+            overwrite: {
+                formatMeta: (meta?: IMeta) => {
+
+                    // Shorten file paths
+                    if (meta?.path !== undefined) {
+                        meta.path.filePathWithLine = this.shortenFilePath( meta.path.filePathWithLine );
+                    }
+
+                    return this.logger._prettyFormatLogObjMeta( meta );
+                },
+                transportFormatted: (
+                    logMetaMarkup: string, 
+                    logArgs: unknown[], 
+                    logErrors: string[], 
+                    settings: ISettings<ILogObj>
+                ) => {
+                    const logErrorsStr = (logErrors.length > 0 && logArgs.length > 0 ? "\n" : "") + logErrors.join("\n");
+                    settings.prettyInspectOptions.colors = settings.stylePrettyLogs;
+                    origLog(logMetaMarkup + formatWithOptions(settings.prettyInspectOptions, ...logArgs) + logErrorsStr);
+                },
             }
         });
 
-        this.logger.attachTransport({
-            silly: this.logEntry.bind(this),
-            debug: this.logEntry.bind(this),
-            trace: this.logEntry.bind(this),
-            info: this.logEntry.bind(this),
-            warn: this.logEntry.bind(this),
-            error: this.logEntry.bind(this),
-            fatal: this.logEntry.bind(this),
-        }, envConfig.level);*/
+        if (console["_wrapped"] !== undefined)
+            return;
+
+        for (const logLevel in logLevels) {
+            console[ logLevel ] = (...args: any[]) => {
+
+                // Dev mode = no care about performance = rich logging
+                if (this.app.env.profile === 'dev')
+                    this.logger[ logLevel ](...args);
+                // Prod mode = minimal logging  
+
+                const channel = this.getChannel();
+
+                this.logs.push({
+                    time: new Date,
+                    level: logLevel,
+                    args,
+                    channel
+                });
+            }
+        }
+        
+        console["_wrapped"] = true;
 
         setInterval(() => this.clean(), 10000);
     }
@@ -181,14 +205,49 @@ export default class Console extends Service<Config, Hooks, Application, Service
     }
 
     /*----------------------------------
+    - LOGS FORMATTING
+    ----------------------------------*/
+
+    public shortenFilePath( filepath?: string ) {
+
+        if (filepath === undefined)
+            return undefined;
+
+        const projectRoot = this.app.container.path.root;
+        if (filepath.startsWith( projectRoot ))
+            filepath = filepath.substring( projectRoot.length )
+
+        const frameworkRoot = '/node_modules/5htp-core/src/';
+        if (filepath.startsWith( frameworkRoot ))
+            filepath = '@' + filepath.substring( frameworkRoot.length )
+
+        return filepath;
+
+    }
+    
+
+    /*----------------------------------
     - ACTIONS
     ----------------------------------*/
 
+    public getLogLevelId( logLevelName: TLogLevel ) {
+        return logLevels[ logLevelName ]
+    }
+
     private clean() {
-        /*this.config.debug && console.log(LogPrefix, `Clean logs buffer. Current size:`, this.logs.length, '/', this.config.bufferLimit);
+
+        if (this.config.debug) {
+            console.log(
+                LogPrefix, 
+                `Clean logs buffer. Current size:`, 
+                this.logs.length, '/', this.config.bufferLimit,
+                'Memory Size:', serialize(this.logs).byteLength
+            );
+        }
+
         const bufferOverflow = this.logs.length - this.config.bufferLimit;
         if (bufferOverflow > 0)
-            this.logs = this.logs.slice(bufferOverflow);*/
+            this.logs = this.logs.slice(bufferOverflow);
     }
 
     public async createBugReport( error: Error, request?: ServerRequest ) {
@@ -223,7 +282,7 @@ export default class Console extends Service<Config, Hooks, Application, Service
         // On envoi l'email avant l'insertion dans bla bdd
         // Car cette denrière a plus de chances de provoquer une erreur
         const logsHtml = this.printHtml(
-            this.logs/*.filter(e => e.channelId === channelId)*/.slice(-100), 
+            this.logs.filter( e => e.channel.channelId === channelId).slice(-100), 
             true
         );
 
@@ -252,94 +311,9 @@ export default class Console extends Service<Config, Hooks, Application, Service
         }
     }
 
-    private logEntry(entry: ILogObject) {
-
-        // Don't keep logs from the admin sashboard
-        const [channelType, channelId] = entry.requestId?.split(':') || ['master'];
-        if (entry.requestId === 'admin')
-            return;
-
-        // Only keep data required by printPrettyLog
-        // https://github.com/fullstack-build/tslog/blob/4f045d61333230bd0f9db0e0d59cb1e81fc03aa6/src/LoggerWithoutCallSite.ts#L509
-        const miniLog: TObjetDonnees = { channelType, channelId };
-        for (const k of logFields)
-            miniLog[k] = entry[k];
-
-        this.logs.push(miniLog as TLog);
-    }
-
-    public client( client: TGuestLogs ) {
-        this.clients.push(client);
-    }
-
-    public request( request: TRequestLogs ) {
-
-        if (request.id === 'admin')
-            return;
-
-        this.requests.push( request );
-    }
-
-    public database( dbQuery: TDbQueryLog ) {
-
-        this.requests.push( dbQuery );
-    }
-
     /*----------------------------------
     - READ
     ----------------------------------*/
-
-    /*public getClients() {
-        return sql`
-            SELECT * FROM logs.Clients
-            ORDER BY activity DESC
-            LIMIT 100
-        `.all();
-    }
-
-    public async getClient(clientId: string) {
-        return (
-            this.clients.find(c => c.id === clientId)
-            ||
-            await sql`
-                SELECT * FROM logs.Clients
-                WHERE id = ${clientId}
-            `.first()
-        )
-    }
-
-    public getRequests(clientId?: string) {
-        return sql`
-            SELECT * FROM logs.Requests
-            ORDER BY date DESC
-            LIMIT 100
-        `.all();
-    }
-
-    public async getRequest(requestId: string) {
-        return (
-            this.requests.find(r => r.id === requestId)
-            ||
-            await sql`
-                SELECT * FROM logs.Requests
-                WHERE id = ${requestId}
-            `.first()
-        )
-    }
-
-    public getQueries( channelType: ChannelInfos["channelType"], channelId?: string ) {
-
-        const filters: Partial<TDbQueryLog> = { channelType };
-        if (channelId !== undefined)
-            filters.channelId = channelId;
-
-        return sql`
-            SELECT * FROM logs.Queries
-            WHERE :${filters} 
-            ORDER BY date DESC
-            LIMIT 100
-        `.all();
-    }*/
 
     public async getLogs( channelType: ChannelInfos["channelType"], channelId?: string ) {
 
@@ -373,7 +347,7 @@ export default class Console extends Service<Config, Hooks, Application, Service
         return this.printHtml( entries );
     }
  
-    public printHtml(logs: TLog[], full: boolean = false): string {
+    public printHtml( logs: TJsonLog[], full: boolean = false ): string {
 
         let html = logs.map( logEntry => logToHTML( logEntry, this )).join('\n');
 
