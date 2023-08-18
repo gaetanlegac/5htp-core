@@ -5,7 +5,7 @@
         "baseUrl": "..",
         "paths": {
 
-            "@/server/models": ["./server/.generated/models"],
+            "@/server/models": ["./server/.generated/models.d.ts"],
 
             "@client/*": ["../node_modules/5htp-core/src/client/*"],
             "@common/*": ["../node_modules/5htp-core/src/common/*"],

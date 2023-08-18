@@ -111,8 +111,6 @@ const LogPrefix = '[database][meta]';
 const sqlTypeParamsReg = /\'([^\']+)\'\,?/gi;
 const typeViaCommentReg = /\[type=([a-z]+)\]/g;
 
-const modelsTypesPath = process.cwd() + '/src/server/models.ts';
-
 /*----------------------------------
 - FUNCTIONS
 ----------------------------------*/
@@ -368,11 +366,11 @@ export default class MySQLMetasParser {
             }
         }
 
+        // Given that this file is updated during run time, 
+        // We output a typescript ambient file, so the file change doest trigger infinite app reload
         fs.outputFileSync( 
-            path.join( Container.path.server.generated, 'models.ts'), 
+            path.join( Container.path.server.generated, 'models.d.ts'), 
             types.join('\n') 
         );
-        this.debug && console.log(LogPrefix, `Wrote database types to ${modelsTypesPath}`);
-        
     }
 }
