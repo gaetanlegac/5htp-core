@@ -106,7 +106,8 @@ export class ServicesContainer<
             ...Object.getOwnPropertyNames( Object.getPrototypeOf( instance )),
             ...Object.getOwnPropertyNames( instance ),
             // service.launch() isn't included, maybe because parent abstract class
-            'launch'
+            'launch',
+            'bindServices'
         ];
 
         for (const method of methods)

@@ -83,8 +83,7 @@ export default abstract class Service<
             : app
 
         // Instanciate subservices
-        for (const localName in services)
-            this.bindService( localName, services[localName] as unknown as TRegisteredService );
+        this.bindServices( services );
         
     }
 
@@ -169,12 +168,17 @@ export default abstract class Service<
             throw new Error(`Unable to use service "${serviceId}": This one hasn't been setup.`);
 
         // Bind subservices
-        registered.subServices = subServices || {};
+        if (subServices !== undefined)
+            registered.subServices = {
+                ...registered.subServices,
+                ...subServices
+            };
 
         // Check if not already instanciated
         const existing = ServicesContainer.allServices[ serviceId ];
         if (existing !== undefined) {
             console.info("Service", serviceId, "already instanciated through another service.");
+            existing.bindServices( registered.subServices );
             return existing;
         }
 
@@ -183,14 +187,25 @@ export default abstract class Service<
         const ServiceClass = registered.metas.class().default;
 
         // Create class instance
-        const service = new ServiceClass(this, registered.config, registered.subServices, this.app || this)
-            .getServiceInstance()
+        const service = new ServiceClass(
+            this, 
+            registered.config, 
+            registered.subServices, 
+            this.app || this
+        )
+        const serviceInstance = service.getServiceInstance();
 
         // Bind his own metas
         service.metas = registered.metas;
-        ServicesContainer.allServices[ registered.metas.id ] = service;
+        ServicesContainer.allServices[ registered.metas.id ] = serviceInstance;
 
-        return service;
+        return serviceInstance;
+    }
+
+    public bindServices( services: TServicesIndex ) {
+
+        for (const localName in services)
+            this.bindService( localName, services[localName] as unknown as TRegisteredService );
     }
 
     public bindService( localName: string, service: AnyService ) {
