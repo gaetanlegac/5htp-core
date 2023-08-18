@@ -65,6 +65,7 @@
         gap: @spacing / 2;
         min-width: 4em;
         font-size: 1rem;
+        z-index: 1; // Make the label on top of ::before for example
 
         li > & {
             flex: 1;
@@ -111,7 +112,7 @@
         }
 
         > i {
-            color: inherit !important;
+            color: inherit;
         }
 
     }
