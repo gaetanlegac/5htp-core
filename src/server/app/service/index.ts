@@ -155,7 +155,7 @@ export default abstract class Service<
         ReturnType< TServiceClass["getServiceInstance"] >
         &
         {
-            new (...args: any[]): TServiceClass & { services: TSubServices },
+            new (...args: any[]): TServiceClass["getServiceInstance"] & { services: TSubServices },
             services: TSubServices
         }
         /*Omit<TServiceClass, 'services'> & {
