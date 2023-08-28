@@ -21,7 +21,7 @@ export { default as CronTask } from './CronTask';
 ----------------------------------*/
 
 export type Config = {
-   
+   debug?: boolean
 }
 
 export type Hooks = {
@@ -46,8 +46,6 @@ export default class CronManager extends Service<Config, Hooks, Application, Ser
     ----------------------------------*/
 
     protected async start() {
-        
-        this.app.on('cleanup', () => this.cleanup());
 
         clearInterval(CronManager.timer);
         CronManager.timer = setInterval(() => {

@@ -9,7 +9,7 @@ import cronParser, { CronExpression } from 'cron-parser';
 - TYPES
 ----------------------------------*/
 
-import type { CronManager } from '.';
+import type CronManager from '.';
 
 export type TFrequence = string | Date;
 export type TRunner = () => Promise<any>
@@ -22,17 +22,15 @@ export default class CronTask {
     public cron?: CronExpression
     public nextInvocation?: Date;
 
-    private debug?: boolean;
-
     public constructor(
-        manager: CronManager,
+        private manager: CronManager,
         public nom: string,
         next: TFrequence,
         public runner: TRunner,
         public autoexec?: boolean
     ) {
 
-        console.info(`[cron][${this.nom}] Enregistrement de la tâche`);
+        this.manager.config.debug && console.info(`[cron][${this.nom}] Enregistrement de la tâche`);
 
         this.schedule(next);
 
@@ -48,13 +46,15 @@ export default class CronTask {
             this.cron = cronParser.parseExpression(next);
             this.nextInvocation = this.cron.next().toDate();
 
-            console.info(`[cron][${this.nom}] Planifié pour ${this.nextInvocation.toISOString()} via cron ${next}`);
+            this.manager.config.debug && 
+                console.info(`[cron][${this.nom}] Planifié pour ${this.nextInvocation.toISOString()} via cron ${next}`);
 
             // Date
         } else {
 
             this.nextInvocation = next;
-            console.info(`[cron][${this.nom}] Planifié pour ${this.nextInvocation.toISOString()} via date`);
+            this.manager.config.debug && 
+                console.info(`[cron][${this.nom}] Planifié pour ${this.nextInvocation.toISOString()} via date`);
 
         }
     }
@@ -80,7 +80,7 @@ export default class CronTask {
 
         // Execution
         this.runner().then(() => {
-            console.info(`Tâche executée.`);
+            this.manager.config.debug && console.info(`Task runned.`);
         })
     }
 }
