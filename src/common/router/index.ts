@@ -91,15 +91,15 @@ export type TRouteOptions = {
     // Resolving
     domain?: string,
     accept?: string,
-
-    // Access Restriction
     auth?: TUserRole | boolean,
-    //form?: TSchema,
+
+    // Rendering
+    static?: boolean,
     layout?: false | string, // The nale of the layout
 
+    // To cleanup
     TESTING?: boolean,
     logging?: boolean,
-
 }
 
 export type TRouteModule<TRegisteredRoute = any> = { 

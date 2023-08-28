@@ -97,25 +97,40 @@ export default class ServerResponse<
         // Create response context for controllers
         const context = await this.createContext(route);
 
-        // Run controller
-        const response = await this.route.controller( context );
+        // Static rendering
+        const chunkId = route.options["id"];
+        if (route.options.static && 
+            chunkId !== undefined 
+            && 
+            this.router.cache[ chunkId ] !== undefined
+        ) {
+            await this.html( this.router.cache[ chunkId ] );
+            return;
+        }
 
-        // Handle response type
-        if (response === undefined)
+        // Run controller
+        const content = await this.route.controller( context );
+
+        // Handle content type
+        if (content === undefined)
             return;
 
-        // No need to process the response
-        if (response instanceof ServerResponse)
+        // No need to process the content
+        if (content instanceof ServerResponse)
             return;
         // Render react page to html
-        else if (response instanceof Page)
-            await this.render(response, context, additionnalData);
+        else if (content instanceof Page)
+            await this.render(content, context, additionnalData);
         // Return HTML
-        else if (typeof response === 'string' && this.route.options.accept === 'html')
-            await this.html(response);
+        else if (typeof content === 'string' && this.route.options.accept === 'html')
+            await this.html(content);
         // Return JSON
         else
-            await this.json(response);
+            await this.json(content);
+
+        // Cache
+        if (route.options.static)
+            this.router.cache[ chunkId ] = this.data;
     }
 
     /*----------------------------------

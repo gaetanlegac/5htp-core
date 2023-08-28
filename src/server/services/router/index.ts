@@ -126,6 +126,9 @@ export default class ServerRouter<
     public errors: { [code: number]: TErrorRoute } = {};
     public ssrRoutes: TSsrUnresolvedRoute[] = [];
 
+    // Cache (ex: for static pages)
+    public cache: {[pageId: string]: string} = {}
+
     /*----------------------------------
     - SERVICE
     ----------------------------------*/
