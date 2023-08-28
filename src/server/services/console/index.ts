@@ -177,7 +177,8 @@ export default class Console extends Service<Config, Hooks, Application, Service
 
                 // Dev mode = no care about performance = rich logging
                 if (this.app.env.profile === 'dev')
-                    this.logger[ logLevel ](...args);
+                    //this.logger[ logLevel ](...args);
+                    origLog(...args);
                 // Prod mode = minimal logging  
 
                 const channel = this.getChannel();
