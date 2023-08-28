@@ -40,5 +40,5 @@
             "react/jsx-runtime": ["preact/jsx-runtime"]
         },
     },
-    "include": ["src"]
+    "include": ["src", "types/global"]
 }
