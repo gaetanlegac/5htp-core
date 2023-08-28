@@ -14,11 +14,7 @@ import type { FileToUpload } from '@client/components/inputv3/file';
 // By example if we want to fetch an api endpoint only if the url contains a certain url parameter
 export type TFetcherList = { [id: string]: TFetcher | undefined }
 
-export type TPostData = {[key: string]: PrimitiveValue}
-
-export type TPostDataWithFile = {[key: string]: PrimitiveValue | FileToUpload}
-
-export type TFetcher<TData extends unknown = unknown> = {
+export type TFetcher<TData extends any = unknown> = {
 
     // For async calls: api.post(...).then((data) => ...)
     then: (callback: (data: TData) => void) => Promise<TData>,
@@ -44,12 +40,16 @@ export type TApiFetchOptions = {
     encoding?: 'json' | 'multipart'
 }
 
+export type TPostData = {[key: string]: PrimitiveValue}
+
+export type TPostDataWithFile = {[key: string]: PrimitiveValue | FileToUpload}
+
 // https://stackoverflow.com/questions/44851268/typescript-how-to-extract-the-generic-parameter-from-a-type
 type TypeWithGeneric<T> = TFetcher<T>
 type extractGeneric<Type> = Type extends TypeWithGeneric<infer X> ? X : never
 
 export type TDataReturnedByFetchers<TProvidedData extends TFetcherList = {}> = {
-    [Property in keyof TProvidedData]: undefined | (extractGeneric<TProvidedData[Property]> extends ((...args: any[]) => any) 
+    [Property in keyof TProvidedData]: (extractGeneric<TProvidedData[Property]> extends ((...args: any[]) => any) 
         ? ThenArg<ReturnType< extractGeneric<TProvidedData[Property]> >>
         : extractGeneric<TProvidedData[Property]>
     )

@@ -35,7 +35,7 @@ export type TFrontRenderer<
         TAdditionnalData
         &
         {
-            data: TDataReturnedByFetchers<TProvidedData>
+            data: {[key: string]: PrimitiveValue}
         }
     )
 ) => VNode<any> | null

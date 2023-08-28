@@ -48,9 +48,9 @@ export default class ApiClient implements ApiClientService {
     - HIGH LEVEL
     ----------------------------------*/
 
-    public fetch<TProvidedData extends TFetcherList = TFetcherList>( 
-        fetchers: TFetcherList 
-    ): TDataReturnedByFetchers<TProvidedData> {
+    public fetch<FetchersList extends TFetcherList = TFetcherList>( 
+        fetchers: FetchersList 
+    ): TDataReturnedByFetchers<FetchersList> {
         throw new Error("api.fetch shouldn't be called here.");
     }
 
