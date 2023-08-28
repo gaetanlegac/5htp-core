@@ -8,7 +8,7 @@ import React from 'react';
 import useContext from '@/client/context';
 
 // Specific
-import type Router from '..';
+import type ClientRouter from '..';
 import PageComponent from './Page';
 import ClientRequest from '../request';
 import { history, location, Update } from '../request/history';
@@ -29,35 +29,47 @@ export type PropsPage<TParams extends { [cle: string]: unknown }> = TParams & {
 
 const LogPrefix = `[router][component]`
 
+const PageLoading = ({ clientRouter }: { clientRouter?: ClientRouter }) => {
+
+    const [isLoading, setLoading] = React.useState(false);
+
+    if (clientRouter)
+        clientRouter.setLoading = setLoading;
+
+    return isLoading ? (
+        <div id="loading">
+            <i src="spin" />
+        </div>
+    ) : null
+
+}
+
 /*----------------------------------
 - COMPONENT
 ----------------------------------*/
-export default ({ service: router }: { service: Router }) => {
+export default ({ service: clientRouter }: { service?: ClientRouter }) => {
 
     const context = useContext();
 
     const [pages, setPages] = React.useState<{
-        current: undefined | Page,
-        loading: boolean
+        current: undefined | Page
     }>({
-        current: context.page,
-        loading: false
+        current: context.page
     });
     
     const resolvePage = async (request: ClientRequest, locationUpdate?: Update) => {
 
+        if (!clientRouter) return;
+
         // WARNING: Don"t try to play with pages here, since the object will not be updated
         //  If needed to play with pages, do it in the setPages callback below
         
-        // Set.loading  state
-        setPages( oldState => ({
-            ...oldState,
-            loading: true,
-        }));
+        // Set loading state
+        clientRouter.setLoading(true);
 
         // Load the route chunks
         context.request = request;
-        const newpage = context.page = await router.resolve(request);
+        const newpage = context.page = await clientRouter.resolve(request);
 
         // Page not found: Directly load with the browser
         if (newpage === undefined) {
@@ -69,17 +81,18 @@ export default ({ service: router }: { service: Router }) => {
             return;
         }
 
-        const data = context.data = await newpage.fetchData();
+        // Fetch API data to hydrate the page
+        const newData = context.data = await newpage.fetchData();
 
         // Add page container
         setPages( pages => {
 
-            const currentRoute = pages.current?.route;
-
             // Check if the page changed
-            if (currentRoute?.path === request.path)  {
+            if (pages.current?.chunkId === newpage.chunkId)  {
                 console.warn(LogPrefix, "Canceling navigation to the same page:", {...request});
-                return { ...pages, loading: false }
+                pages.current.setAllData(newData);
+                clientRouter.setLoading(false);
+                return { ...pages }
             }
 
             // If if the layout changed
@@ -93,24 +106,12 @@ export default ({ service: router }: { service: Router }) => {
                 //  Find a way to unload the  previous layout / page resources before to load the new one
                 console.log(LogPrefix, `Changing layout. Before:`, curLayout, 'New layout:', newLayout);
                 window.location.replace(request.url);
-                return { ...pages, loading: false }
+                return { ...pages }
 
                 context.app.setLayout(newLayout);
             }
 
-            // Remove old page after the aff-page css transition
-            const oldPage = pages.current;
-            if (oldPage !== undefined) {
-                setTimeout(() => setPages({ 
-                    current: newpage,
-                    loading: false
-                }), 500);
-            }
-
-            return  {
-                current: newpage,
-                loading: false
-            }
+            return  { current: newpage }
         });
     }
 
@@ -136,12 +137,17 @@ export default ({ service: router }: { service: Router }) => {
             await resolvePage(request);
             
             // Scroll to the selected content via url hash
-            restoreScroll(pages.current);
+            //restoreScroll(pages.current);
         })
     }, []);
 
     // On every page change
     React.useEffect(() => {
+
+        if (!clientRouter) return;
+
+        // Page loaded
+        clientRouter.setLoading(false);
 
         // Reset scroll
         window.scrollTo(0, 0);
@@ -151,10 +157,10 @@ export default ({ service: router }: { service: Router }) => {
         restoreScroll(pages.current);
 
         // Hooks
-        router.runHook('page.changed', pages.current)
+        clientRouter.runHook('page.changed', pages.current)
         
     }, [pages.current]);
-    
+
     // Render the page component
     return <>
         {/*pages.previous && (
@@ -169,10 +175,6 @@ export default ({ service: router }: { service: Router }) => {
             />
         )}
 
-        {pages.loading && (
-            <div id="loading">
-                <i src="spin" />
-            </div>
-        )}
+        <PageLoading clientRouter={clientRouter} />
     </>
 }

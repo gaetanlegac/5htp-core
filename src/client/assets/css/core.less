@@ -108,21 +108,18 @@ body {
 
 }
 
-/*#loading {
+#loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    background: fade(#fff, 50%);
+    //backdrop-filter: blur(10px);
+    z-index: 1000;
+
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-
-    backdrop-filter: blur(10px);
-    background: fade(#fff, 50%);
-    color: #000;
-
-    visibility: hidden;
-}*/
+    right: 0;
+    bottom: 0;
+}
