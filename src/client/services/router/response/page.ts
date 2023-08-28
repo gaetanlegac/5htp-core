@@ -24,8 +24,6 @@ import type ClientRouter from '..';
 
 export default class ClientPage<TRouter = ClientRouter> extends PageResponse<TRouter> {
 
-    public isLoading: boolean = false;
-    public loading: false | ComponentChild;
     public scrollToId: string;
 
     public constructor(
@@ -45,11 +43,9 @@ export default class ClientPage<TRouter = ClientRouter> extends PageResponse<TRo
 
         // Add the page to the context
         this.context.page = this;
-        this.isLoading = true;
 
         // Data succesfully loaded
         this.data = data || await this.fetchData();
-        this.isLoading = false;
 
         return this;
     }

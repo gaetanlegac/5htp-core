@@ -185,7 +185,7 @@ export const createDialog = (app: Application, isToast: boolean): DialogActions 
             </div>
         )),
 
-        loading: (title: string) => app.loading  = show({
+        loading: (title: string) => show({
             title: title,
             type: 'loading'
         }),

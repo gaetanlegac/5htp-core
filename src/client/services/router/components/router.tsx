@@ -38,16 +38,22 @@ export default ({ service: router }: { service: Router }) => {
 
     const [pages, setPages] = React.useState<{
         current: undefined | Page,
-        //previous: undefined | Page
+        loading: boolean
     }>({
         current: context.page,
-        //previous: undefined
+        loading: false
     });
     
     const resolvePage = async (request: ClientRequest, locationUpdate?: Update) => {
 
         // WARNING: Don"t try to play with pages here, since the object will not be updated
         //  If needed to play with pages, do it in the setPages callback below
+        
+        // Set.loading  state
+        setPages( oldState => ({
+            ...oldState,
+            loading: true,
+        }));
 
         // Load the route chunks
         context.request = request;
@@ -63,9 +69,8 @@ export default ({ service: router }: { service: Router }) => {
             return;
         }
 
-        // Set.loading  state
-        newpage.isLoading = true;
-        newpage.loading  = <i src="spin" />
+        const data = context.data = await newpage.fetchData();
+
         // Add page container
         setPages( pages => {
 
@@ -74,7 +79,7 @@ export default ({ service: router }: { service: Router }) => {
             // Check if the page changed
             if (currentRoute?.path === request.path)  {
                 console.warn(LogPrefix, "Canceling navigation to the same page:", {...request});
-                return pages;
+                return { ...pages, loading: false }
             }
 
             // If if the layout changed
@@ -88,7 +93,7 @@ export default ({ service: router }: { service: Router }) => {
                 //  Find a way to unload the  previous layout / page resources before to load the new one
                 console.log(LogPrefix, `Changing layout. Before:`, curLayout, 'New layout:', newLayout);
                 window.location.replace(request.url);
-                return pages;
+                return { ...pages, loading: false }
 
                 context.app.setLayout(newLayout);
             }
@@ -98,13 +103,13 @@ export default ({ service: router }: { service: Router }) => {
             if (oldPage !== undefined) {
                 setTimeout(() => setPages({ 
                     current: newpage,
-                    //previous: undefined
+                    loading: false
                 }), 500);
             }
 
             return  {
                 current: newpage,
-                //previous: oldPage
+                loading: false
             }
         });
     }
@@ -116,7 +121,7 @@ export default ({ service: router }: { service: Router }) => {
             inline: "nearest"
         })
 
-    // First load
+    // First render
     React.useEffect(() => {
 
         // Resolve page if it wasn't done via SSR
@@ -158,9 +163,16 @@ export default ({ service: router }: { service: Router }) => {
 
         {pages.current && (
             <PageComponent page={pages.current} 
-                isCurrent 
-                key={pages.current.id === undefined ? undefined : 'page_' + pages.current.id} 
+                /* Create a new instance of the Page component every time the page change 
+                Otherwise the page will memorise the data of the previous page */
+                key={pages.current.chunkId === undefined ? undefined : 'page_' + pages.current.chunkId} 
             />
+        )}
+
+        {pages.loading && (
+            <div id="loading">
+                <i src="spin" />
+            </div>
         )}
     </>
 }
