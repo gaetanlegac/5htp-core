@@ -125,18 +125,20 @@ export class Application<
     protected async start() {
 
         console.log(`5HTP Core`, process.env.npm_package_version);
+        const startTime = Date.now();
 
         // Handle errors & crashs
         this.on('error', e => this.Console.createBugReport(e))
 
         console.info(`[boot] Start services`);
         await this.startServices();
+        this.debug && console.info(`[boot] Services are ready`);
 
-        this.debug && console.info(`[boot] App ready`);
         await this.ready();
         await this.runHook('ready');
 
-        this.debug && console.info(`[boot] Application is ready.`);
+        const startedTime = (Date.now() - startTime) / 1000;
+        console.info(`[boot] Application launched in ${startedTime}s`);
         this.launched = true;
     }
 
