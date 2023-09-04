@@ -167,7 +167,7 @@ export default class Console extends Service<Config, Hooks, Application, Service
                     origLog(logMetaMarkup + formatWithOptions(settings.prettyInspectOptions, ...logArgs) + logErrorsStr);
                 },
             }
-        });
+        }); 
 
         if (console["_wrapped"] !== undefined)
             return;
@@ -176,7 +176,7 @@ export default class Console extends Service<Config, Hooks, Application, Service
             console[ logLevel ] = (...args: any[]) => {
 
                 // Dev mode = no care about performance = rich logging
-                if (this.app.env.profile === 'dev')
+                if (this.app.env.profile === 'dev' || ['warn', 'error'].includes( logLevel ))
                     //this.logger[ logLevel ](...args);
                     origLog(...args);
                 // Prod mode = minimal logging  
