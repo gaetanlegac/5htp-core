@@ -180,7 +180,10 @@ export default ({
                 </div>
 
                 {(enableSearch && choices.length !== 0 && search.keywords.length !== 0) && (
-                    <ul class="row al-left wrap sp-05 pd-1">
+                    <ul class="row al-left wrap sp-05 pd-1" style={{
+                        maxHeight: '30vh',
+                        overflowY: 'auto'
+                    }}>
                         {choices.map( choice => (
                             <ChoiceElement choice={choice} 
                                 currentList={currentList}
