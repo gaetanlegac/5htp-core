@@ -169,6 +169,8 @@ export default class Console extends Service<Config, Hooks, Application, Service
             }
         }); 
 
+        return;
+
         if (console["_wrapped"] !== undefined)
             return;
 
