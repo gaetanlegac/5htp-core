@@ -124,6 +124,8 @@ export class Application<
     
     protected async start() {
 
+        console.log("Build date", BUILD_DATE);
+        console.log("Core version", CORE_VERSION);
         console.log(`5HTP Core`, process.env.npm_package_version);
         const startTime = Date.now();
 
