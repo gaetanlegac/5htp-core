@@ -121,8 +121,15 @@ export default class HttpServer {
                 serveStatic: {
                     setHeaders: function setCustomCacheControl(res, path) {
 
+                        const dontCache = [
+                            '/public/icons',
+                            '/public/client'
+                        ]
+
+                        res.setHeader('Cache-Control', 'public, max-age=0');
+
                         // Set long term cache, except for non-hashed filenames
-                        /*if (__DEV__ || path.includes('/icons.')) {
+                        /*if (dontCache.some( p => path.startsWith( p ))) {
                             res.setHeader('Cache-Control', 'public, max-age=0');
                         } else {
                             res.setHeader('Cache-Control', 'public, max-age=604800000'); // 7 Days

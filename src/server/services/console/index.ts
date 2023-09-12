@@ -137,6 +137,8 @@ export default class Console extends Service<Config, Hooks, Application, Service
 
     protected async start() {
 
+        return;
+
         const origLog = console.log
 
         this.logger = new Logger({
@@ -168,8 +170,6 @@ export default class Console extends Service<Config, Hooks, Application, Service
                 },
             }
         }); 
-
-        return;
 
         if (console["_wrapped"] !== undefined)
             return;
