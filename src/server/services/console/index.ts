@@ -137,8 +137,6 @@ export default class Console extends Service<Config, Hooks, Application, Service
 
     protected async start() {
 
-        return;
-
         const origLog = console.log
 
         this.logger = new Logger({
@@ -352,10 +350,10 @@ export default class Console extends Service<Config, Hooks, Application, Service
  
     public printHtml( logs: TJsonLog[], full: boolean = false ): string {
 
-        let html = logs.map( logEntry => logToHTML( logEntry, this )).join('\n');
+        let html = logs.map( logEntry => logToHTML( logEntry, this )).join('<br />');
 
         if (full) {
-            const consoleCss = `background: #000; padding: 20px; font-family: 'Fira Mono', 'monospace', 'Monaco'; font-size: 12px; line-height: 20px;`
+            const consoleCss = `background: #000; padding: 20px; font-family: 'Fira Mono', 'monospace', 'Monaco'; font-size: 12px; line-height: 20px;color: #aaa;`
             html = '<div style="' + consoleCss + '">' + html + '</div>';
         }
 
