@@ -181,15 +181,16 @@ export default function useForm<TFormData extends {}>(
 
                 // Submit on press enter
                 onKeyDown: e => {
-                    if (e.key === 'Enter') {
+                    if (e.key === 'Enter' || (e.keyCode || e.which) === 13) {
                         submit({ [fieldName]: e.target.value } as Partial<TFormData>);
                     }
                 },
 
                 // Error
                 errors: state.errors[fieldName],
-                required: validator.options?.opt !== true,
-                validator: validator,
+
+                // Component attributes
+                ...validator.componentAttributes
             }
         }
     }

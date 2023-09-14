@@ -10,6 +10,7 @@ import { InputError } from '@common/errors';
 
 // Specific
 import type { TValidateOptions } from './schema';
+import type { InputBaseProps } from '@client/components/inputv3/base';
 
 /*----------------------------------
 - TYPES
@@ -64,13 +65,22 @@ export const EXCLUDE_VALUE = "action:exclure" as const;
 /*----------------------------------
 - CLASS
 ----------------------------------*/
-export default class Validator<TValue, TOptions extends TValidator<TValue> = TValidator<TValue>> {
+export default class Validator<
+    TValue, 
+    TOptions extends TValidator<TValue> = TValidator<TValue>,
+    TComponent = React.FunctionComponent< InputBaseProps< TValue > >
+> {
 
     public constructor( 
         public type: string,
         public validateType: TValidationFunction<TValue>, 
-        public options: TOptions
+        public options: TOptions,
+        public componentAttributes: Partial<InputBaseProps<TValue>> = {}
     ) {
+
+        // Basic component attriutes
+        this.componentAttributes.required = options?.opt !== true;
+        //this.componentAttributes.validator = this;
 
     }
 

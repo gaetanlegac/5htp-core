@@ -111,22 +111,22 @@ export default class SchemaValidators {
         })
     }
 
-    public choice = (values?: any[], opts: TValidator<any> & {} = {}) => 
+    public choice = (choices?: any[], opts: TValidator<any> & {} = {}) => 
         new Validator<any>('choice', (val, input, output) => {
 
             // Choice object
             if (typeof val === 'object' && ('value' in val) && typeof val.value !== 'object')
                 val = val.value;
 
-            if (values !== undefined) {
-                const isValid = values.some(v => v.value === val);
+            if (choices !== undefined) {
+                const isValid = choices.some(v => v.value === val);
                 if (!isValid)
-                    throw new InputError("Invalid value. Must be: " + values.map(v => v.value).join(', '));
+                    throw new InputError("Invalid value. Must be: " + choices.map(v => v.value).join(', '));
             }
 
             return val;
 
-        }, opts)
+        }, opts, { choices })
 
     /*----------------------------------
     - CHAINES
