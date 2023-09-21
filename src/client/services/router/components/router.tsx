@@ -49,7 +49,15 @@ const PageLoading = ({ clientRouter }: { clientRouter?: ClientRouter }) => {
 ----------------------------------*/
 export default ({ service: clientRouter }: { service?: ClientRouter }) => {
 
+    /*----------------------------------
+    - INIT
+    ----------------------------------*/
+
     const context = useContext();
+
+    // Bind context object to client router
+    if (clientRouter !== undefined) 
+        clientRouter.context = context;
 
     const [pages, setPages] = React.useState<{
         current: undefined | Page
@@ -57,6 +65,9 @@ export default ({ service: clientRouter }: { service?: ClientRouter }) => {
         current: context.page
     });
     
+    /*----------------------------------
+    - ACTIONS
+    ----------------------------------*/
     const resolvePage = async (request: ClientRequest, locationUpdate?: Update) => {
 
         if (!clientRouter) return;
@@ -69,7 +80,7 @@ export default ({ service: clientRouter }: { service?: ClientRouter }) => {
 
         // Load the route chunks
         context.request = request;
-        const newpage = context.page = await clientRouter.resolve(request);
+        const newpage = await clientRouter.resolve(request);
 
         // Page not found: Directly load with the browser
         if (newpage === undefined) {
@@ -161,6 +172,9 @@ export default ({ service: clientRouter }: { service?: ClientRouter }) => {
         
     }, [pages.current]);
 
+    /*----------------------------------
+    - RENDER
+    ----------------------------------*/
     // Render the page component
     return <>
         {/*pages.previous && (

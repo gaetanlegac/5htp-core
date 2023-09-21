@@ -31,7 +31,7 @@ const debug = true;
 export type TBasicSSrData = {
     request: { data: TObjetDonnees, id: string },
     page: { chunkId: string, data?: TObjetDonnees },
-    //user: User | null
+    user: User | null
 }
 
 export type TRouterContext<TRouter extends ServerRouter = ServerRouter> = (

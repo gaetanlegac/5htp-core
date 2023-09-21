@@ -27,6 +27,7 @@ import type ClientApplication from '@client/app';
 import Service from '@client/app/service';
 
 // Specific
+import type { ClientContext } from '@/client/context';
 import ClientRequest from './request';
 import { location, history } from './request/history';
 import ClientResponse from './response';
@@ -122,7 +123,7 @@ type THookName = 'location.change' | 'page.changed'
 
 type Config<TAdditionnalContext extends {} = {}> = {
     preload: string[], // List of globs
-    context: (router: ClientRouter) => TAdditionnalContext
+    context: (router: ClientContext) => TAdditionnalContext
 }
 
 /*----------------------------------
@@ -134,8 +135,11 @@ export default class ClientRouter<
 > extends Service<Config<TAdditionnalContext>, ClientApplication> implements BaseRouter {
 
     // Context data
-    public context = window["ssr"] as (TBasicSSrData | undefined);
     public ssrRoutes = window["routes"] as TSsrUnresolvedRoute[];
+    public ssrContext = window["ssr"] as (TBasicSSrData | undefined);
+    public context!: ClientContext;
+
+    public setLoading!: React.Dispatch< React.SetStateAction<boolean> >;
 
     public constructor(app: TApplication, config: Config<TAdditionnalContext>) {
 
@@ -203,9 +207,9 @@ export default class ClientRouter<
             if (currentRoute === undefined) {
 
                 const isCurrentRoute = (
-                    this.context !== undefined
+                    this.ssrContext !== undefined
                     &&
-                    route.chunk === this.context.page.chunkId
+                    route.chunk === this.ssrContext.page.chunkId
                 );
 
                 if (isCurrentRoute) {
@@ -365,15 +369,15 @@ export default class ClientRouter<
 
         // Restituate SSR response
         let apiData: {} = {}
-        if (this.context) {
+        if (this.ssrContext) {
 
             console.log("SSR Response restitution ...");
 
-            request.user = this.context.user || null;
+            request.user = this.ssrContext.user || null;
 
-            request.data = this.context.request.data;
+            request.data = this.ssrContext.request.data;
 
-            apiData = this.context.page.data || {};
+            apiData = this.ssrContext.page.data || {};
         }
 
         // Replacer api data par ssr data

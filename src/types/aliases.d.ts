@@ -35,10 +35,10 @@ declare module "@/client/context" {
     const ClientRouter: import('../client/services/router').default;
     const ServerRouter: import('../server/services/router').default;
 
-    const TServerRouterRequestContext: import('../server/services/router/response').TRouterContext;
-    const TClientRouterRequestContext: import('../client/services/router/response').TRouterContext;
+    type TServerRouterRequestContext = import('../server/services/router/response').TRouterContext;
+    type TClientRouterRequestContext = import('../client/services/router/response').TRouterContext;
 
-    export const ClientContext = (
+    export type ClientContext = (
         // TO Fix: TClientRouterRequestContext is unable to get the right type of CrossPathClient["router"]
         //    (it gets ClientApplication instead of CrossPathClient)
         TClientRouterRequestContext<ClientRouter, ClientRouter["app"]>
@@ -50,7 +50,7 @@ declare module "@/client/context" {
 
     const useContext: () => ClientContext;
 
-    export = useContext;
+    export default useContext;
 }
 
 declare module "@app" {

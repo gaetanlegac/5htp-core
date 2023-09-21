@@ -39,7 +39,7 @@ export default class ApiClient implements ApiClientService {
     public constructor( 
         public app: ClientApplication, 
         public request: Request,
-        public router = request.router
+        public router = request.router,
     ) {
 
     }
@@ -69,27 +69,32 @@ export default class ApiClient implements ApiClientService {
     
     public set( newData: TObjetDonnees ) {
 
-        console.log("[api] Update page data", newData);
-        if (this.app.page)
-            this.app.page.setAllData(curData => ({ ...curData, ...newData }));
-        
+        if (!('context' in this.router))
+            throw new Error("api.set is not available on server side.");
+
+        if (this.router.context.page)
+            this.router.context.page.setAllData(curData => ({ ...curData, ...newData }));
+        else
+            throw new Error(`[api] this.router.context.page undefined`)
     }
 
     public reload( ids?: string | string[], params?: TObjetDonnees ) {
+
+        if (!('context' in this.router))
+            throw new Error("api.set is not available on server side.");
         
-        if (this.app.page === undefined)
-            throw new Error("context.page is missing");
+        const page = this.router.context.page;
 
         if (ids === undefined)
-            ids = Object.keys(this.app.page.fetchers);
+            ids = Object.keys(page.fetchers);
         else if (typeof ids === 'string')   
             ids = [ids];
 
-        console.log("[api] Reload data", ids, params, this.app.page.fetchers);
+        console.log("[api] Reload data", ids, params, page.fetchers);
 
         for (const id of ids) {
 
-            const fetcher = this.app.page.fetchers[id];
+            const fetcher = page.fetchers[id];
             if (fetcher === undefined)
                 return console.error(`Unable to reload ${id}: Request not found in fetchers list.`);
 

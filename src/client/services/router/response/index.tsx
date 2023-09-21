@@ -39,7 +39,7 @@ export type TRouterContext<
         route: TRoute<TRouterContext>,
         api: ClientRequest<TRouter>["api"],
         page: ClientPage<TRouter>,
-        user: User
+        //user: User
     }
     &
     // Expose client application services (api, socket, ...)
@@ -76,22 +76,31 @@ export default class ClientPageResponse<
 
     private createContext(): TRouterContext<TRouter, TRouter["app"]> {
 
-        const context: TRouterContext<TRouter, TRouter["app"]> = {
+        const basicContext: TRouterContext<TRouter, TRouter["app"]> = {
+
             // App services (TODO: expose only services)
             ...this.request.app,
+
             // Router context
             app: this.app,
             context: undefined as unknown as TRouterContext<TRouter, TRouter["app"]>,
             request: this.request,
             route: this.route,
             api: this.request.api,
-
-            ...this.request.router.config.context( this.request.router )
+            page: undefined, // Will be assigned when the controller will be runned
+            user: this.request.router.ssrContext.user
         }
 
-        context.context = context;
+        const completeContext: TRouterContext<TRouter, TRouter["app"]> = {
+            ...basicContext,
 
-        return context;
+            // Custom context
+            ...this.request.router.config.context( basicContext )
+        }
+
+        this.request.router.context = completeContext.context = completeContext;
+
+        return completeContext
     }
 
     public async runController( additionnalData: {} = {} ): Promise<ClientPage> {
