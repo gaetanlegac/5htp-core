@@ -6,8 +6,8 @@
 import type ServerRouter from '@server/services/router';
 import type ServerResponse from '@server/services/router/response';
 
-import type { TRoute, TErrorRoute } from '@common/router';
-import BaseResponse from '@common/router/response';
+import type { TAnyRoute, TErrorRoute } from '@common/router';
+import BaseResponse, { TResponseData } from '@common/router/response';
 
 import type ClientApplication from '@client/app';
 import type { default as ClientRouter } from '@client/services/router'
@@ -15,7 +15,6 @@ import type ClientResponse from '@client/services/router/response'
 import ClientRequest from '@client/services/router/request'
 import ClientPage from '@client/services/router/response/page'
 import { history } from '@client/services/router/request/history';
-import CommonPage from '@common/router/response/page';
 
 /*----------------------------------
 - TYPES
@@ -34,12 +33,11 @@ export type TRouterContext<
     // ClientPage context
     {
         app: TApplication,
-        context: TRouterContext<TRouter, TApplication>,
         request: ClientRequest<TRouter>,
-        route: TRoute<TRouterContext>,
+        route: TAnyRoute<TRouterContext>,
         api: ClientRequest<TRouter>["api"],
         page: ClientPage<TRouter>,
-        //user: User
+        data: TObjetDonnees
     }
     &
     // Expose client application services (api, socket, ...)
@@ -61,7 +59,7 @@ export default class ClientPageResponse<
 
     public constructor(
         public request: ClientRequest<TRouter>,
-        public route: TRoute | TErrorRoute,
+        public route: TAnyRoute | TErrorRoute,
 
         public app = request.app,
     ) {
@@ -83,24 +81,31 @@ export default class ClientPageResponse<
 
             // Router context
             app: this.app,
-            context: undefined as unknown as TRouterContext<TRouter, TRouter["app"]>,
             request: this.request,
             route: this.route,
             api: this.request.api,
-            page: undefined, // Will be assigned when the controller will be runned
-            user: this.request.router.ssrContext.user
+            // Will be assigned when the controller will be runned
+            page: undefined as unknown as ClientPage<TRouter>, 
+            data: {},
         }
 
-        const completeContext: TRouterContext<TRouter, TRouter["app"]> = {
+        const newContext: TRouterContext<TRouter, TRouter["app"]> = {
             ...basicContext,
-
             // Custom context
-            ...this.request.router.config.context( basicContext )
+            ...this.request.router.config.context( basicContext, this.request.router )
         }
 
-        this.request.router.context = completeContext.context = completeContext;
+        // Update context object if already exists
+        // NOTE: we don't create a nex instance of context because we don't want to rereder the full page (inc layout) to update the context given by thr react context provider
+        const existingContext = this.request.router.context;
+        if (existingContext === undefined) {
 
-        return completeContext
+            this.request.router.context = newContext
+
+        } else for(const key in newContext)
+            existingContext[ key ] = newContext[ key ];
+
+        return newContext
     }
 
     public async runController( additionnalData: {} = {} ): Promise<ClientPage> {

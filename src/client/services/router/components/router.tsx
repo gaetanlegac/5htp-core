@@ -80,7 +80,7 @@ export default ({ service: clientRouter }: { service?: ClientRouter }) => {
 
         // Load the route chunks
         context.request = request;
-        const newpage = await clientRouter.resolve(request);
+        const newpage = context.page = await clientRouter.resolve(request);
 
         // Page not found: Directly load with the browser
         if (newpage === undefined) {
@@ -93,7 +93,7 @@ export default ({ service: clientRouter }: { service?: ClientRouter }) => {
         }
 
         // Fetch API data to hydrate the page
-        const newData = context.data = await newpage.fetchData();
+        const newData = await newpage.fetchData();
 
         // Add page container
         setPages( pages => {
@@ -122,7 +122,7 @@ export default ({ service: clientRouter }: { service?: ClientRouter }) => {
                 context.app.setLayout(newLayout);
             }
 
-            return  { current: newpage }
+            return { current: newpage }
         });
     }
 

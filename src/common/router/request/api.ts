@@ -72,6 +72,8 @@ export default abstract class ApiClient {
 
     public abstract delete<TData extends unknown = unknown>(path: string, data?: TObjetDonnees, opts?: TApiFetchOptions): TFetcher<TData>;
 
+    public abstract set( newData: TObjetDonnees );
+
     /*----------------------------------
     - LOW LEVEL
     ----------------------------------*/

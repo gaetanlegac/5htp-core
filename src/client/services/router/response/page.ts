@@ -45,7 +45,7 @@ export default class ClientPage<TRouter = ClientRouter> extends PageResponse<TRo
         this.context.page = this;
 
         // Data succesfully loaded
-        this.data = data || await this.fetchData();
+        this.context.data = this.data = data || await this.fetchData();
 
         return this;
     }

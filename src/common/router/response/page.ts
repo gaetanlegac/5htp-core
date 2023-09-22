@@ -35,6 +35,7 @@ export type TFrontRenderer<
         TAdditionnalData
         &
         {
+            context: TClientOrServerContext,
             data: {[key: string]: PrimitiveValue}
         }
     )

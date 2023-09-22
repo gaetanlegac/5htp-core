@@ -41,6 +41,7 @@ export default ({ page }: { page: Page }) => {
                 ...apiData,
                 ...context.request.data
             }}
+            context={context}
         />
         
     ) : 'Renderer missing'

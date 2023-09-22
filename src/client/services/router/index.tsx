@@ -123,7 +123,7 @@ type THookName = 'location.change' | 'page.changed'
 
 type Config<TAdditionnalContext extends {} = {}> = {
     preload: string[], // List of globs
-    context: (router: ClientContext) => TAdditionnalContext
+    context: (context: ClientContext, router: ClientRouter) => TAdditionnalContext
 }
 
 /*----------------------------------
@@ -371,8 +371,6 @@ export default class ClientRouter<
         let apiData: {} = {}
         if (this.ssrContext) {
 
-            console.log("SSR Response restitution ...");
-
             request.user = this.ssrContext.user || null;
 
             request.data = this.ssrContext.request.data;
@@ -382,7 +380,7 @@ export default class ClientRouter<
 
         // Replacer api data par ssr data
 
-        const response = await this.createResponse(route, request, apiData)
+        const response = await this.createResponse(route, request, apiData);
 
         ReactDOM.hydrate((
             <App context={response.context} />

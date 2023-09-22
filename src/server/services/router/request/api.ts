@@ -47,6 +47,10 @@ export default class ApiClientRequest extends RequestService implements ApiClien
     public delete = <TData extends unknown = unknown>(path: string, data?: TObjetDonnees, opts?: TApiFetchOptions) => 
         this.createFetcher<TData>('DELETE', path, data, opts);
 
+    public set( newData: TObjetDonnees ) {
+        throw new Error("api.set is not available on server side.");
+    }
+
     /*----------------------------------
     - API CALLS FROM SERVER
     ----------------------------------*/
@@ -65,10 +69,11 @@ export default class ApiClientRequest extends RequestService implements ApiClien
 
         for (const id in fetchers) {
 
-            if (!fetchers[id])
+            const fetcher = fetchers[id]
+            if (!fetcher)
                 continue;
 
-            const { method, path, data, options } = fetchers[id];
+            const { method, path, data, options } = fetcher;
             //this.router.config.debug && console.log(`[api] Resolving from internal api`, method, path, data);
 
             // We don't fetch the already given data

@@ -7,14 +7,14 @@ import { FunctionalComponent } from "preact";
 
 // Core
 import { TAnyRoute } from "..";
-import type ClientRequest from '@client/services/router';
+import type ClientRequest from '@client/services/router/request';
 import Page from '@client/services/router/response/page'
 
 /*----------------------------------
 - TYPES
 ----------------------------------*/
 
-type TResponseData = Page
+export type TResponseData = Page
 
 /*----------------------------------
 - CONTEXT

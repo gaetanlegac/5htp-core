@@ -66,7 +66,6 @@ export default class ApiClient implements ApiClientService {
     public delete = <TData extends unknown = unknown>(path: string, data?: TPostData, opts?: TApiFetchOptions) => 
         this.createFetcher<TData>('DELETE', path, data, opts);
 
-    
     public set( newData: TObjetDonnees ) {
 
         if (!('context' in this.router))
