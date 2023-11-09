@@ -8,7 +8,7 @@ import express from 'express';
 import http from 'http';
 import https from 'https';
 import path from 'path';
-import cors from 'cors';
+import cors, { CorsOptions } from 'cors';
 //var serveStatic = require('serve-static')
 
 // Middlewares (npm)
@@ -52,7 +52,8 @@ export type Config = {
         styles?: string[],
         images?: string[],
         scripts: string[],
-    }
+    },
+    cors?: CorsOptions
 }
 
 export type Hooks = {
@@ -200,11 +201,8 @@ export default class HttpServer {
         - PAGES / API
         ----------------------------------*/
 
-        // TODO: Migrer dans app
-        //routes.use('/chrome', cors());
-        // TODO: Trouver une solution pour n'autoriser les requetes que depuis l'application & dopamyn.io
-        //      https://www.google.com/search?q=http+cors+from+android%7Cwindows%7Cdesktop%7Cmodile+app
-        //routes.use('/auth', cors());
+        if (this.config.cors !== undefined)
+            routes.use( cors( this.config.cors ));
 
         routes.use( csp.expressCspHeader({
             directives: {
