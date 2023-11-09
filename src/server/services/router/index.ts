@@ -24,7 +24,8 @@ import type DisksManager from '@server/services/disks';
 import { CoreError, NotFound } from '@common/errors';
 import BaseRouter, {
     TRoute, TErrorRoute, TRouteModule,
-    TRouteOptions, defaultOptions
+    TRouteOptions, defaultOptions,
+    buildUrl, TDomainsList
 } from '@common/router';
 import { buildRegex, getRegisterPageArgs } from '@common/router/register';
 import { layoutsList, getLayout } from '@common/router/layouts';
@@ -86,11 +87,7 @@ export type Config<
 
     disk?: string, // Disk driver ID
 
-    domains: {
-        [endpointId: string]: string
-    } & {
-        default: string
-    },
+    domains: TDomainsList,
 
     http: HttpServiceConfig
 
@@ -212,36 +209,8 @@ export default class ServerRouter<
         this.afterRegister();
     }
 
-    // TODO: Generate TS type of the routes list
-    public url<TRoutePath extends keyof Routes = keyof Routes>( 
-        path: string,//TRoutePath, 
-        params: Routes[TRoutePath]["params"] = {}
-    ) {
-
-        // Relative to domain
-        if (path[0] === '/')
-            return this.http.publicUrl + path;
-        // Other domains of the project
-        else if (path[0] === '@') {
-
-            // Extract domain ID from path
-            let domainId: string;
-            const slackPos = path.indexOf('/');
-            domainId = path.substring(1, slackPos);
-            path = path.substring(slackPos + 1);
-
-            // Get domain
-            const domain = this.config.domains[ domainId ];
-            if (domain === undefined)
-                throw new Error("Unknown API endpoint ID: " + domainId);
-
-            // Return full url
-            return domain + path;
-
-        // Absolute URL
-        } else
-            return path;
-    }
+    public url = (path: string, params: {} = {}, absolute: boolean = true) => 
+        buildUrl(path, params, this.config.domains, absolute);
 
     /*----------------------------------
     - REGISTER

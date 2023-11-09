@@ -15,7 +15,9 @@ import type {
 import type { TBasicSSrData } from '@server/services/router/response';
 
 import BaseRouter, {
-    defaultOptions, TRoute, TErrorRoute, TClientOrServerContext, TRouteModule
+    defaultOptions, TRoute, TErrorRoute, 
+    TClientOrServerContext, TRouteModule,
+    buildUrl, TDomainsList
 } from '@common/router'
 import { getLayout } from '@common/router/layouts';
 import { getRegisterPageArgs, buildRegex } from '@common/router/register';
@@ -124,11 +126,7 @@ type THookName = 'location.change' | 'page.changed'
 type Config<TAdditionnalContext extends {} = {}> = {
     preload: string[], // List of globs
     context: (context: ClientContext, router: ClientRouter) => TAdditionnalContext,
-    domains: {
-        [endpointId: string]: string
-    } & {
-        default: string
-    }
+    domains: TDomainsList
 }
 
 /*----------------------------------
@@ -158,9 +156,13 @@ export default class ClientRouter<
         this.initialRender(currentRoute);
     }
 
+    public url = (path: string, params: {} = {}, absolute: boolean = true) => 
+        buildUrl(path, params, this.config.domains, absolute);
+
     public go( url: string ) {
+        url = this.url(url, {}, false);
         console.log( LogPrefix, "Go to", url);
-        history?.replace(url);
+        history?.replace( url );
     }
 
     /*----------------------------------

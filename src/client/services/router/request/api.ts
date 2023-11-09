@@ -173,34 +173,15 @@ export default class ApiClient implements ApiClientService {
     public configure = (...[method, path, data, options]: TFetcherArgs): AxiosRequestConfig => {
 
         const { onProgress, captcha } = options || {};
+
+        const url = this.router.url( path, {}, false );
     
-        debug && console.log(`[api] Sending request`, method, path, data);
-
-        // Detect the target API endpoint
-        let domain = this.router.config.domains.default;
-        if (path[0] === '@') {
-
-            // @recruiters/login
-            //      endpointId = recruiters
-            //      path = login
-            // Extract domain ID from path
-            let domainId: string;
-            const slackPos = path.indexOf('/');
-            domainId = path.substring(1, slackPos);
-            path = path.substring(slackPos + 1);
-
-            // Get domain
-            domain = this.router.config.domains[ domainId ];
-            if (domain === undefined)
-                throw new Error("Unknown API endpoint ID: " + domainId);
-        } else
-            // Remove nthe first slash since the endpoint always ends with a slash
-            path = path.substring(1)
+        debug && console.log(`[api] Sending request`, method, url, data);
     
         // Create AXIOS config
         const config: AxiosRequestConfig = {
     
-            url: domain + path,
+            url,
             method: method,
             headers: {
                 'Content-Type': "application/json",

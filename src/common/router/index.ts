@@ -107,8 +107,49 @@ export type TRouteModule<TRegisteredRoute = any> = {
     __register?: TAppArrowFunction<TRegisteredRoute> 
 }
 
+export type TDomainsList = {
+    [endpointId: string]: string
+} & {
+    current: string
+}
+
 export const defaultOptions = {
     priority: 0,
+}
+
+/*----------------------------------
+- FUNCTIONS
+----------------------------------*/
+export const buildUrl = (
+    path: string,
+    params: {} = {},
+    domains: TDomainsList,
+    absolute: boolean
+) => {
+
+    // Relative to domain
+    if (path[0] === '/' && absolute)
+        return domains.current + path;
+    // Other domains of the project
+    else if (path[0] === '@') {
+
+        // Extract domain ID from path
+        let domainId: string;
+        const slackPos = path.indexOf('/');
+        domainId = path.substring(1, slackPos);
+        path = path.substring(slackPos);
+
+        // Get domain
+        const domain = domains[ domainId ];
+        if (domain === undefined)
+            throw new Error("Unknown API endpoint ID: " + domainId);
+
+        // Return full url
+        return domain + path;
+
+    // Absolute URL
+    } else
+        return path;
 }
 
 /*----------------------------------
