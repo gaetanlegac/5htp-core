@@ -41,6 +41,10 @@ export type StartedServicesIndex = {
     [serviceId: string]: AnyService
 }
 
+type TServiceUseOptions = {
+    optional?: boolean
+}
+
 /*----------------------------------
 - CONFIG
 ----------------------------------*/
@@ -147,7 +151,8 @@ export default abstract class Service<
         TSubServices extends TServiceClass["services"],
     >( 
         serviceId: TServiceId, 
-        subServices?: TSubServices
+        subServices?: TSubServices,
+        serviceUseOptions: TServiceUseOptions = {}
     ): (
         // We can't pass the services types as a generic to TServiceClass
         // So we overwrite the services property
@@ -164,8 +169,12 @@ export default abstract class Service<
 
         // Check of the service has been configurated
         const registered = ServicesContainer.registered[ serviceId ];
-        if (registered === undefined)
-            throw new Error(`Unable to use service "${serviceId}": This one hasn't been setup.`);
+        if (registered === undefined) { 
+            if (serviceUseOptions.optional)
+                return undefined;
+            else
+                throw new Error(`Unable to use service "${serviceId}": This one hasn't been setup.`);
+        }
 
         // Bind subservices
         if (subServices !== undefined)
