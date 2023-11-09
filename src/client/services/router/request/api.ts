@@ -175,10 +175,32 @@ export default class ApiClient implements ApiClientService {
         const { onProgress, captcha } = options || {};
     
         debug && console.log(`[api] Sending request`, method, path, data);
+
+        // Detect the target API endpoint
+        let domain = this.router.config.domains.default;
+        if (path[0] === '@') {
+
+            // @recruiters/login
+            //      endpointId = recruiters
+            //      path = login
+            // Extract domain ID from path
+            let domainId: string;
+            const slackPos = path.indexOf('/');
+            domainId = path.substring(1, slackPos);
+            path = path.substring(slackPos + 1);
+
+            // Get domain
+            domain = this.router.config.domains[ domainId ];
+            if (domain === undefined)
+                throw new Error("Unknown API endpoint ID: " + domainId);
+        } else
+            // Remove nthe first slash since the endpoint always ends with a slash
+            path = path.substring(1)
     
+        // Create AXIOS config
         const config: AxiosRequestConfig = {
     
-            url: path,
+            url: domain + path,
             method: method,
             headers: {
                 'Content-Type': "application/json",
@@ -196,6 +218,7 @@ export default class ApiClient implements ApiClientService {
     
         };
     
+        // Format request data
         if (data) {
             // URL params
             if (method === "GET") {

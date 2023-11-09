@@ -245,17 +245,17 @@ export default class ServerResponse<
     }
 
     // TODO: https://github.com/adonisjs/http-server/blob/develop/src/Response/index.ts#L430
-    public async file( fichier: string ) {
+    public async file( filename: string ) {
 
         // Securité
-        if (fichier.includes('..'))
+        if (filename.includes('..'))
             throw new Forbidden("Disallowed");
 
         // // Force absolute path
-        // if (!fichier.startsWith( this.app.path.root ))
-        //     fichier = fichier[0] === '/'
-        //         ? this.app.path.root + '/bin' + fichier
-        //         : this.app.path.data + '/' + fichier;
+        // if (!filename.startsWith( this.app.path.root ))
+        //     filename = filename[0] === '/'
+        //         ? this.app.path.root + '/bin' + filename
+        //         : this.app.path.data + '/' + filename;
         // Disk not provided = file response disabled
         if (this.router.disks === undefined)
             throw new Anomaly("Router: Unable to return file response in router, because no disk has been given in the router config.");
@@ -264,14 +264,15 @@ export default class ServerResponse<
         const disk = this.router.disks.get('default');
 
         // Verif existance
-        const fileExists = await disk.exists('data', fichier);
+        const fileExists = await disk.exists('data', filename);
         if (!fileExists) {
-            console.log("File " + fichier + " was not found.");
+            console.log("File " + filename + " was not found.");
             throw new NotFound();
         }
 
-        // envoi fichier
-        this.data = await disk.readFile('data', fichier, {});
+        // envoi filename
+        const file = await disk.readFile('data', filename, {});
+        this.data = file;
         return this.end();
     }
 
@@ -279,7 +280,7 @@ export default class ServerResponse<
 
         debug && console.log("[routeur][response] Redirect", url);
         this.statusCode = code;
-        this.headers['Location'] = url;
+        this.headers['Location'] = this.router.url( url );
         return this.end();
     }
 

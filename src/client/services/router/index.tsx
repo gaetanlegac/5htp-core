@@ -123,7 +123,12 @@ type THookName = 'location.change' | 'page.changed'
 
 type Config<TAdditionnalContext extends {} = {}> = {
     preload: string[], // List of globs
-    context: (context: ClientContext, router: ClientRouter) => TAdditionnalContext
+    context: (context: ClientContext, router: ClientRouter) => TAdditionnalContext,
+    domains: {
+        [endpointId: string]: string
+    } & {
+        default: string
+    }
 }
 
 /*----------------------------------

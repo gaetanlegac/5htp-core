@@ -86,6 +86,12 @@ export type Config<
 
     disk?: string, // Disk driver ID
 
+    domains: {
+        [endpointId: string]: string
+    } & {
+        default: string
+    },
+
     http: HttpServiceConfig
 
     context: (
@@ -114,7 +120,9 @@ export default class ServerRouter<
     TSubservices extends Services = Services
 > extends Service<Config, Hooks, Application, TSubservices> implements BaseRouter {
 
-    public disks = this.use('Core/Disks') as unknown as DisksManager;
+    public disks = this.use('Core/Disks', undefined, {
+        optional: true
+    }) as unknown as DisksManager | undefined;
     
     // Services
     public http: HTTP;
@@ -144,7 +152,6 @@ export default class ServerRouter<
 
         this.http = new HTTP(config.http, this);
         this.render = new DocumentRenderer(this);
-
     }
 
     /*----------------------------------
@@ -207,10 +214,33 @@ export default class ServerRouter<
 
     // TODO: Generate TS type of the routes list
     public url<TRoutePath extends keyof Routes = keyof Routes>( 
-        path: TRoutePath, 
-        params: Routes[TRoutePath]["params"]
+        path: string,//TRoutePath, 
+        params: Routes[TRoutePath]["params"] = {}
     ) {
-        return this.http.publicUrl + path;
+
+        // Relative to domain
+        if (path[0] === '/')
+            return this.http.publicUrl + path;
+        // Other domains of the project
+        else if (path[0] === '@') {
+
+            // Extract domain ID from path
+            let domainId: string;
+            const slackPos = path.indexOf('/');
+            domainId = path.substring(1, slackPos);
+            path = path.substring(slackPos + 1);
+
+            // Get domain
+            const domain = this.config.domains[ domainId ];
+            if (domain === undefined)
+                throw new Error("Unknown API endpoint ID: " + domainId);
+
+            // Return full url
+            return domain + path;
+
+        // Absolute URL
+        } else
+            return path;
     }
 
     /*----------------------------------
