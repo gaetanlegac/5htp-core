@@ -44,6 +44,13 @@ const PageLoading = ({ clientRouter }: { clientRouter?: ClientRouter }) => {
 
 }
 
+const scrollToElement = (selector: string) => document.querySelector( selector )
+    ?.scrollIntoView({
+        behavior: "smooth", 
+        block: "start", 
+        inline: "nearest"
+    })
+
 /*----------------------------------
 - COMPONENT
 ----------------------------------*/
@@ -72,14 +79,24 @@ export default ({ service: clientRouter }: { service?: ClientRouter }) => {
 
         if (!clientRouter) return;
 
+        const currentRequest = context.request;
+        context.request = request;
+
         // WARNING: Don"t try to play with pages here, since the object will not be updated
         //  If needed to play with pages, do it in the setPages callback below
+        // Unchanged path
+        if (request.path === currentRequest.path) {
+
+            // Scroll to component
+            if (request.hash) {
+                scrollToElement(request.hash);
+            }
+
+            return;
+        }
         
         // Set loading state
         clientRouter.setLoading(true);
-
-        // Load the route chunks
-        context.request = request;
         const newpage = context.page = await clientRouter.resolve(request);
 
         // Page not found: Directly load with the browser
@@ -127,11 +144,7 @@ export default ({ service: clientRouter }: { service?: ClientRouter }) => {
     }
 
     const restoreScroll = (currentPage?: Page) => currentPage?.scrollToId 
-        && document.getElementById( currentPage.scrollToId.substring(1) )?.scrollIntoView({
-            behavior: "smooth", 
-            block: "start", 
-            inline: "nearest"
-        })
+        && scrollToElement( currentPage.scrollToId.substring(1) )
 
     // First render
     React.useEffect(() => {
@@ -146,9 +159,6 @@ export default ({ service: clientRouter }: { service?: ClientRouter }) => {
             // Load the concerned route
             const request = new ClientRequest(locationUpdate.location, context.Router);
             await resolvePage(request);
-            
-            // Scroll to the selected content via url hash
-            //restoreScroll(pages.current);
         })
     }, []);
 
