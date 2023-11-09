@@ -1,67 +1,97 @@
 @bgDelta: #111;
 @fgDelta: #999;
 
-.build-theme-bg( 
-    @bg, 
-    @fg: if( lightness(@bg) >= 80%, @bg - @fgDelta, @bg + @fgDelta),
-    @cAccent: @c1,
-    @cAccent2: @c2,
-    @apply: true
-) {
+/* Theme structure:
 
-    @isLight: boolean( lightness(@bg) >= 80% );
+    background?: COLOR;
+    foreground: COLOR;
+    accent1: COLOR;
+    accent2: COLOR;
+*/
 
-    --cAccent: @cAccent;
-    --cAccent2: @cAccent2;
+.apply-theme( @theme, @componentsTheme: false, @apply: true ) {
+        
+    .apply-theme-style( @theme, @componentsTheme, @apply );
 
-    // Background
-    // TODO: Nettoyer
-    @bg2: darken(@bg, 8%);
-    @bgDark: darken(@bg, 7%);
-    @bgDarkPlus: darken(@bg, 10%);
-    --cBg: @bg; 
-    --cBg2: @bg2;
-    --cBgAccent: @bgDark;
-    --cBgAccentPlus: @bgDarkPlus;
-    --cBgControl: if( @bg = #fff, @cBgPage, #fff );
-    --cBgHover: #f5f5f5;
-
-    @cBgHighlight: @bg + #111;
-    --cBgHighlight: @cBgHighlight;
-
-    // Other
-    @cLine: if( @isLight, @bg - #151515, @bg + #151515);
-    @cLine2: if( @isLight, @bg - #191919, @bg + #050505);
-    --cLine: @cLine;
-    --cLine2: @cLine2;
-
-    // Text
-    .build-theme-fg(@fg, @bg, @apply);
-
-    // Childrens
-    & when (@apply = true) {
-        background: var(--cBg);
-        /*.input.text {
-            border: if(@bg = #ffffff, solid 2px var(--cLine), none);
-        }*/
+    // Children Components
+    & when not (@componentsTheme = false) {
+        // Default theming for the children components
+        @{componentsSelector} {
+            // Don't apply the default theme to already themed components
+            &:not(.bg) {
+                .apply-theme-style( @componentsTheme, false, false );
+            }
+        }
     }
 }
 
-.build-theme-fg( @cTxtBase, @bg: @cBgPage, @apply: true ) {
+.apply-theme-style( @theme, @componentsTheme: false, @apply: true ) {
+    
+    @isLight: boolean( lightness( @bg ) >= 80% );
+
+    // Flags
+    @bg: @theme[background];
+    @bgActive: if( @isLight, 
+        @bg - #111, 
+        @bg + #111, 
+    );
+    @fg: @theme[foreground];
+
+    // Background
+    --cBg: @bg; 
+    --cBgActive: @bgActive;
+    & when (@apply = true) {
+        background: var(--cBg);
+    }
+
+    // Accent
+    & when (@theme[accent1]) {
+        --cAccent: @theme[accent1];
+    }
+    & when (@theme[accent2]) {
+        --cAccent2: @theme[accent2];
+    }
+
+    // Lines
+    @cLine: if( @isLight, @bg - #151515, @bg + #151515);
+    --cLine: @cLine;
+    @cLine2: if( @isLight, @bg - #191919, @bg + #050505);
+    --cLine2: @cLine2;
+
+    // Text
+    .build-theme-fg(@fg, @bg, @theme[accent1], @theme[accent2]);
+
+    // TO REMOVE
+    --cBgControl: if( @bg = #fff, @cBgPage, #fff );
+    --cBgHover: #f5f5f5;
+}
+
+.build-theme-fg( 
+    @cTxtBase, 
+    @bg: @cBgPage,
+    @cAccent: false,
+    @cAccent2: false
+) {
 
     @isLight: boolean( lightness(@bg) >= 70% );
-    
-    // Text
-    @cTxtDiscret: if( @isLight, @bg - #444, @bg + #444);
-    @cTxtDesc: if( @isLight, @cTxtBase + #222, @cTxtBase - #222);
-    @cTxtImportant: if( @isLight, @cDark, #fff);
-    @cTxtAccent: if( @bg = @c1, @cTxtImportant, @c1);
 
-    --cTxtDiscret: @cTxtDiscret;
-    --cTxtDesc: @cTxtDesc;
+    // Base
     --cTxtBase: @cTxtBase;
+    
+    // Discret
+    @cTxtDiscret: if( @isLight, @bg - #444, @bg + #444);
+    --cTxtDiscret: @cTxtDiscret;
+
+    // Desc
+    @cTxtDesc: if( @isLight, @cTxtBase + #222, @cTxtBase - #222);
+    --cTxtDesc: @cTxtDesc;
+
+    // Important
+    @cTxtImportant: if( @isLight, @cDark, #fff);
     --cTxtImportant: @cTxtImportant;
-    --cTxtAccent: @cTxtAccent;
+
+    // Accent
+    --cTxtAccent: @cAccent;
 
     color: var(--cTxtBase);
 }

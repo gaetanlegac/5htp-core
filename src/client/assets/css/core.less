@@ -1,3 +1,5 @@
+@import (reference) '@/client/assets/vars.less';
+
 // Utils
 @import './utils/sizing.less';
 @import './utils/spacing.less';
@@ -18,16 +20,41 @@
         background-repeat: no-repeat;
         background-position: center;
 
-        .build-theme-bg(#000, #fff);
         text-shadow: 0 0 10px fade(#000, 20%);
+
+        .apply-theme({
+            background: #000;
+            foreground: #fff;
+            accent1: #fff;
+            accent2: #fff;
+        }, { 
+            background: #111; 
+            foreground: #fff;
+            accent1: #fff;
+            accent2: #fff;
+        });
 
         --cTxtDiscret: fade(#fff, 40%)
         --cTxtDesc: fade(#fff, 60%);
         --cTxtBase: fade(#fff, 80%);
         --cTxtImportant: fade(#fff, 100%);
-        --cTxtAccent: fade(#fff, 20%);
+        --cTxtAccent: #FFF;
 
         &.light {
+            .apply-theme({
+                background: #fff;
+                foreground: #000;
+                accent1: #000;
+                accent2: #000;
+            },{
+                background: #fff;
+                foreground: #000;
+                accent1: #000;
+                accent2: #000;
+            });
+
+            text-shadow: none;
+            
             --cTxtDiscret: fade(#000, 40%)
             --cTxtDesc: fade(#000, 60%);
             --cTxtBase: fade(#000, 80%);
@@ -53,6 +80,33 @@
             > * {
                 z-index: 2;
                 position: relative;
+            }
+        }
+
+        &.faded {
+            position: relative;
+
+            > * {
+                z-index: 1;
+                position: relative;
+            }
+
+            &:after {
+                content: ' ';
+                display: block;
+
+                z-index: 0;
+                position: absolute;
+                bottom: 0px;
+                left: 0px;
+                right: 0px;
+
+                height: 85%;
+                background: linear-gradient(
+                    to bottom, 
+                    transparent,
+                    #fff
+                )
             }
         }
     }
@@ -107,3 +161,8 @@ body {
 	-moz-osx-font-smoothing: grayscale;
 
 }
+
+// Import components style (always after variables declaration)
+@import "@client/assets/css/components.less";
+
+@import '@/client/assets/theme.less';

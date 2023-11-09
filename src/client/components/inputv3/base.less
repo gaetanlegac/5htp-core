@@ -1,3 +1,5 @@
+@import (reference) "@/client/assets/vars.less";
+
 @hInput: @sizeComponent;
 @labelH: 0.6em;
 
@@ -13,6 +15,9 @@
 .input {
     &.text,
     &.select {
+
+        background: var(--cBg);
+        border-radius: @radius;
 
         > i {
             color: var(--cTxtDesc);
@@ -108,6 +113,7 @@
         width: 100%;
         padding: @labelH 0 0 0;
         font-size: 1rem;
+        color: inherit;
     }
 
     input {

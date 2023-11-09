@@ -1,23 +1,10 @@
-
-img.img,
-.bg.img {
-    background: @cBgPage - #101010;
-}
-
 img {
     max-width: 100%;
     display: block;
 
     &.img {
         border-radius: @radius;
+        object-fit: cover;
+        object-position: center;
     }
-}
-
-/*----------------------------------
-- IMAGE CONFIG
-----------------------------------*/
-
-img.img {
-    object-fit: cover;
-    object-position: center;
 }

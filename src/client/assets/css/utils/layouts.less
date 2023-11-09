@@ -47,17 +47,6 @@
         > li {
             position: relative;
 
-            > a:hover::before {
-                content: ' ';
-                position: absolute;
-                top: 0; left: 0; bottom: 0; right: 0;
-                margin: 0 0.3em;
-                background: var(--cBgAccent);
-                border-radius: @radius;
-                z-index: 0;
-
-            }
-
             > a > * {
                 z-index: 1;
                 position: relative;
@@ -298,7 +287,7 @@
 	&.y-@{i} {
         /*@t_zones: (@L_max) / @i;
         @espace_zone: ~"repeat(@{i}, minmax(@{L_min}, @{t_zones}))";*/
-        @espace_zone: ~"repeat(@{i}, 1fr)";
+        @espace_zone: ~"repeat(@{i}, min-content)";
         .construire(@espace_zone, row);
     }
     

@@ -145,28 +145,6 @@
     }
 }
 
-.msg, .card.bg.info {
-    
-    padding: @spacing @cardPaddingLong;
-
-    .build-theme-bg( lighten(@cInfo, 35%), darken(@cInfo, 20%));
-
-}
-
-.msg, .card.bg {
-    &.error {
-        .build-theme-bg( lighten(@cInfo, 35%), darken(@cInfo, 20%));
-    }
-
-    &.warn {
-        .build-theme-bg( lighten(@cWarn, 25%), darken(@cWarn, 30%));
-    }
-
-    &.success {
-        .build-theme-bg( lighten(@cSuccess, 50%), darken(@cSuccess, 30%));
-    }
-}
-
 iframe {
     border: none;
 }

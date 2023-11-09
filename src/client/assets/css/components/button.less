@@ -27,16 +27,17 @@
     font-weight: 600;
 
     // Colors
+    background: var(--cBg);
     color: var(--cTxtAccent);  
         
     // Hover
-    transition: all .5s linear;
+    //transition: all .5s linear;
     &:hover,
     &.selected,
     li:hover > & {
 
         color: var(--cTxtImportant);
-        transition: all .1s linear;
+        //transition: all .1s linear;
         
         > i {
             color: var(--cAccent)
@@ -63,8 +64,8 @@
         text-align: left;
         white-space: nowrap; // Autrement, si plusieurs mots, affiché sur plusieurs ligne
         gap: @spacing / 2;
-        min-width: 4em;
         font-size: 1rem;
+        line-height: 1.5em;
         z-index: 1; // Make the label on top of ::before for example
 
         li > & {
@@ -99,7 +100,7 @@
         &:not(:disabled) {
             &:hover,
             li:hover > & {
-                background: var(--cBgHighlight);
+                background: var(--cBgActive);
             }
         }
 
@@ -220,7 +221,7 @@ ul.row {
 
         &.selected,
         &:hover {
-            background: var(--cBg2);
+            background: var(--cBgActive);
             color: var(--cTxtImportant);
         }
 

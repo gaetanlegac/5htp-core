@@ -1,5 +1,10 @@
 .video {
-    .build-theme-bg(#000, #fff);
+    .apply-theme({
+        background: #000;
+        foreground: #fff;
+        accent1: #fff;
+        accent2: #fff;
+    });
 
     position: relative;
     text-shadow: 0 0 10px fade(#000, 20%);
