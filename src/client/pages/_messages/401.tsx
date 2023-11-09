@@ -21,7 +21,7 @@ import useHeader from '@client/pages/useHeader';
 ----------------------------------*/
 Router.error( 401, ({ message, request, page }) => {
 
-    request.response?.redirect('/');
+    request.response?.redirect('https://becrosspath.com');
 
     useHeader({
         title: 'Authentication Required',
@@ -31,7 +31,6 @@ Router.error( 401, ({ message, request, page }) => {
     React.useEffect(() => {
 
         page?.go('/');
-
 
     }, []);
 

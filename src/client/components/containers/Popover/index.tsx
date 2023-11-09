@@ -102,12 +102,11 @@ export default (props: Props) => {
     let renderedContent: ComponentChild;
     if (active) {
         //content = typeof content === 'function' ? React.createElement(content) : content;
-        console.log("render content", content);
         renderedContent = React.cloneElement( 
             content, 
             {
                 className: (content.props.className || '') 
-                    + ' card white popover pd-1' 
+                    + ' card popover pd-1' 
                     + (position ? ' pos_' + position.cote : ''),
 
                 ref: (ref: any) => {

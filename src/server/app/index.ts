@@ -165,7 +165,6 @@ export class Application<
     public async startServices() {
 
         const propsNames = Object.getOwnPropertyNames(this);
-        
         for (const propName of propsNames) {
 
             // Don't check services prop as it will trigger an error (it's a proxy)
