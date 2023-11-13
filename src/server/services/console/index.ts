@@ -139,6 +139,9 @@ export default class Console extends Service<Config, Hooks, Application, Service
 
         const origLog = console.log
 
+        const envConfig = this.config[ this.app.env.profile === 'prod' ? 'prod' : 'dev' ];
+        const minLogLevel = logLevels[ envConfig.level ];
+
         this.logger = new Logger({
             // Use to improve performance in production
             hideLogPositionForProduction: this.app.env.profile === 'prod',
@@ -173,10 +176,11 @@ export default class Console extends Service<Config, Hooks, Application, Service
             return;
 
         for (const logLevel in logLevels) {
+            const levelNumber = logLevels[ logLevel ];
             console[ logLevel ] = (...args: any[]) => {
 
                 // Dev mode = no care about performance = rich logging
-                if (this.app.env.profile === 'dev' || ['warn', 'error'].includes( logLevel ))
+                if (levelNumber >= minLogLevel)
                     //this.logger[ logLevel ](...args);
                     origLog(...args);
                 // Prod mode = minimal logging  
