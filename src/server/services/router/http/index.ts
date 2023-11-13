@@ -120,6 +120,7 @@ export default class HttpServer {
             expressStaticGzip( Container.path.root + '/bin/public', {
                 enableBrotli: true,
                 serveStatic: {
+                    dotfiles: 'deny',
                     setHeaders: function setCustomCacheControl(res, path) {
 
                         const dontCache = [
