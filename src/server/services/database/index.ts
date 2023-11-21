@@ -516,8 +516,8 @@ export default class SQL extends Service<Config, Hooks, Application, Services> {
         let valuesNamesToUpdate: (keyof TData)[] = [];
         if (colsToUpdate === '*') {
 
-            console.log(LogPrefix, `Automatic upsert into ${table.chemin} using ${table.pk.join(', ')} as pk`);
             valuesNamesToUpdate = Object.keys(table.colonnes);// table.columnNamesButPk;
+            console.log(LogPrefix, `Automatic upsert into ${table.chemin} using ${table.pk.join(', ')} as pk: ${valuesNamesToUpdate.join(', ')}`);
             // We don't take columnNamesButPk, because if all the columns are pks, we don't have yny value for the ON DUPLICATE KEY
             //  Meaning
 
