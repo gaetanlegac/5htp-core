@@ -122,8 +122,8 @@ export const defaultOptions = {
 ----------------------------------*/
 export const buildUrl = (
     path: string,
-    params: {} = {},
-    domains: TDomainsList,
+    params: {[alias: string]: any},
+    domains: {[alias: string]: string},
     absolute: boolean
 ) => {
 
@@ -135,7 +135,9 @@ export const buildUrl = (
 
         // Extract domain ID from path
         let domainId: string;
-        const slackPos = path.indexOf('/');
+        let slackPos = path.indexOf('/');
+        if (slackPos === -1)
+            slackPos = path.length;
         domainId = path.substring(1, slackPos);
         path = path.substring(slackPos);
 
