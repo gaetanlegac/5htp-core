@@ -160,9 +160,15 @@ export default class ClientRouter<
         buildUrl(path, params, this.config.domains, absolute);
 
     public go( url: string ) {
+
         url = this.url(url, {}, false);
-        console.log( LogPrefix, "Go to", url);
-        history?.replace( url );
+
+        // Same domain = history url replacement
+        if (url[0] === '/')
+            history?.replace( url );
+        // Different domain = hard navigation
+        else
+            windows.location.href = url;
     }
 
     /*----------------------------------
