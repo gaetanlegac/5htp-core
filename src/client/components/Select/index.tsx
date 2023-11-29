@@ -119,7 +119,12 @@ export default ({
                 setChoices(searchResults);
             })
         }
-    }, [initChoices, search.keywords]);
+    }, [
+        search.keywords,
+        // When initChoices is a function, React considers it's always different
+        // It avoids the choices are fetched everytimle the parent component is re-rendered
+        typeof initChoices === 'function' ? true : initChoices
+    ]);
 
     const currentList: Choice[] = current === undefined
         ? []
@@ -144,7 +149,7 @@ export default ({
 
                     <div class="col al-left sp-05">
                         
-                        <label>{title}{required && (
+                        <label>{title}{isRequired && (
                             <span class="fg error">&nbsp;*</span>
                         )}</label>
 
