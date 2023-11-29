@@ -35,21 +35,26 @@ const ChoiceElement = ({ choice, currentList, onChange, multiple, includeCurrent
     const isCurrent = currentList.some(c => c.value === choice.value);
     if (isCurrent && !includeCurrent) return null;
 
-    return (
-        <li class={"badge clickable " + (isCurrent ? 'bg primary' : '')} onClick={() => {
-            onChange( current => {
-                
-                return multiple 
-                    ? (isCurrent
-                        ? current.filter(c => c.value !== choice.value)
-                        : [...(current || []), choice] 
-                    )
-                    : (isCurrent
-                        ? undefined
-                        : choice
-                    )
-            });
+    const showRemoveButton = multiple;
 
+    return isCurrent ? (
+        <li class={"badge bg primary"+  (showRemoveButton ? ' pdr-05' : '')}>
+            {choice.label}
+
+            {showRemoveButton && (
+                <span class="badge xs clickable" onClick={() => 
+                    onChange( current => current.filter(c => c.value !== choice.value))
+                }>
+                    x
+                </span>
+            )}
+        </li>
+    ) : (
+        <li class={"badge clickable"} onClick={() => {
+            onChange( current => multiple 
+                ? [...(current || []), choice] 
+                : choice
+            );
         }}>
             {/*search.keywords ? (
                 <span>
@@ -96,17 +101,36 @@ export default ({
 
     let className: string = 'input select txt-left';
 
-    const isRequired = required || validator?.options.min;
-
     const [search, setSearch] = React.useState<{
         keywords: string,
-        loading: boolean
+        loading: boolean,
+        focused: boolean
     }>({
         keywords: '',
-        loading: choicesViaFunc
+        loading: choicesViaFunc,
+        focused: true
     });
 
     const [choices, setChoices] = React.useState<Choice[]>( choicesViaFunc ? [] : initChoices );
+
+    const displayChoices = (
+        enableSearch 
+        && 
+        choices.length !== 0 
+        && 
+        search.keywords.length !== 0
+        &&
+        search.focused
+    )
+
+    const isRequired = required || validator?.options.min;
+
+    const currentList: Choice[] = current === undefined
+        ? []
+        : (Array.isArray(current) 
+            ? current 
+            : [current]
+        );
 
     /*----------------------------------
     - ACTIONS
@@ -126,20 +150,13 @@ export default ({
         typeof initChoices === 'function' ? true : initChoices
     ]);
 
-    const currentList: Choice[] = current === undefined
-        ? []
-        : (Array.isArray(current) 
-            ? current 
-            : [current]
-        );
-
     /*----------------------------------
     - RENDER
     ----------------------------------*/
     return <>
 
         <div class="col sp-05">
-            <div class={className} onClick={() => refInputSearch.current?.focus()}>
+            <div class={className} onMouseDown={() => refInputSearch.current?.focus()}>
                     
                 <div class="row al-left wrap pd-1">
                     
@@ -184,7 +201,7 @@ export default ({
 
                 </div>
 
-                {(enableSearch && choices.length !== 0 && search.keywords.length !== 0) && (
+                {displayChoices && (
                     <ul class="row al-left wrap sp-05 pd-1" style={{
                         maxHeight: '30vh',
                         overflowY: 'auto'
