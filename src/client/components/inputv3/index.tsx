@@ -62,6 +62,13 @@ export default ({
 
     // Trigger onchange oly when finished typing
     const refCommit = React.useRef<NodeJS.Timeout | null>(null);
+
+    const refInput = inputRef || React.useRef<HTMLInputElement>();
+
+    /*----------------------------------
+    - ACTIONS
+    ----------------------------------*/
+
     React.useEffect(() => {
 
         if (refCommit.current !== null)
@@ -70,6 +77,15 @@ export default ({
         refCommit.current = setTimeout(commitValue, 500);
         
     }, [value]);
+    
+    React.useEffect(() => {
+
+        if (focus && props.onFocus)
+            props.onFocus(null);
+        else if (!focus && props.onBlur)
+            props.onBlur(null);
+        
+    }, [focus]);
 
     const updateValue = v => {
         if (type === 'number') {
@@ -82,8 +98,6 @@ export default ({
         } else
             setValue(v);
     }
-
-    const refInput = inputRef || React.useRef<HTMLInputElement>();
     
     /*----------------------------------
     - ATTRIBUTES
