@@ -139,6 +139,21 @@ export default ({
         />
     )
 
+    const SearchResults = displayChoices && (
+        <ul class="row al-left wrap sp-05" style={{
+            maxHeight: '30vh',
+            overflowY: 'auto'
+        }}>
+            {choices.map( choice => (
+                <ChoiceElement choice={choice} 
+                    currentList={currentList}
+                    onChange={onChange}
+                    multiple={multiple}
+                />
+            ))}
+        </ul>
+    )
+
     return dropdown ? (
         <Popover content={(
             <div class="card col" style={{ width: '300px' }}>
@@ -154,24 +169,11 @@ export default ({
                     {Search} 
                 </div>   
 
-                {displayChoices && (
-                    <ul class="row al-left wrap sp-05" style={{
-                        maxHeight: '30vh',
-                        overflowY: 'auto'
-                    }}>
-                        {choices.map( choice => (
-                            <ChoiceElement choice={choice} 
-                                currentList={currentList}
-                                onChange={onChange}
-                                multiple={multiple}
-                            />
-                        ))}
-                    </ul>
-                )}
+                {SearchResults}
             </div>
         )} state={popoverState}>
             <Button icon={icon} iconR="chevron-down" {...otherProps}>
-                {title} {currentList.length > 0 
+                {title} {(multiple && currentList.length > 0) 
                     ? <span class="badge s bg accent">{currentList.length}</span> 
                     : null
                 }
@@ -203,19 +205,12 @@ export default ({
 
                 </div>
 
-                {displayChoices && (
-                    <ul class="row al-left wrap sp-05 pd-1" style={{
-                        maxHeight: '30vh',
-                        overflowY: 'auto'
-                    }}>
-                        {choices.map( choice => (
-                            <ChoiceElement choice={choice} 
-                                currentList={currentList}
-                                onChange={onChange}
-                                multiple={multiple}
-                            />
-                        ))}
-                    </ul>
+                {SearchResults && (
+                    <div class="pd-1">
+
+                        {SearchResults}
+
+                    </div>
                 )}
                 
             </div>
