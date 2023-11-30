@@ -105,9 +105,9 @@ export default (props: Props) => {
         renderedContent = React.cloneElement( 
             content, 
             {
-                className: (content.props.className || '') 
-                    + ' card popover pd-1' 
-                    + (position ? ' pos_' + position.cote : ''),
+                className: 'card popover pd-1' 
+                    + (position ? ' pos_' + position.cote : '')
+                    + ' ' + (content.props.className || ''),
 
                 ref: (ref: any) => {
                     if (ref !== null)
