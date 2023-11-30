@@ -39,7 +39,6 @@ export type Props = (
 ) & {
     choices: Choices | ChoicesFunc,
     enableSearch?: boolean,
-    inline?: boolean,
     required?: boolean,
     noneSelection?: false | string,
     currentList: Choice[],

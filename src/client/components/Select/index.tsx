@@ -7,7 +7,7 @@ import React from 'react';
 
 // Core
 import { Props as DropdownProps } from '@client/components/dropdown';
-import Input from '@client/components/inputv3';
+import { Popover, Button, Input } from '@client/components';
 
 // Specific
 import { 
@@ -15,57 +15,19 @@ import {
     Choice,
 } from './ChoiceSelector';
 
+import ChoiceElement from './ChoiceElement';
+
 /*----------------------------------
 - TYPES
 ----------------------------------*/
 
 export type Props = DropdownProps & SelectorProps & {
+    dropdown: boolean,
     title: string,
     errors?: string[],
 }
 
 export type { Choice } from './ChoiceSelector';
-
-const ChoiceElement = ({ choice, currentList, onChange, multiple, includeCurrent }: {
-    choice: Choice,
-    currentList: Choice[],
-    includeCurrent: boolean
-} & Pick<Props, 'onChange'|'multiple'>) => {
-
-    const isCurrent = currentList.some(c => c.value === choice.value);
-    if (isCurrent && !includeCurrent) return null;
-
-    const showRemoveButton = multiple;
-
-    return isCurrent ? (
-        <li class={"badge bg primary"+  (showRemoveButton ? ' pdr-05' : '')}>
-            {choice.label}
-
-            {showRemoveButton && (
-                <span class="badge xs clickable" onClick={() => 
-                    onChange( current => current.filter(c => c.value !== choice.value))
-                }>
-                    x
-                </span>
-            )}
-        </li>
-    ) : (
-        <li class={"badge clickable"} onClick={() => {
-            onChange( current => multiple 
-                ? [...(current || []), choice] 
-                : choice
-            );
-        }}>
-            {/*search.keywords ? (
-                <span>
-                
-                    <strong>{search.keywords}</strong>{choice.label.slice( search.keywords.length )}
-
-                </span>
-            ) : */choice.label}
-        </li>
-    )
-}
 
 /*----------------------------------
 - COMONENT
@@ -84,14 +46,16 @@ export default ({
     enableSearch, 
     value: current, 
     onChange, 
-    inline, 
     multiple, 
+    dropdown,
     ...otherProps
 }: Props) => {
 
     /*----------------------------------
     - INIT
     ----------------------------------*/
+
+    const popoverState = React.useState(false);
 
     const choicesViaFunc = typeof initChoices === 'function';
     if (choicesViaFunc && enableSearch === undefined)
@@ -111,7 +75,10 @@ export default ({
         focused: true
     });
 
-    const [choices, setChoices] = React.useState<Choice[]>( choicesViaFunc ? [] : initChoices );
+    const [choices, setChoices] = React.useState<Choice[]>( choicesViaFunc 
+        ? [] 
+        : initChoices 
+    );
 
     const displayChoices = (
         enableSearch 
@@ -153,7 +120,64 @@ export default ({
     /*----------------------------------
     - RENDER
     ----------------------------------*/
-    return <>
+
+    const SelectedItems = ( enableSearch ? currentList : choices ).map( choice => (
+        <ChoiceElement choice={choice} 
+            currentList={currentList}
+            onChange={onChange}
+            multiple={multiple}
+            includeCurrent 
+        />
+    ))
+
+    const Search = enableSearch && (
+        <Input  
+            placeholder="Type your search here"
+            value={search.keywords} 
+            onChange={keywords => setSearch(s => ({ ...s, loading: true, keywords }))} 
+            inputRef={refInputSearch}
+        />
+    )
+
+    return dropdown ? (
+        <Popover content={(
+            <div class="card col" style={{ width: '300px' }}>
+
+                <div class="col">
+
+                    {SelectedItems.length !== 0 && (
+                        <div class="row wrap">
+                            {SelectedItems}
+                        </div>
+                    )}
+
+                    {Search} 
+                </div>   
+
+                {displayChoices && (
+                    <ul class="row al-left wrap sp-05" style={{
+                        maxHeight: '30vh',
+                        overflowY: 'auto'
+                    }}>
+                        {choices.map( choice => (
+                            <ChoiceElement choice={choice} 
+                                currentList={currentList}
+                                onChange={onChange}
+                                multiple={multiple}
+                            />
+                        ))}
+                    </ul>
+                )}
+            </div>
+        )} state={popoverState}>
+            <Button icon={icon} iconR="chevron-down" {...otherProps}>
+                {title} {currentList.length > 0 
+                    ? <span class="badge s bg accent">{currentList.length}</span> 
+                    : null
+                }
+            </Button>
+        </Popover>
+    ) : (
 
         <div class="col sp-05">
             <div class={className} onMouseDown={() => refInputSearch.current?.focus()}>
@@ -171,31 +195,9 @@ export default ({
                         )}</label>
 
                         <div class="row al-left wrap sp-05">
+                            {SelectedItems} 
 
-                            {/*!isRequired && (
-                                <span class={"badge clickable " + (currentList.length === 0 ? 'bg primary' : '')}
-                                    onClick={() => onChange(multiple ? [] : undefined)}>
-                                    {noneSelection || 'None'}
-                                </span>
-                            )*/}
-
-                            {( enableSearch ? currentList : choices ).map( choice => (
-                                <ChoiceElement choice={choice} 
-                                    currentList={currentList}
-                                    onChange={onChange}
-                                    multiple={multiple}
-                                    includeCurrent 
-                                />
-                            ))}
-
-                            {enableSearch && (
-                                <Input  
-                                    placeholder="Type your search here"
-                                    value={search.keywords} 
-                                    onChange={keywords => setSearch(s => ({ ...s, loading: true, keywords }))} 
-                                    inputRef={refInputSearch}
-                                />
-                            )}    
+                            {Search}  
                         </div>
                     </div>
 
@@ -223,6 +225,5 @@ export default ({
                 </div>
             )}
         </div>
-
-    </>
+    )
 }
