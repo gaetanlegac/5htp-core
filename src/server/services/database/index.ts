@@ -176,9 +176,7 @@ export default class SQL extends Service<Config, Hooks, Application, Services> {
         // TODO: do it via datatypes.ts
         if (typeof data === 'object' && data !== null) {
 
-            if (Array.isArray(data))
-                data = data.join(',')
-            else if (data.constructor.name === "Object")
+            if (data.constructor.name === "Object")
                 data = safeStringify(data);
         }
     
