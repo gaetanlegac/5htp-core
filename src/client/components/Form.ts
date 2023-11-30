@@ -29,18 +29,22 @@ type FieldsAttrs<TFormData extends {}> = {
 
 export type Form<TFormData extends {} = {}> = {
     
+    // Data
     fields: FieldsAttrs<TFormData>,
     data: TFormData,
     options: TFormOptions<TFormData>,
     autosavedData?: Partial<TFormData>,
 
+    // Actions
     validate: (data: Partial<TFormData>) => TValidationResult<{}>,
     set: (data: Partial<TFormData>) => void,
     submit: (additionnalData?: Partial<TFormData>) => Promise<any>,
+    
 } & FormState
 
 type FormState = {
     isLoading: boolean,
+    hasChanged: boolean,
     errorsCount: number,
     errors: { [fieldName: string]: string[] },
 }
@@ -58,6 +62,8 @@ export default function useForm<TFormData extends {}>(
     /*----------------------------------
     - INIT
     ----------------------------------*/
+
+    // Autosaving data
     let autosavedData: TFormData | undefined;
     if (options.autoSave && typeof window !== 'undefined') {
         const autosaved = localStorage.getItem('form.' + options.autoSave.id);
@@ -73,9 +79,11 @@ export default function useForm<TFormData extends {}>(
 
     const initialData: Partial<TFormData> = options.data || {};
 
+    // States
     const fields = React.useRef<FieldsAttrs<TFormData> | null>(null);
     const [data, setData] = React.useState< Partial<TFormData> >(initialData);
     const [state, setState] = React.useState<FormState>({
+        hasChanged: false,
         isLoading: false,
         errorsCount: 0,
         errors: {}
@@ -139,6 +147,12 @@ export default function useForm<TFormData extends {}>(
         if (options.autoSave)
             localStorage.removeItem('form.' + options.autoSave.id);
 
+        // Update state
+        setState( current => ({
+            ...current,
+            hasChanged: false
+        }));
+
         return submitResult;
     }
 
@@ -177,6 +191,11 @@ export default function useForm<TFormData extends {}>(
                                 : val
                         }
                     })
+
+                    setState(current => ({
+                        ...current,
+                        hasChanged: true
+                    }));
                 },
 
                 // Submit on press enter
