@@ -74,6 +74,8 @@ export default abstract class ApiClient {
 
     public abstract set( newData: TObjetDonnees );
 
+    public abstract reload( ids?: string | string[], params?: TObjetDonnees );
+
     /*----------------------------------
     - LOW LEVEL
     ----------------------------------*/

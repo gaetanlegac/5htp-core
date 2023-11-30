@@ -82,18 +82,26 @@ export default abstract class PageResponse<TRouter extends ClientOrServerRouter 
     ) {
 
         this.chunkId = context.route.options["id"];
+
+        this.fetchers = this.createFetchers();
        
     }
-    
-    public async fetchData() {
+
+    private createFetchers() {
 
         // Load the fetchers list to load data if needed
         const dataFetcher = this.route.options.data;
         if (dataFetcher)
-            this.fetchers = dataFetcher({
+            return dataFetcher({
                 ...this.context,
                 data: this.context.request.data
             });
+        else
+            return {}
+
+    }
+    
+    public async fetchData() {
 
         // Execute the fetchers for missing data
         debug && console.log(`[router][page] Fetching api data:` + Object.keys(this.fetchers));

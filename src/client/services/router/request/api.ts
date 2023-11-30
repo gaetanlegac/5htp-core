@@ -80,7 +80,7 @@ export default class ApiClient implements ApiClientService {
     public reload( ids?: string | string[], params?: TObjetDonnees ) {
 
         if (!('context' in this.router))
-            throw new Error("api.set is not available on server side.");
+            throw new Error("api.reload is not available on server side.");
         
         const page = this.router.context.page;
 

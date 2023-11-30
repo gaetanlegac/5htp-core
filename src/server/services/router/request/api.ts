@@ -47,7 +47,15 @@ export default class ApiClientRequest extends RequestService implements ApiClien
     public delete = <TData extends unknown = unknown>(path: string, data?: TObjetDonnees, opts?: TApiFetchOptions) => 
         this.createFetcher<TData>('DELETE', path, data, opts);
 
+    /*----------------------------------
+    - PLACEHOLDERS
+    ----------------------------------*/
+
     public set( newData: TObjetDonnees ) {
+        throw new Error("api.set is not available on server side.");
+    }
+
+    public reload( ids?: string | string[], params?: TObjetDonnees ) {
         throw new Error("api.set is not available on server side.");
     }
 
