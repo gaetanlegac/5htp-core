@@ -72,92 +72,109 @@ export default class SchemaValidators {
         choice?: any[],
         min?: number, 
         max?: number
-    } = {}) => {
+    } = {}) => new Validator<any[]>('array', (items, input, output, corriger) => {
 
-        return new Validator<any[]>('array', (items, input, output, corriger) => {
+        // Type
+        if (!Array.isArray(items))
+            throw new InputError("This value must be a list.");
 
-            // Type
-            if (!Array.isArray(items))
-                throw new InputError("This value must be a list.");
+        // Items number
+        if ((min !== undefined && items.length < min))
+            throw new InputError(`Please select at least ${min} items.`);
+        if ((max !== undefined && items.length > max))
+            throw new InputError(`Please select maximum ${max} items.`);
 
-            // Items number
-            if ((min !== undefined && items.length < min))
-                throw new InputError(`Please select at least ${min} items.`);
-            if ((max !== undefined && items.length > max))
-                throw new InputError(`Please select maximum ${max} items.`);
+        // Verif each item
+        if (subtype !== undefined) {
+            if (subtype instanceof Schema) {
 
-            // Verif each item
-            if (subtype !== undefined) {
-                if (subtype instanceof Schema) {
+                items = items.map( item =>
+                    subtype.validate( item, item, item, { }, []).values
+                )
 
-                    items = items.map( item =>
-                        subtype.validate( item, item, item, { }, []).values
-                    )
+            } else {
 
-                } else {
+                items = items.map( item =>
+                    subtype.validate( item, items, items, corriger )
+                )
 
-                    items = items.map( item =>
-                        subtype.validate( item, items, items, corriger )
-                    )
-
-                }
             }
+        }
 
-            return items;
-        }, {
-            ...opts,
-            //multiple: true, // Sélection multiple
-            //subtype
-        })
-    }
+        return items;
+    }, {
+        ...opts,
+        //multiple: true, // Sélection multiple
+        //subtype
+    })
 
-    public choice = (choices?: any[], opts: TValidator<any> & {} = {}) => 
-        new Validator<any>('choice', (val, input, output) => {
+    public choice = (choices?: any[], { multiple, ...opts }: TValidator<any> & { 
+        multiple?: boolean 
+    } = {}) => new Validator<any>('choice', (val, input, output) => {
 
-            // Choice object
-            if (typeof val === 'object' && ('value' in val) && typeof val.value !== 'object')
-                val = val.value;
+        // Empty array = undefined if not required
+        if (val.length === 0 && opts.opt)
+            return undefined;
 
-            if (choices !== undefined) {
-                const isValid = choices.some(v => v.value === val);
-                if (!isValid)
-                    throw new InputError("Invalid value. Must be: " + choices.map(v => v.value).join(', '));
-            }
+        // Normalize for verifications
+        const choicesValues = choices?.map(v => v.value)
 
-            return val;
+        const checkChoice = ( choice: any ) => {
 
-        }, opts, { choices })
+            // Choice object = extract value
+            if (typeof choice === 'object' && ('value' in choice) && typeof choice.value !== 'object')
+                choice = choice.value;
+
+            // If choices list rpovided, check if the choice is in the choices list
+            if (choicesValues !== undefined && !choicesValues.includes(choice))
+                throw new InputError("Invalid value: " + choice + ". Must be: " + choicesValues.join(', '));
+
+            return choice;
+
+        }
+
+        // Check every choice
+        if (Array.isArray( val ))
+            val = val.map(checkChoice)
+        else 
+            val = checkChoice( val );
+
+        return val;
+
+    }, opts, { choices, multiple })
 
     /*----------------------------------
     - CHAINES
     ----------------------------------*/
-    public string = ({ min, max, ...opts }: TValidator<string> & { min?: number, max?: number } = {}) => 
-        new Validator<string>('string', (val, input, output, corriger?: boolean) => {
+    public string = ({ min, max, ...opts }: TValidator<string> & { 
+        min?: number, 
+        max?: number 
+    } = {}) => new Validator<string>('string', (val, input, output, corriger?: boolean) => {
 
-            if (val === '')
-                return undefined;
-            else if (typeof val === 'number')
-                return val.toString();
-            else if (typeof val !== 'string')
-                throw new InputError("This value must be a string.");
+        if (val === '')
+            return undefined;
+        else if (typeof val === 'number')
+            return val.toString();
+        else if (typeof val !== 'string')
+            throw new InputError("This value must be a string.");
 
-            // Espaces blancs
-            val = trim(val);
+        // Espaces blancs
+        val = trim(val);
 
-            // Taille min
-            if (min !== undefined && val.length < min)
-                throw new InputError(`Must be at least ` + min + ' characters');
+        // Taille min
+        if (min !== undefined && val.length < min)
+            throw new InputError(`Must be at least ` + min + ' characters');
 
-            // Taille max
-            if (max !== undefined && val.length > max)
-                if (corriger)
-                    val = val.substring(0, max);
-                else
-                    throw new InputError(`Must be up to ` + max + ' characters');
+        // Taille max
+        if (max !== undefined && val.length > max)
+            if (corriger)
+                val = val.substring(0, max);
+            else
+                throw new InputError(`Must be up to ` + max + ' characters');
 
-            return val;
-            
-        }, opts)
+        return val;
+        
+    }, opts)
 
     public url = (opts: TValidator<string> & {
         normalize?: NormalizeUrlOptions
