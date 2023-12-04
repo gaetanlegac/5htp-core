@@ -345,7 +345,7 @@ export default class ClientRouter<
 
             } catch (e) {
                 console.error(`Failed to fetch the route ${route.chunk}`, e);
-                this.app.handleError(new Error("Failed to load content. Please make sure you're connected to Internet."));
+                this.app.handleError(new Error("Failed to load content. Please reload the page and try again."));
                 throw e;
             }
 
