@@ -176,15 +176,13 @@ export default class SQL extends Service<Config, Hooks, Application, Services> {
         // TODO: do it via datatypes.ts
         if (typeof data === 'object' && data !== null) {
 
+            // Object: stringify in JSON
             if (data.constructor.name === "Object")
                 data = safeStringify(data);
-
-        } else if (forStorage) {
-
-            // Format array values for storing
-            if (Array.isArray( data )) {
-                data = data.join(', ')
-            }
+            // Array: if for storage, reparate items with a comma
+            else if (forStorage && Array.isArray( data )) {
+                data = data.join(',')
+            } 
         }
     
         return mysql.escape(data);
@@ -535,7 +533,7 @@ export default class SQL extends Service<Config, Hooks, Application, Services> {
             const { '*': updateAll, ...customValuesToUpdate } = colsToUpdate;
 
             for (const colKey in customValuesToUpdate)
-                valuesToUpdate[ colKey ] = this.esc(customValuesToUpdate[ colKey ]);
+                valuesToUpdate[ colKey ] = this.esc(customValuesToUpdate[ colKey ], true);
 
             if (updateAll)
                 valuesNamesToUpdate = Object.keys(table.colonnes);//table.columnNamesButPk;
