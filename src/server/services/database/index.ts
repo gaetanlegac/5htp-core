@@ -170,7 +170,7 @@ export default class SQL extends Service<Config, Hooks, Application, Services> {
         return query;
     }
 
-    public esc(data: any) {
+    public esc( data: any, forStorage: boolean = false ) {
 
         // JSON object
         // TODO: do it via datatypes.ts
@@ -178,6 +178,13 @@ export default class SQL extends Service<Config, Hooks, Application, Services> {
 
             if (data.constructor.name === "Object")
                 data = safeStringify(data);
+
+        } else if (forStorage) {
+
+            // Format array values for storing
+            if (Array.isArray( data )) {
+                data = data.join(', ')
+            }
         }
     
         return mysql.escape(data);
@@ -474,7 +481,7 @@ export default class SQL extends Service<Config, Hooks, Application, Services> {
                 const values: string[] = [];
                 for (const col of colNames)
                     if (col in entry)
-                        values.push( this.esc( entry[col] ));
+                        values.push( this.esc( entry[col], true));
                     else
                         values.push("DEFAULT");
 
