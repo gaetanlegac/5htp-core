@@ -30,6 +30,15 @@
     display: flex;
     flex-wrap: nowrap;
 
+    &.scrollable {
+
+        overflow: auto;
+
+        > * {
+            min-width: fit-content;
+        }
+    }
+
     // Avec justify-content: center, les premiers élements sont cachés
     .indiana-scroll-container > & {
         justify-content: flex-start;
