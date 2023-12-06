@@ -11,6 +11,9 @@ import type { Schema } from '@common/validation';
 import type { TValidationResult } from '@common/validation/schema';
 import useContext from '@/client/context';
 
+// Exports
+export type { TValidationResult, TSchemaData } from '@common/validation/schema';
+
 /*----------------------------------
 - TYPES
 ----------------------------------*/
@@ -23,7 +26,7 @@ type TFormOptions<TFormData extends {}> = {
     }
 }
 
-type FieldsAttrs<TFormData extends {}> = {
+export type FieldsAttrs<TFormData extends {}> = {
     [fieldName in keyof TFormData]: {}
 }
 

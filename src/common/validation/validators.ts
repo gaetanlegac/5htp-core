@@ -22,7 +22,6 @@ import Validator, { TValidator } from './validator'
 
 // Components
 import NumberInput from '@client/components/input/Number';
-import Dropdown from '@client/components/dropdown.old';
 
 /*----------------------------------
 - TYPES

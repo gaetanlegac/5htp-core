@@ -33,6 +33,9 @@ export type TValidationResult<TFields extends TSchemaFields> = {
     erreurs: TListeErreursSaisie
 }
 
+export type TSchemaData<TSchema extends Schema<{}>> =
+    TValidationResult<TSchema["fields"]>
+
 export type TValidatedData<TFields extends TSchemaFields> = {
     // For each field, the values returned by validator.validate()
     [name in keyof TFields]: ReturnType<TFields[name]["validate"]>
