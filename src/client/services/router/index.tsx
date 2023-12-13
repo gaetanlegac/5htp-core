@@ -274,7 +274,11 @@ export default class ClientRouter<
         return route;
     }
 
-    public error(code: number, options: TRoute["options"], renderer: TFrontRenderer<{}, { message: string }>) {
+    public error(
+        code: number, 
+        options: Partial<TRoute["options"]>, 
+        renderer: TFrontRenderer<{}, { message: string }>
+    ) {
 
         // Automatic layout form the nearest _layout folder
         const layout = getLayout('Error ' + code, options);
