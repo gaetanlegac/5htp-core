@@ -12,7 +12,7 @@
     // Layout
     position: relative;
     gap: @spacing;
-    min-width: fit-content; // Fit content, even when flexbox parent width < content width
+    min-width: 0/*fit-content*/; // Fit content, even when flexbox parent width < content width
  
     // Dimensions
     font-size: 1em;
@@ -63,11 +63,15 @@
 
     > .label {
         text-align: left;
-        white-space: nowrap; // Autrement, si plusieurs mots, affiché sur plusieurs ligne
         gap: @spacing / 2;
         font-size: 1rem;
         line-height: 1.5em;
         z-index: 1; // Make the label on top of ::before for example
+
+        // Handle overflow
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
 
         li > & {
             flex: 1;
