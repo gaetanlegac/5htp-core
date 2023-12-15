@@ -136,7 +136,10 @@ export default abstract class UsersManagementService<
         const user = await this.decodeSession(session, req);
         this.config.debug && console.log(LogPrefix, `Deserialized user ${sessionName}:`, this.displayName(user));
 
-        return user;    
+        return {
+            ...user,
+            _token: token
+        };    
     }
 
     public unauthorized( req: THttpRequest ) {
