@@ -93,7 +93,7 @@ export default abstract class UsersManagementService<
     ----------------------------------*/
 
     public abstract login( ...args: any[] ): Promise<{ user: TUser, token: string }>;
-    public abstract decodeSession( jwt: TJwtSession, req: THttpRequest ): Promise<TUser>;
+    public abstract decodeSession( jwt: TJwtSession, req: THttpRequest ): Promise<TUser | null>;
 
     protected abstract displayName(user?: TUser | null): string;
     protected abstract displaySessionName(session: TJwtSession): string;
@@ -134,6 +134,11 @@ export default abstract class UsersManagementService<
         // Deserialize full user data
         this.config.debug && console.log(LogPrefix, `Deserialize user ${sessionName}`);
         const user = await this.decodeSession(session, req);
+        
+        // User not found
+        if (user === null)
+            return null;
+
         this.config.debug && console.log(LogPrefix, `Deserialized user ${sessionName}:`, this.displayName(user));
 
         return {
