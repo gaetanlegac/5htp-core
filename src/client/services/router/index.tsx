@@ -159,16 +159,20 @@ export default class ClientRouter<
     public url = (path: string, params: {} = {}, absolute: boolean = true) => 
         buildUrl(path, params, this.config.domains, absolute);
 
-    public go( url: string ) {
+    public go( url: string, opt: {
+        newTab?: boolean
+    } = {}) {
 
         url = this.url(url, {}, false);
 
+        if (opt.newTab)
+            window.open(url)
         // Same domain = history url replacement
-        if (url[0] === '/')
+        else if (url[0] === '/')
             history?.replace( url );
         // Different domain = hard navigation
         else
-            windows.location.href = url;
+            window.location.href = url;
     }
 
     /*----------------------------------
