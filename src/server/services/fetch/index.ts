@@ -5,6 +5,7 @@
 // Npm
 import sharp from 'sharp';
 import fs from 'fs-extra';
+import got, { Method, Options } from 'got';
 
 // Node
 import request from 'request';
@@ -12,6 +13,10 @@ import request from 'request';
 // Core: general
 import type { Application } from '@server/app';
 import Service, { AnyService } from '@server/app/service';
+import { viaHttpCode } from '@common/errors';
+
+// Local
+import type RouterService from '../router';
 import type DisksManager from '../disks';
 import type FsDriver from '../disks/driver';
 
@@ -29,7 +34,8 @@ export type Hooks = {
 }
 
 export type Services = {
-    disks: DisksManager
+    disks: DisksManager,
+    router?: RouterService
 }
 
 /*----------------------------------
@@ -89,7 +95,63 @@ export default class FetchService extends Service<Config, Hooks, Application, Se
     }
 
     /*----------------------------------
-    - ACTIONS
+    - EXTERNAL API REQUESTS
+    ----------------------------------*/
+
+    public post( 
+        url: string, 
+        data: {[k: string]: any}, 
+        options: {} = {} 
+    ) {
+
+        return this.request('POST', url, data, options);
+
+    }
+
+    public async request( 
+        method: Method,
+        url: string, 
+        data: {[k: string]: any}, 
+        options: Options = {} 
+    ) {
+
+        // Parse url if router service is provided
+        if (this.services.router !== undefined)
+            url = this.services.router.url(url);
+
+        // Send request
+        const res = await got(url, {
+            throwHttpErrors: false,
+            headers: {
+                'Accept': 'application/json',
+            },
+            method,
+            ...(method === 'GET' ? {
+                searchParams: data
+            } : {
+                json: data
+            })
+        })
+
+        // Handle errors
+        if (res.statusCode !== 200) {
+
+            // Instanciate error from HTTP code
+            const error = viaHttpCode( res.statusCode, res.body );
+            if (error)
+                throw error;
+
+            // Not catched via viaHttpCode
+            console.log("RESPONSE", res.body);
+            throw new Error("Error while contacting the API");
+        }
+
+        // Format & return response
+        return JSON.parse( res.body );
+    }
+
+    /*----------------------------------
+    - IMAGES
     ----------------------------------*/
 
     public toBuffer( uri: string ): Promise<Buffer> {
