@@ -12,7 +12,7 @@ import ApiClientService, {
     TApiFetchOptions, TFetcherList, TFetcherArgs, TFetcher,
     TDataReturnedByFetchers
 } from '@common/router/request/api';
-import { instancierViaCode, NetworkError } from '@common/errors';
+import { viaHttpCode, NetworkError } from '@common/errors';
 import type ClientApplication from '@client/app';
 
 import { toMultipart } from './multipart';
@@ -233,7 +233,7 @@ export default class ApiClient implements ApiClientService {
                 if (e.response !== undefined) {
     
                     console.warn(`[api] Failure:`, e);
-                    throw instancierViaCode(
+                    throw viaHttpCode(
                         e.response.status || 500,
                         e.response.data
                     );

@@ -169,12 +169,13 @@ export class NetworkError extends Error {
 }
 
 
-export const instancierViaCode = (
+export const viaHttpCode = (
     code: number, 
     message?: string | TListeErreursSaisie, 
     details?: TDetailsErreur
 ): CoreError => {
 
+    // TODO: more reliablme detection of form errors
     if (typeof message === 'object')
         return new InputErrorSchema(message, details);
 
