@@ -23,7 +23,7 @@ export type Props<TRow> = {
     columns: (row: TRow, rows: TRow[], index: number) => TColumn[];
 
     setData?: (rows: TRow[]) => void,
-    empty?: ComponentChild,
+    empty?: ComponentChild | false,
     className?: string,
 
     actions?: TAction<TRow>[]
@@ -40,15 +40,17 @@ export type TColumn = {
 - COMPOSANTS
 ----------------------------------*/
 export default function Liste<TRow extends TDonneeInconnue>({
-    data: rows, setData, empty ,
+    data: rows, setData, empty,
     columns, actions, ...props
 }: Props<TRow>) {
 
     if (rows.length === 0)
-        return (
-            <div class="card pd-2 col al-center">
-                <i src="meh-rolling-eyes" class="xl" />
-                Uh ... No rows here.
+        return empty === false ? null : (
+            <div class="pd-2 col al-center">
+                {empty || <>
+                    <i src="meh-rolling-eyes" class="xl" />
+                    Uh ... No rows here.
+                </>}
             </div>
         );
 
