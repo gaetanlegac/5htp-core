@@ -202,6 +202,7 @@ export default abstract class Service<
         }
 
         // Create class instance
+        this.config.debug && console.log(`[app] Instanciate service`, registered.metas.id);
         let service;
         try {
             service = new ServiceClass(
@@ -216,6 +217,7 @@ export default abstract class Service<
         }
 
         // Hande custom instance getter (ex: SQL callable class)
+        this.config.debug && console.log(`[app] Get service instance for`, registered.metas.id);
         let serviceInstance;
         try {
             serviceInstance = service.getServiceInstance();
@@ -227,6 +229,7 @@ export default abstract class Service<
         // Bind his own metas
         service.metas = registered.metas;
         ServicesContainer.allServices[ registered.metas.id ] = serviceInstance;
+        this.config.debug && console.log(`[app] Service`, registered.metas.id, 'Loaded');
 
         return serviceInstance;
     }

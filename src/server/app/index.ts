@@ -101,7 +101,7 @@ export class Application<
         this.parent = this;
         this.app = this;
 
-        // Gestion crash
+        // Handle unhandled crash
         process.on('unhandledRejection', (error: any, promise: any) => {
             // We don't log the error here because it's the role of the app to decidehiw to log errors
             this.runHook('error', error);
@@ -126,7 +126,6 @@ export class Application<
 
         console.log("Build date", BUILD_DATE);
         console.log("Core version", CORE_VERSION);
-        console.log(`5HTP Core`, process.env.npm_package_version);
         const startTime = Date.now();
 
         // Handle errors & crashs
