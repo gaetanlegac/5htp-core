@@ -193,16 +193,36 @@ export default abstract class Service<
 
         // Instanciate
         console.log(`[app] Load service`, registered.metas.id);
-        const ServiceClass = registered.metas.class().default;
+        let ServiceClass;
+        try {
+            ServiceClass = registered.metas.class().default;
+        } catch (error) {
+            console.error("Failed to get the class of the", registered.metas.id, "service:", error);
+            process.exit();
+        }
 
         // Create class instance
-        const service = new ServiceClass(
-            this, 
-            registered.config, 
-            registered.subServices, 
-            this.app || this
-        )
-        const serviceInstance = service.getServiceInstance();
+        let service;
+        try {
+            service = new ServiceClass(
+                this, 
+                registered.config, 
+                registered.subServices, 
+                this.app || this
+            )
+        } catch (error) {
+            console.error("Failed to instanciate class of the", registered.metas.id, "service:", error);
+            process.exit();
+        }
+
+        // Hande custom instance getter (ex: SQL callable class)
+        let serviceInstance;
+        try {
+            serviceInstance = service.getServiceInstance();
+        } catch (error) {
+            console.error("Failed to get service instance for the ", registered.metas.id, "service:", error);
+            process.exit();
+        }
 
         // Bind his own metas
         service.metas = registered.metas;
