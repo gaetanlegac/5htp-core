@@ -96,16 +96,20 @@ export class Application<
         // Application itself doesnt have configuration
         // Configuration must be handled by application services
         super(self, {}, {}, self);
+        
+        // Handle unhandled crash
+        this.on('error', e => this.unhandledRejection(e));
+        
+        process.on('unhandledRejection', (error: any, promise: any) => {
+            console.log("unhandledRejection");
+            // We don't log the error here because it's the role of the app to decidehiw to log errors
+            this.runHook('error', error);
+        });
 
         // We can't pass this in super so we assign here
         this.parent = this;
         this.app = this;
-
-        // Handle unhandled crash
-        process.on('unhandledRejection', (error: any, promise: any) => {
-            // We don't log the error here because it's the role of the app to decidehiw to log errors
-            this.runHook('error', error);
-        });
+        
     }
 
     /*----------------------------------
@@ -128,9 +132,6 @@ export class Application<
         console.log("Core version", CORE_VERSION);
         const startTime = Date.now();
 
-        // Handle errors & crashs
-        this.on('error', e => this.Console.createBugReport(e))
-
         console.info(`[boot] Start services`);
         await this.startServices();
         this.debug && console.info(`[boot] Services are ready`);
@@ -145,13 +146,6 @@ export class Application<
 
     public async ready() {
 
-
-    }
-
-    // Default error handler
-    public async reportBug( bug: ServerBug ) {
-
-        console.error( bug.error );
 
     }
 
@@ -205,6 +199,35 @@ export class Application<
         if (unused.length !== 0)
             console.warn(`${unused.length} services were setup, but are not used anywhere:`, 
                 unused.join(', '));
+    }
+
+    /*----------------------------------
+    - ERROR HANDLING
+    ----------------------------------*/
+    private async unhandledRejection(rejection: Error) {
+        if (this.Console) {
+            try {
+
+                this.Console.createBugReport(rejection);
+
+            } catch (consoleError) {
+                console.error(
+                    "Unhandled rejection", rejection, 
+                    "Failed to transmiss the previous error to console:", consoleError
+                );
+                process.exit(1);
+            }
+        } else {
+            console.error("Unhandled rejection", rejection);
+            process.exit(1);
+        }
+    }
+
+    // Default error handler
+    public async reportBug( bug: ServerBug ) {
+
+        console.error( bug.error );
+
     }
 
 }

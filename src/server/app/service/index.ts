@@ -144,6 +144,7 @@ export default abstract class Service<
     // this.use immediatly instanciate the subservice for few reasons:
     // - The subservice instance can be accesses from another service in the constructor, no matter the order of loading of the services
     // - Consistency: the subserviuce proprties shouldn't be assogned to two different values according depending on the app lifecycle
+    // Don't throw errors here since process.on('unhandledRejection') has not been configurated at this step (constructor ran after properties initialization)
     public use<
         TInstalledServices extends this["app"]["servicesContainer"]["allServices"],
         TServiceId extends keyof TInstalledServices,
@@ -172,8 +173,10 @@ export default abstract class Service<
         if (registered === undefined) { 
             if (serviceUseOptions.optional)
                 return undefined;
-            else
-                throw new Error(`Unable to use service "${serviceId}": This one hasn't been setup.`);
+            else {
+                console.error(`Unable to use service "${serviceId}": This one hasn't been setup.`);
+                process.exit(1);
+            }
         }
 
         // Bind subservices
@@ -198,7 +201,7 @@ export default abstract class Service<
             ServiceClass = registered.metas.class().default;
         } catch (error) {
             console.error("Failed to get the class of the", registered.metas.id, "service:", error);
-            process.exit();
+            process.exit(1);
         }
 
         // Create class instance
@@ -213,7 +216,7 @@ export default abstract class Service<
             )
         } catch (error) {
             console.error("Failed to instanciate class of the", registered.metas.id, "service:", error);
-            process.exit();
+            process.exit(1);
         }
 
         // Hande custom instance getter (ex: SQL callable class)
@@ -223,7 +226,7 @@ export default abstract class Service<
             serviceInstance = service.getServiceInstance();
         } catch (error) {
             console.error("Failed to get service instance for the ", registered.metas.id, "service:", error);
-            process.exit();
+            process.exit(1);
         }
 
         // Bind his own metas
@@ -273,7 +276,7 @@ export default abstract class Service<
             await service.started.catch(e => {
                 console.error("Catched error while starting service " + serviceScope, e);
                 if (this.app.env.profile === 'prod')
-                    process.exit();
+                    process.exit(1);
                 else
                     throw e;
             })

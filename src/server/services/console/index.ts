@@ -134,8 +134,13 @@ export default class Console extends Service<Config, Hooks, Application, Service
     /*----------------------------------
     - LIFECYCLE
     ----------------------------------*/
+    /*
+        WARN: This service should depend on the less services as possible, and be usable ASAP.
+            So bug reports can be sent at any state of the app, includoing thre most early
+    */
+    public constructor( parent: Application, config: Config, subservices: {}, app: Application ) {
 
-    protected async start() {
+        super(parent, config, subservices, app);
 
         const origLog = console.log
 
@@ -201,13 +206,10 @@ export default class Console extends Service<Config, Hooks, Application, Service
         setInterval(() => this.clean(), 10000);
     }
 
-    public async ready() {
-
-    }
-
-    public async shutdown() {
-
-    }
+    // Avoid to use lifecycle functions
+    protected async start() {}
+    public async ready() {}
+    public async shutdown() {}
 
     /*----------------------------------
     - LOGS FORMATTING
