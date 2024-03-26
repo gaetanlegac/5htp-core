@@ -65,7 +65,7 @@ export type TServices = {
 /*----------------------------------
 - SERVICE
 ----------------------------------*/
-export default abstract class UsersManagementService<
+export default abstract class AuthService<
     TUser extends {},
     TApplication extends Application,
     TJwtSession extends {} = {},

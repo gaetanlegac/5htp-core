@@ -14,7 +14,7 @@ import Service, { AnyService, TRegisteredService } from '@server/app/service';
 import SocketScope, { WebSocket } from './scope';
 import type Router from '@server/services/router';
 export type { WebSocket, default as SocketScope } from './scope';
-import type UsersManagementService from '../users';
+import type UsersManagementService from '../auth';
 
 /*----------------------------------
 - TYPES

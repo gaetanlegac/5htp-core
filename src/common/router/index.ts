@@ -15,7 +15,7 @@ import type {
     TRouteHttpMethod 
 } from '@server/services/router';
 
-import type { TUserRole } from '@server/services/users';
+import type { TUserRole } from '@server/services/auth';
 
 import type { TAppArrowFunction } from '@common/app';
 
