@@ -11,7 +11,7 @@ import ServicesContainer, {
     TRegisteredService, 
     TServiceMetas 
 } from './service/container';
-import type { ServerBug } from '../services/console';
+import type { ServerBug } from './container/console';
 
 // Built-in
 import type { default as Router, Request as ServerRequest } from '@server/services/router';
@@ -82,9 +82,6 @@ export class Application<
     public debug: boolean = false;
     public launched: boolean = false;
 
-    // Mandatory services
-    public Console = this.use('Core/Console');
-
     /*----------------------------------
     - INIT
     ----------------------------------*/
@@ -98,7 +95,7 @@ export class Application<
         super(self, {}, {}, self);
         
         // Handle unhandled crash
-        this.on('error', e => this.unhandledRejection(e));
+        this.on('error', e => this.container.handleBug(e, "An error occured in the application"));
         
         process.on('unhandledRejection', (error: any, promise: any) => {
             console.log("unhandledRejection");
@@ -126,7 +123,7 @@ export class Application<
     - LAUNCH
     ----------------------------------*/
     
-    protected async start() {
+    public async start() {
 
         console.log("Build date", BUILD_DATE);
         console.log("Core version", CORE_VERSION);
@@ -204,25 +201,6 @@ export class Application<
     /*----------------------------------
     - ERROR HANDLING
     ----------------------------------*/
-    private async unhandledRejection(rejection: Error) {
-        if (this.Console) {
-            try {
-
-                this.Console.createBugReport(rejection);
-
-            } catch (consoleError) {
-                console.error(
-                    "Unhandled rejection", rejection, 
-                    "Failed to transmiss the previous error to console:", consoleError
-                );
-                process.exit(1);
-            }
-        } else {
-            console.error("Unhandled rejection", rejection);
-            process.exit(1);
-        }
-    }
-
     // Default error handler
     public async reportBug( bug: ServerBug ) {
 

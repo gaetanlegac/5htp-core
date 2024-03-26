@@ -1,6 +1,0 @@
-{
-    "id": "Core/Console",
-    "name": "Console",
-    "parent": "app",
-    "dependences": []
-}

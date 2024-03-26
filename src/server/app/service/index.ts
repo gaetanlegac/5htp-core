@@ -174,8 +174,7 @@ export default abstract class Service<
             if (serviceUseOptions.optional)
                 return undefined;
             else {
-                console.error(`Unable to use service "${serviceId}": This one hasn't been setup.`);
-                process.exit(1);
+                throw new Error(`Unable to use service "${serviceId}": This one hasn't been setup.`);
             }
         }
 
@@ -200,8 +199,8 @@ export default abstract class Service<
         try {
             ServiceClass = registered.metas.class().default;
         } catch (error) {
-            console.error("Failed to get the class of the", registered.metas.id, "service:", error);
-            process.exit(1);
+            console.error("Failed to load the class of the", registered.metas.id, "service:", error);
+            throw error;
         }
 
         // Create class instance
@@ -215,8 +214,8 @@ export default abstract class Service<
                 this.app || this
             )
         } catch (error) {
-            console.error("Failed to instanciate class of the", registered.metas.id, "service:", error);
-            process.exit(1);
+            console.error("Failed to instanciate class of the", registered.metas.id, "service");
+            throw error;
         }
 
         // Hande custom instance getter (ex: SQL callable class)
@@ -225,8 +224,8 @@ export default abstract class Service<
         try {
             serviceInstance = service.getServiceInstance();
         } catch (error) {
-            console.error("Failed to get service instance for the ", registered.metas.id, "service:", error);
-            process.exit(1);
+            console.error("Failed to get service instance for the ", registered.metas.id, "service");
+            throw error;
         }
 
         // Bind his own metas

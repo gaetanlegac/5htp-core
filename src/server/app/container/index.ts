@@ -8,9 +8,11 @@ import './patch';
 import path from 'path';
 
 // Core
+import type Application from '..';
 import type { StartedServicesIndex } from '../service';
 import Services, { ServicesContainer } from '../service/container';
 import ConfigParser, { TEnvConfig } from './config';
+import Console from './console';
 
 /*----------------------------------
 - CLASS
@@ -26,6 +28,9 @@ export class ApplicationContainer<
     public Services = Services as ServicesContainer<TServicesIndex>;
     public Environment: TEnvConfig;
     public Identity: Config.Identity;
+    public Console: Console;
+
+    public application?: Application;
 
     public constructor() {
 
@@ -33,6 +38,16 @@ export class ApplicationContainer<
         const configParser = new ConfigParser( this.path.root );
         this.Environment = configParser.env();
         this.Identity = configParser.identity();
+        this.Console = new Console(this, {
+            debug: false,
+            bufferLimit: 10000,
+            dev: {
+                level: 'log'
+            },
+            prod: {
+                level: 'log'
+            }
+        });
     }
 
     // Context
@@ -50,6 +65,45 @@ export class ApplicationContainer<
             generated: path.join( process.cwd(), 'src', 'server', '.generated')
         },
     }
+
+    public start( ApplicationClass: typeof Application ) {
+
+        // Instanciate Application
+        try {
+            this.application = new ApplicationClass;
+        } catch (error) {
+            this.handleBug(error, "Failed to instanciate the Application Class");
+            process.exit(1);
+        }
+
+        // Start application
+        try {
+            this.application.start();
+        } catch (error) {
+            this.handleBug(error, "Failed to start the Application");
+            process.exit(1);
+        }
+    }
+
+    public async handleBug( rejection: Error, message: string ) {
+        if (this.Console) {
+            try {
+
+                this.Console.createBugReport(rejection);
+
+            } catch (consoleError) {
+                console.error(
+                    message, rejection, 
+                    "Failed to transmiss the previous error to console:", consoleError
+                );
+                process.exit(1);
+            }
+        } else {
+            console.error(message, rejection);
+            process.exit(1);
+        }
+    }
+
 
     /*----------------------------------
     - HMR

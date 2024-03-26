@@ -5,6 +5,8 @@
 // Node
 import { serialize } from 'v8';
 import { formatWithOptions } from 'util';
+import Youch from 'youch';
+import forTerminal from 'youch-terminal';
 
 // Npm
 import { v4 as uuid } from 'uuid';
@@ -13,8 +15,7 @@ import { format as formatSql } from 'sql-formatter';
 import highlight from 'cli-highlight';
 
 // Core libs
-import type { Application } from '@server/app';
-import Service from '@server/app/service';
+import type ApplicationContainer from '..';
 import context from '@server/context';
 import type { ServerBug } from '@common/errors';
 import type ServerRequest from '@server/services/router/request';
@@ -117,7 +118,7 @@ const logLevels = {
 /*----------------------------------
 - LOGGER
 ----------------------------------*/
-export default class Console extends Service<Config, Hooks, Application, Services> {
+export default class Console {
 
     // Services
     public logger!: Logger<ILogObj>;
@@ -138,18 +139,23 @@ export default class Console extends Service<Config, Hooks, Application, Service
         WARN: This service should depend on the less services as possible, and be usable ASAP.
             So bug reports can be sent at any state of the app, includoing thre most early
     */
-    public constructor( parent: Application, config: Config, subservices: {}, app: Application ) {
+    public constructor( 
+        private container: typeof ApplicationContainer, 
+        private config: Config,
+    ) {
 
-        super(parent, config, subservices, app);
+        console.log("Setting up Console shell module.");
 
         const origLog = console.log
 
-        const envConfig = this.config[ this.app.env.profile === 'prod' ? 'prod' : 'dev' ];
+        const Env = container.Environment;
+
+        const envConfig = this.config[ Env.profile === 'prod' ? 'prod' : 'dev' ];
         const minLogLevel = logLevels[ envConfig.level ];
 
         this.logger = new Logger({
             // Use to improve performance in production
-            hideLogPositionForProduction: this.app.env.profile === 'prod',
+            hideLogPositionForProduction: Env.profile === 'prod',
             type: 'pretty',
             prettyInspectOptions: {
                 depth: 2
@@ -220,7 +226,7 @@ export default class Console extends Service<Config, Hooks, Application, Service
         if (filepath === undefined)
             return undefined;
 
-        const projectRoot = this.app.container.path.root;
+        const projectRoot = this.container.path.root;
         if (filepath.startsWith( projectRoot ))
             filepath = filepath.substring( projectRoot.length )
 
@@ -259,6 +265,34 @@ export default class Console extends Service<Config, Hooks, Application, Service
 
     public async createBugReport( error: Error, request?: ServerRequest ) {
 
+        // Print error
+        this.logger.error(LogPrefix, `Sending bug report for the following error:`, error);
+        /*const youchRes = new Youch(error, {});
+        const jsonResponse = await youchRes.toJSON()
+        console.log( forTerminal(jsonResponse, {
+            // Defaults to false
+            displayShortPath: false,
+
+            // Defaults to single whitspace
+            prefix: ' ',
+
+            // Defaults to false
+            hideErrorTitle: false,
+
+            // Defaults to false
+            hideMessage: false,
+
+            // Defaults to false
+            displayMainFrameOnly: false,
+
+            // Defaults to 3
+            framesMaxLimit: 3,
+        }) );*/
+
+        const application = this.container.application;
+        if (application === undefined) 
+            return console.error(LogPrefix, "Can't send bug report because the application is not instanciated");
+
         // Print the error so it's accessible via logs
         if (error instanceof SqlError)  {
             let printedQuery: string;
@@ -269,7 +303,7 @@ export default class Console extends Service<Config, Hooks, Application, Service
             }
             console.error(`Error caused by this query:`, printedQuery);
         }
-        console.error(LogPrefix, `Sending bug report for the following error:`, error);
+
         if (error.dataForDebugging !== undefined)
             console.error(LogPrefix, `More data about the error:`, error.dataForDebugging);
 
@@ -308,7 +342,7 @@ export default class Console extends Service<Config, Hooks, Application, Service
             logs: logsHtml
         }
 
-        await this.app.reportBug( bugReport );
+        await application.reportBug( bugReport );
     }
 
     public getChannel() {
