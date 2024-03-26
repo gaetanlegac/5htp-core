@@ -150,6 +150,7 @@ export default class SchemaValidators {
         max?: number 
     } = {}) => new Validator<string>('string', (val, input, output, corriger?: boolean) => {
 
+        // Check type
         if (val === '')
             return undefined;
         else if (typeof val === 'number')
@@ -157,14 +158,14 @@ export default class SchemaValidators {
         else if (typeof val !== 'string')
             throw new InputError("This value must be a string.");
 
-        // Espaces blancs
+        // Whitespace
         val = trim(val);
 
-        // Taille min
+        // Min size
         if (min !== undefined && val.length < min)
             throw new InputError(`Must be at least ` + min + ' characters');
 
-        // Taille max
+        // Max size
         if (max !== undefined && val.length > max)
             if (corriger)
                 val = val.substring(0, max);
@@ -191,8 +192,6 @@ export default class SchemaValidators {
             // Normalize
             if (opts.normalize !== undefined)
                 val = normalizeUrl(val, opts.normalize);
-
-            console.log("@@@@@@@@@@@@@NORMALISZE URL", opts.normalize, val);
 
             return val;
         }, opts)

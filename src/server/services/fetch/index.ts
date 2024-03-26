@@ -83,7 +83,6 @@ export default class FetchService extends Service<Config, Hooks, Application, Se
         if (this.services.disks)
             this.disk = this.services.disks.get( this.config.disk );
         
-        
     }
 
     public async ready() {
@@ -116,8 +115,10 @@ export default class FetchService extends Service<Config, Hooks, Application, Se
     ) {
 
         // Parse url if router service is provided
-        if (this.services.router !== undefined)
-            url = this.services.router.url(url);
+        if (this.services.router === undefined)
+            throw new Error(`Please bind the Router service to the Fetch service in order to contact APIs.`);
+
+        url = this.services.router.url(url);
 
         // Send request
         const res = await got(url, {
