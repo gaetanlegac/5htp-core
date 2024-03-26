@@ -233,9 +233,19 @@ export default class SQL extends Service<Config, Hooks, Application, Services> {
                 // SQL query
                 } else if (typeof value === 'function' && value.string !== undefined)
                     value = ' ' + value.string;
-                else
-                    value = ' ' + mysql.escape(value);
+                // Escape value
+                else {
 
+                    const lastKeyword = stringBefore.trim().split(' ').pop();
+
+                    // Escape table name
+                    if (lastKeyword === 'FROM')
+                        value = '`' + value + '`';
+                    else
+                        value = mysql.escape(value);
+
+                    value = ' ' + value;
+                }
                 stringBefore += value;
 
             }
