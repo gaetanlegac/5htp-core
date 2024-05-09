@@ -29,6 +29,25 @@ export type Props = DropdownProps & SelectorProps & {
 
 export type { Choice } from './ChoiceSelector';
 
+const ensureChoice = (choice: Choice | string, choices: Choice[]): Choice => {
+
+    // Allready a choice
+    if (typeof choice === 'object' && choice.label) {
+        return choice;
+    }
+
+    // Find the choice
+    const found = choices.find( c => c.value === choice);
+    if (found)
+        return found;
+
+    // Create a new choice
+    return {
+        label: choice,
+        value: choice
+    }
+}
+
 /*----------------------------------
 - COMONENT
 ----------------------------------*/
@@ -95,8 +114,8 @@ export default ({
     const currentList: Choice[] = current === undefined
         ? []
         : (Array.isArray(current) 
-            ? current 
-            : [current]
+            ? current.map( c => ensureChoice(c, choices))
+            : [ensureChoice(current, choices)]
         );
 
     /*----------------------------------

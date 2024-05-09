@@ -25,14 +25,14 @@ type ChoicesFunc = (search: string) => Promise<Choices>
 export type Props = (
     {
         multiple: true,
-        value?: Choice[],
+        value?: Choice[] | Choice["value"][],
         onChange: StateUpdater<Choice[]>,
         validator?: ArrayValidator
     }
     |
     {
         multiple?: false,
-        value?: Choice,
+        value?: Choice | Choice["value"],
         onChange: StateUpdater<Choice>,
         validator?: StringValidator
     }
