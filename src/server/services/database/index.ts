@@ -385,7 +385,7 @@ export default class SQL extends Service<Config, Hooks, Application, Services> {
 
         // Build query
         return this.database.query(`
-            UPDATE ${tableName} SET ${egalitesData} WHERE ${egalitesWhere};
+            UPDATE \`${tableName}\` SET ${egalitesData} WHERE ${egalitesWhere};
         `, opts);
 
     }
@@ -406,23 +406,37 @@ export default class SQL extends Service<Config, Hooks, Application, Services> {
     - OPERATIONS: INSERT
     ----------------------------------*/
 
-    public tryInsert = (table: string, data: TObjetDonnees) =>
+    public tryInsert = <TData extends TObjetDonnees>(table: string, data: TData | TData[]) =>
         this.insert(table, data, { try: true });
+
+    public async insert<TData extends TObjetDonnees>(
+        path: string, 
+        data: TData, 
+        opts?: TInsertQueryOptions<TData>
+    ): Promise<TData>;
+
+    public async insert<TData extends TObjetDonnees>(
+        path: string, 
+        data: TData[], 
+        opts?: TInsertQueryOptions<TData[]>
+    ): Promise<TData>;
 
     public async insert<TData extends TObjetDonnees>(
         path: string, 
         data: TData | TData[], 
         opts: TInsertQueryOptions<TData> = {}
-    ): Promise<OkPacket> {
+    ): Promise<TData | TData[]> {
 
         const table = this.database.getTable(path);
 
         // Normalize data
-        if (!Array.isArray(data))
+        let returnSingleResult = false;
+        if (!Array.isArray(data)) {
             data = [data];
-        else if (data.length === 0) {
+            returnSingleResult = true;
+        } else if (data.length === 0) {
             console.warn(LogPrefix, `Insert nothing in ${path}. Cancelled.`);
-            return emptyOkPacket;
+            return [];
         }
 
         // Upsert
@@ -449,28 +463,14 @@ export default class SQL extends Service<Config, Hooks, Application, Services> {
                 okPacket.warningCount += queryResult.warningCount;
             }
 
-            return okPacket;
-
         } else {
             const query = this.buildInsertStatement(table, data, opts) + upsertStatement;
 
             const queryResult = await this.database.query<mysql.OkPacket>(query + ';', opts);
 
-            return {
-                constructor: {
-                    name: 'OkPacket'
-                },
-                fieldCount: queryResult.fieldCount,
-                affectedRows: queryResult.affectedRows,
-                changedRows: queryResult.changedRows,
-                insertId: queryResult.insertId,
-                serverStatus: queryResult.serverStatus,
-                warningCount: queryResult.warningCount,
-                message: queryResult.message,
-                procotol41: queryResult.procotol41,
-            };
         }
-        // OLD: return [data, queryResult?.insertId, queryResult];
+        
+        return returnSingleResult ? data[0] : data;
     }
 
     private buildInsertStatement<TData extends TObjetDonnees>(
