@@ -5,19 +5,35 @@ const timeAgo = new TimeAgo('en-US')
 
 import dayjs from 'dayjs';
 
-export const timeSince = (date: Date | number | string) => {
+export type TDateInfo = {
+    isPast: boolean,
+    delta: number,
+    text: string
+}
+
+export const timeSince = (date: Date | number | string): TDateInfo | null => {
 
     if (date === undefined)
-        return 'Inconnu';
+        return null;
 
     // Timeago ne prend que des dates et des timestamp
     if (typeof date === 'string') {
         date = Date.parse(date);
         if (isNaN(date))
-            return "?";
+            return null;
     }
 
-    return timeAgo.format(date);
+    // Get metas
+    const now = Date.now()
+    const timestamp = date instanceof Date ? date.getTime() : date;
+    const deltaSeconds = Math.abs( Math.round( (now - timestamp) / 1000 ));
+    const isPast = now > timestamp;
+
+    return {
+        text: timeAgo.format(date),
+        isPast,
+        delta: deltaSeconds
+    };
 }
 
 export const tempsRelatif = (time: number, nbChiffresInit?: number) => {
