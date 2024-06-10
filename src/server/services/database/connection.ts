@@ -188,7 +188,9 @@ export default class DatabaseManager {
 
             const table = db[field.table];
             if (table === undefined) {
-                console.error("Field infos:", field);
+                // We don't throw error, sinc eit can be a virtual table
+                //console.error("Field infos:", field);
+                return next();
                 throw new Error(`Table metadatas for ${field.db}.${field.table} were not loaded.`);
             }
 
