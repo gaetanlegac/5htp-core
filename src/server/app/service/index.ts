@@ -58,7 +58,7 @@ export default abstract class Service<
     TConfig extends TServiceConfig, 
     THooks extends THooksList,
     TApplication extends Application,
-    TServicesIndex extends StartedServicesIndex
+    TServicesIndex extends StartedServicesIndex = {}
 > {
 
     public started?: Promise<void>;
