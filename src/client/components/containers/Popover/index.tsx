@@ -21,7 +21,7 @@ export type Props = JSX.HTMLAttributes<HTMLDivElement> & {
 
     // Display
     content?: JSX.Element,
-    state: [boolean, StateUpdater<boolean>],
+    state?: [boolean, StateUpdater<boolean>],
     width?: number | string,
     disable?: boolean
     // Position
@@ -57,6 +57,9 @@ export default (props: Props) => {
     const [position, setPosition] = React.useState<TPosition | undefined>(undefined);
     const refCont = React.useRef<HTMLElement>(null);
     const refContent = React.useRef<HTMLElement>(null);
+
+    if (state === undefined)
+        state = React.useState(false);
 
     const [shown, show] = state;
 
