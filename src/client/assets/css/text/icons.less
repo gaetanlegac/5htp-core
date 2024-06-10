@@ -33,11 +33,14 @@ i {
 
     &.solid {
         color: var(--cAccent2);
+        background: var(--cBg);
+        border-radius: @radius;
 
-        width: @sizeComponent;
-        flex: 0 0 @sizeComponent;
-        height: @sizeComponent;
-        line-height: @sizeComponent;
+        // Normla size must fit inside a normal fit element
+        width: @sizeComponent * 0.75;
+        flex: 0 0 @sizeComponent * 0.75;
+        height: @sizeComponent * 0.75;
+        line-height: @sizeComponent * 0.75;
         //font-size: 0.9em;
     }
 
