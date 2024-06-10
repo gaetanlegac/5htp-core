@@ -12,7 +12,7 @@ import { default as Validator, EXCLUDE_VALUE } from './validator';
 - TYPES
 ----------------------------------*/
 
-export type TSchemaFields = { [fieldName: string]: Schema<{}> | Validator<any> }
+export type TSchemaFields = { [fieldName: string]: TSchemaFields | Schema<{}> | Validator<any> }
 
 type TSchemaOptions = {
     opt?: boolean
@@ -60,6 +60,100 @@ export default class Schema<TFields extends TSchemaFields> {
     }
 
     public validate<TDonnees extends TObjetDonnees>(
+        dataToValidate: Partial<TDonnees>,
+        opts: TValidateOptions<TFields> = {},
+        chemin: string[] = []
+    ): TValidatedData<TFields> {
+
+        // Check data type
+        if (typeof dataToValidate !== 'object')
+            throw new InputErrorSchema({ [chemin.join('.')]: ['Must be an object'] });
+    
+        // Default options
+        opts = {
+            debug: false,
+            throwError: true,
+            validateDeps: true,
+            autoCorrect: false,
+            ...opts,
+        }
+
+        const keysToValidate = (opts.only || Object.keys(this.fields)) as string[];
+    
+        // Validation de chacune d'entre elles
+        const output: Partial<TDonnees> = {};
+        let erreurs: TListeErreursSaisie = {};
+        let errorsCount = 0;
+        for (const fieldName of keysToValidate) {
+    
+            // La donnée est répertoriée dans le schema
+            let field = this.fields[fieldName];
+            let validator: Validator<any> | Schema<{}>;
+            if (field === undefined) {
+                opts.debug && console.warn(LogPrefix, '[' + fieldName + ']', 'Exclusion (pas présent dans le schéma)');
+                continue;
+            } else if (field.constructor === Object)
+                validator = new Schema(field as TSchemaFields);
+            else
+                validator = field as Validator<any>;
+
+            // Create field path
+            const cheminA = [...chemin, fieldName]
+            const cheminAstr = cheminA.join('.')
+            const valOrigine = dataToValidate[fieldName];
+
+            // Validation
+            try {
+
+                const val = validator.validate(valOrigine, opts, cheminA);
+
+                // Exclusion seulement si explicitement demandé
+                // IMPORTANT: Conserver les values undefined
+                //      La présence d'un valeur undefined peut être utile, par exemple, pour indiquer qu'on souhaite supprimer une donnée
+                //      Exemple: undefinec = suppression fichier | Absende donnée = conservation fihcier actuel
+                if (val === EXCLUDE_VALUE)
+                    opts.debug && console.log(LogPrefix, '[' + cheminA + '] Exclusion demandée');
+                else
+                    output[fieldName] = val;
+
+                opts.debug && console.log(LogPrefix, '[' + cheminA + ']', valOrigine, '=>', val);
+
+            } catch (error) {
+
+                opts.debug && console.warn(LogPrefix, '[' + cheminA + ']', valOrigine, '|| CoreError:', error);
+
+                if (error instanceof InputErrorSchema) {
+
+                    erreurs = { ...erreurs, ...error.erreursSaisie };
+                    errorsCount += Object.keys(error.erreursSaisie).length;
+
+                } else if (error instanceof CoreError) {
+
+                    erreurs[cheminAstr] = [error.message]
+                    errorsCount++;
+
+                } else if (SERVER) {
+
+                    // Server: transmiss error & report bug
+                    throw error;
+
+                } else {
+
+                    erreurs[cheminAstr] = ["Technical error while validating data"];
+                    errorsCount++;
+                }
+            }
+        }
+    
+        if (errorsCount !== 0)
+            throw new InputErrorSchema(erreurs);
+        
+        opts.debug && console.log(LogPrefix, '', dataToValidate, '=>', output);
+    
+        return output as TValidatedData<TFields>;
+    }
+
+    public validateWithDetails<TDonnees extends TObjetDonnees>(
     
         dataToValidate: Partial<TDonnees>,
         allData: TDonnees,
@@ -69,125 +163,25 @@ export default class Schema<TFields extends TSchemaFields> {
         chemin: string[] = []
     
     ): TValidationResult<TFields> {
-    
-        opts = {
-            debug: false,
-            throwError: false,
-            validateDeps: true,
-            autoCorrect: false,
-            ...opts,
-        }
-    
-        let outputSchema = output;
-        for (const branche of chemin)
-            outputSchema = outputSchema[branche];
 
-        const keysToValidate = opts.only || Object.keys(this.fields);
-    
-        // Validation de chacune d'entre elles
         let erreurs: TListeErreursSaisie = {};
         let errorsCount = 0;
-        for (const fieldName of keysToValidate) {
-    
-            // La donnée est répertoriée dans le schema
-            const field = this.fields[fieldName];
-            if (field === undefined) {
-                opts.debug && console.warn(LogPrefix, '[' + fieldName + ']', 'Exclusion (pas présent dans le schéma)');
-                continue;
-            }
 
-            const cheminA = [...chemin, fieldName]
-            const cheminAstr = cheminA.join('.')
-    
-            // Sous-schema
-            if (field instanceof Schema) {
-    
-                // Initialise la structure pour permettre l'assignement d'outputSchema
-                if (outputSchema[fieldName] === undefined)
-                    outputSchema[fieldName] = {}
-
-                // The corresponding data should be an object
-                const schemadata = dataToValidate[fieldName];
-                if (typeof schemadata !== 'object') {
-                    erreurs[ cheminAstr ] = [`Should be an object`];
-                    errorsCount++;
-                    continue;
-                }
-    
-                // Validate the data
-                const validationSchema = field.validate(
-
-                    schemadata,
-                    allData,
-                    output,
-
-                    opts,
-                    cheminA
-                );
-                erreurs = { ...erreurs, ...validationSchema.erreurs };
-                errorsCount += validationSchema.errorsCount;
-    
-                // Pas besoin d'assigner, car output est passé en référence
-                //output[fieldName] = validationSchema.values;
-    
-    
-            // I don't remind what is options.activer about
-            /*} else if (field.activer !== undefined && field.activer(allData) === false) {
-    
-                delete outputSchema[fieldName];*/
-    
-            // Validator
+        try {
+            this.validate(dataToValidate, opts, chemin);
+        } catch (error) {
+            if (error instanceof InputErrorSchema) {
+                erreurs = error.erreursSaisie;
+                errorsCount = Object.keys(erreurs).length;
             } else {
-    
-                // Champ composé de plusieurs values
-                const valOrigine = field.options.as === undefined
-                    ? dataToValidate[fieldName]
-                    // Le fieldName regroupe plusieurs values (ex: Periode)
-                    : field.options.as.map((nomVal: string) => dataToValidate[nomVal])
-    
-                // Validation
-                try {
-    
-                    const val = field.validate(valOrigine, allData, output, opts);
-    
-                    // Exclusion seulement si explicitement demandé
-                    // IMPORTANT: Conserver les values undefined
-                    //      La présence d'un valeur undefined peut être utile, par exemple, pour indiquer qu'on souhaite supprimer une donnée
-                    //      Exemple: undefinec = suppression fichier | Absende donnée = conservation fihcier actuel
-                    if (val === EXCLUDE_VALUE)
-                        opts.debug && console.log(LogPrefix, '[' + cheminA + '] Exclusion demandée');
-                    else
-                        outputSchema[fieldName] = val;
-    
-                    opts.debug && console.log(LogPrefix, '[' + cheminA + ']', valOrigine, '=>', val);
-    
-                } catch (error) {
-    
-                    opts.debug && console.warn(LogPrefix, '[' + cheminA + ']', valOrigine, '|| CoreError:', error);
-    
-                    if (error instanceof CoreError) {
-    
-                        // Référencement erreur
-                        erreurs[cheminAstr] = [error.message]
-                        errorsCount++;
-    
-                    } else
-                        throw error;
-                }
+                throw error;
             }
         }
-    
-        if (errorsCount !== 0 && opts.throwError === true) {
-            throw new InputErrorSchema(erreurs);
-        }
-        
-        opts.debug && console.log(LogPrefix, '', dataToValidate, '=>', output);
-    
+
         return { 
             values: output as TValidatedData<TFields>,
             erreurs, 
             errorsCount, 
         };
-    
     }
 }

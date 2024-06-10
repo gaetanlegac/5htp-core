@@ -109,7 +109,7 @@ export default function useForm<TFormData extends {}>(
     ----------------------------------*/
     const validate = (allData: Partial<TFormData> = data, validateAll: boolean = true) => {
 
-        const validated = schema.validate(allData, allData, {}, {
+        const validated = schema.validateWithDetails(allData, allData, {}, {
             // Ignore the fields where the vlaue has not been changed
             //  if the validation was triggered via onChange
             ignoreMissing: !validateAll,
@@ -138,6 +138,7 @@ export default function useForm<TFormData extends {}>(
             context.app.handleError(
                 new InputError("You have " + validated.errorsCount + " errors in the form.")
             );
+            console.log("validated", validated.erreurs);
             return;
         }
 

@@ -17,7 +17,7 @@ import { InputError } from '@common/errors';
 import FileToUpload from '@client/components/inputv3/file/FileToUpload';
 
 // Speciific
-import Schema from './schema'
+import Schema, { TSchemaFields } from './schema'
 import Validator, { TValidator } from './validator'
 
 // Components
@@ -31,6 +31,10 @@ export type TFileValidator = TValidator<FileToUpload> & {
     type?: (keyof typeof raccourcisMime) | string[], // Raccourci, ou liste de mimetype
     taille?: number
 }
+
+type TSchemaSubtype = Schema<{}> | TSchemaFields;
+
+type TSubtype = TSchemaSubtype | Validator<any>;
 
 /*----------------------------------
 - CONST
@@ -48,30 +52,35 @@ export default class SchemaValidators {
     /*----------------------------------
     - CONTENEURS
     ----------------------------------*/
-    public object = ({ ...opts }: TValidator<object> & {} = {}) => 
-        new Validator<object>('object', (val, input, output) => {
+    public object = ( subtype?: TSchemaSubtype, { ...opts }: TValidator<object> & {
 
-            // TODO: executer seulement coté serveur
-            /*if (typeof val === 'string' && val.startsWith('{'))
-                try {
-                    val = JSON.parse(val);
-                } catch (error) {
-                    console.error('Unable to convert the given string into an object.');
-                }*/
+    } = {}) => 
+        new Validator<object>('object', (val, options, path) => {
 
+            // The value should be an object
             if (typeof val !== 'object' || val.constructor !== Object)
                 throw new InputError("This value must be an object.");
 
-            return val;
+            // If no subtype, return the object as is
+            if (subtype === undefined)
+                return val;
+
+            // If subtype is a schema
+            const schema = subtype.constructor === Object 
+                ? new Schema(subtype as TSchemaFields) 
+                : subtype as Schema<{}>;
+
+            // Validate schema
+            const value = schema.validate(val, options, path);
+            
+            return value;
         }, opts)
 
-    public array = ( subtype?: Validator<any> | Schema<{}>, { 
-        choice, min, max, ...opts 
-    }: TValidator<any[]> & {
+    public array = ( subtype: TSubtype, { choice, min, max, ...opts }: TValidator<any[]> & {
         choice?: any[],
         min?: number, 
         max?: number
-    } = {}) => new Validator<any[]>('array', (items, input, output, corriger) => {
+    } = {}) => new Validator<any[]>('array', (items, options, path) => {
 
         // Type
         if (!Array.isArray(items))
@@ -84,32 +93,26 @@ export default class SchemaValidators {
             throw new InputError(`Please select maximum ${max} items.`);
 
         // Verif each item
-        if (subtype !== undefined) {
-            if (subtype instanceof Schema) {
+        if (subtype === undefined)
+            return items;
 
-                items = items.map( item =>
-                    subtype.validate( item, item, item, { }, []).values
-                )
+        const validator = subtype.constructor === Object
+            ? new Schema(subtype as TSchemaFields)
+            : subtype as Schema<{}> | Validator<any>;
 
-            } else {
-
-                items = items.map( item =>
-                    subtype.validate( item, items, items, corriger )
-                )
-
-            }
-        }
+        items = items.map( item =>
+            validator.validate( item, options, path )
+        )
 
         return items;
     }, {
         ...opts,
         //multiple: true, // Sélection multiple
-        //subtype
     })
 
     public choice = (choices?: any[], { multiple, ...opts }: TValidator<any> & { 
         multiple?: boolean 
-    } = {}) => new Validator<any>('choice', (val, input, output) => {
+    } = {}) => new Validator<any>('choice', (val, options, path) => {
 
         // Empty array = undefined if not required
         if (val.length === 0 && opts.opt)
@@ -145,10 +148,11 @@ export default class SchemaValidators {
     /*----------------------------------
     - CHAINES
     ----------------------------------*/
-    public string = ({ min, max, ...opts }: TValidator<string> & { 
+    public string = ({ min, max, in: choices, ...opts }: TValidator<string> & { 
         min?: number, 
-        max?: number 
-    } = {}) => new Validator<string>('string', (val, input, output, corriger?: boolean) => {
+        max?: number,
+        in?: string[]
+    } = {}) => new Validator<string>('string', (val, options, path) => {
 
         // Check type
         if (val === '')
@@ -161,13 +165,17 @@ export default class SchemaValidators {
         // Whitespace
         val = trim(val);
 
+        // In
+        if (choices !== undefined && !choices.includes(val))
+            throw new InputError(`Invalid value: ${val}. Must be one of: ${choices.join(', ')}`);
+
         // Min size
         if (min !== undefined && val.length < min)
             throw new InputError(`Must be at least ` + min + ' characters');
 
         // Max size
         if (max !== undefined && val.length > max)
-            if (corriger)
+            if (options?.autoCorrect)
                 val = val.substring(0, max);
             else
                 throw new InputError(`Must be up to ` + max + ' characters');
@@ -179,9 +187,9 @@ export default class SchemaValidators {
     public url = (opts: TValidator<string> & {
         normalize?: NormalizeUrlOptions
     } = {}) => 
-        new Validator<string>('url', (inputVal, input, output, corriger?) => {
+        new Validator<string>('url', (inputVal, options, path) => {
 
-            let val = this.string(opts).validate(inputVal, input, output, corriger);
+            let val = this.string(opts).validate(inputVal, options, path);
 
             // Check if URL
             if (!isURL(val, {
@@ -197,9 +205,9 @@ export default class SchemaValidators {
         }, opts)
 
     public email = (opts: TValidator<string> & {} = {}) => 
-        new Validator<string>('email', (inputVal, input, output, corriger?: boolean) => {
+        new Validator<string>('email', (inputVal, options, path) => {
 
-            let val = this.string(opts).validate(inputVal, input, output, corriger);
+            let val = this.string(opts).validate(inputVal, options, path);
 
             if (!isEmail(val))
                 throw new InputError("Please enter a valid email address.");
@@ -238,41 +246,36 @@ export default class SchemaValidators {
         min?: number,
         max?: number,
         step?: number,
-    } = {}) => new Validator<number>('number', (val, input, output, corriger?: boolean) => {
+    } = {}) => new Validator<number>('number', (val, options, path) => {
 
-        // Vérifications suivantes inutiles si des values spécifiques ont été fournies
-        if (opts.in === undefined) {
-
-            // Tente conversion chaine en nombre
-            if (typeof val === 'string')
-                val = withDecimals ? parseFloat(val) : parseInt(val);
-            
-            if (opts.min === undefined)
-                opts.min = 0;
-            
-            // Type de donnée
-            if (Number.isNaN(val) || typeof val !== 'number') {
-                if (corriger)
-                    val = opts.min;
-                else
-                    throw new InputError("This value must be a number.");
-            }
-
-            // Minimum
-            if (val < opts.min)
-                if (corriger)
-                    val = opts.min;
-                else
-                    throw new InputError(`Must be at least ` + opts.min);
-
-            // Maximum
-            if (opts.max !== undefined && val > opts.max)
-                if (corriger)
-                    val = opts.max;
-                else
-                    throw new InputError(`Must be up to ` + opts.max);
-
+        // Tente conversion chaine en nombre
+        if (typeof val === 'string')
+            val = withDecimals ? parseFloat(val) : parseInt(val);
+        
+        if (opts.min === undefined)
+            opts.min = 0;
+        
+        // Type de donnée
+        if (Number.isNaN(val) || typeof val !== 'number') {
+            if (options?.autoCorrect)
+                val = opts.min;
+            else
+                throw new InputError("This value must be a number.");
         }
+
+        // Minimum
+        if (val < opts.min)
+            if (options?.autoCorrect)
+                val = opts.min;
+            else
+                throw new InputError(`Must be at least ` + opts.min);
+
+        // Maximum
+        if (opts.max !== undefined && val > opts.max)
+            if (options?.autoCorrect)
+                val = opts.max;
+            else
+                throw new InputError(`Must be up to ` + opts.max);
 
         return val;
     }, {
@@ -287,7 +290,7 @@ export default class SchemaValidators {
     public float = this.number(true) 
 
     public bool = (opts: TValidator<boolean> & {} = {}) => 
-        new Validator<boolean>('bool', (val, input, output) => {
+        new Validator<boolean>('bool', (val, options, path) => {
 
             if (typeof val !== 'boolean' && !['true', 'false'].includes(val))
                 throw new InputError("This value must be a boolean.");
@@ -305,7 +308,7 @@ export default class SchemaValidators {
     ----------------------------------*/
     public date = (opts: TValidator<Date> & {
 
-    } = {}) => new Validator<Date>('date', (val, input, output) => {
+    } = {}) => new Validator<Date>('date', (val, options, path) => {
 
         const chaine = typeof val == 'string';
 

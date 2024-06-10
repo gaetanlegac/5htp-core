@@ -28,7 +28,6 @@ export type TValidator<TValue> = {
     dependances?: string[],
     opt?: true,
     defaut?: TValue,
-    as?: string[], // Mapping personnalisé
 
 }
 
@@ -40,9 +39,8 @@ type TValidationArgs<TValue, TAllValues extends {}> = [
     // For the value given as input in the validation function,
     //  Only the empty values were escluded
     val: TNonEmptyValue, 
-    input: TAllValues, 
-    output: Partial<TAllValues>, 
-    validateOptions?: TValidateOptions
+    validateOptions: TValidateOptions,
+    path: string[]
 ]
 
 type TValidationFunction<TValue, TAllValues extends {} = {}> = (
@@ -87,7 +85,7 @@ export default class Validator<
     public isEmpty = (val: any) => val === undefined || val === '' || val === null
 
     public validate(...[ 
-        val, input, output, validateOptions 
+        val, validateOptions, path
     ]: TValidationArgs<TValue, {}>): TValidateReturnType<TOptions, TValue> {
 
         // Required value
@@ -105,7 +103,7 @@ export default class Validator<
         }
 
         // Validate type
-        return this.validateType(val, input, output, validateOptions) as TValidateReturnType<TOptions, TValue>;
+        return this.validateType(val, validateOptions, path) as TValidateReturnType<TOptions, TValue>;
     }
 
 }

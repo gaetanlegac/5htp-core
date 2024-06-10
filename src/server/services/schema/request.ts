@@ -47,17 +47,10 @@ export default class RequestValidator extends ServerSchemaValidator implements R
         const schema = fields instanceof Schema ? fields : new Schema(fields);
 
         // Les InputError seront propagées vers le middleware dédié à la gestion des erreurs
-        const { values } = schema.validate(
-            this.request.data, 
-            this.request.data, 
-            {}, 
-            {
-                debug: this.config.debug,
-                throwError: true,
-                validateDeps: false
-            },
-            []
-        );
+        const values = schema.validate( this.request.data, {
+            debug: this.config.debug,
+            validateDeps: false
+        }, []);
 
         return values;
     }
