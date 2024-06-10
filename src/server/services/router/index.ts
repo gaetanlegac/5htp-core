@@ -598,7 +598,10 @@ declare type Routes = {
             console.warn(e);
 
         if (request.accepts("html"))
-            await response.runController(route, { message: e.message });
+            await response.runController(route, { 
+                message: e.message,
+                type: e.constructor.name
+            });
         else if (request.accepts("json"))
             await response.json(e.message);
         else
