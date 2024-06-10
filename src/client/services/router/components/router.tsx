@@ -85,13 +85,8 @@ export default ({ service: clientRouter }: { service?: ClientRouter }) => {
         // WARNING: Don"t try to play with pages here, since the object will not be updated
         //  If needed to play with pages, do it in the setPages callback below
         // Unchanged path
-        if (request.path === currentRequest.path) {
-
-            // Scroll to component
-            if (request.hash) {
-                scrollToElement(request.hash);
-            }
-
+        if (request.path === currentRequest.path && request.hash !== currentRequest.hash) {
+            scrollToElement(request.hash);
             return;
         }
         
@@ -110,7 +105,14 @@ export default ({ service: clientRouter }: { service?: ClientRouter }) => {
         }
 
         // Fetch API data to hydrate the page
-        const newData = await newpage.fetchData();
+        let newData;
+        try {
+            newData = await newpage.fetchData();
+        } catch (error) {
+            console.error(LogPrefix, "Unable to fetch data:", error);
+            clientRouter.setLoading(false);
+            return;
+        }
 
         // Add page container
         setPages( pages => {
