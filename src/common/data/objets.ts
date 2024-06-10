@@ -118,3 +118,20 @@ export const chemin = {
         
     }
 }
+
+export const groupBy = <TObj extends TObjetDonnees>(
+    items: TObj[], 
+    key: keyof TObj
+): {[key: string]: TObj[]} => {
+    
+    const grouped: {[key: string]: TObj[]} = {};
+
+    for (const item of items) {
+        const  indexValue  = item[key] as any;
+        if (grouped[ indexValue ] === undefined)
+            grouped[ indexValue ] = [];
+        grouped[ indexValue ].push(item);
+    }
+
+    return grouped;
+}
