@@ -163,7 +163,7 @@ export default class ApiClient implements ApiClientService {
 
                 return data;
 
-            });
+            })
 
         // Errors will be catched in the caller
 
@@ -229,14 +229,20 @@ export default class ApiClient implements ApiClientService {
     
             })
             .catch((e: AxiosError) => {
-    
+
                 if (e.response !== undefined) {
     
+                    // Transmiss error
                     console.warn(`[api] Failure:`, e);
-                    throw viaHttpCode(
+                    const error = viaHttpCode(
                         e.response.status || 500,
                         e.response.data
                     );
+
+                    // API Error hook
+                    this.app.handleError(error, e.response.status);
+
+                    throw error;
     
                 // Erreur réseau: l'utilisateur n'ets probablement plus connecté à internet
                 } else {
