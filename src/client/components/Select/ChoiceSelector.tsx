@@ -53,6 +53,7 @@ export type Props = (
     - we don't want the selector to be rendered before the dropdown content is dhown
     - this component is called multiple time
 */
+// ! OBSOLETE
 export default React.forwardRef<HTMLDivElement, Props>(({
     choices: initChoices, 
     validator, 

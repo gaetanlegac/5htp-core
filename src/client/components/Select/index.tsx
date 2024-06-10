@@ -140,14 +140,7 @@ export default ({
     - RENDER
     ----------------------------------*/
 
-    const SelectedItems = ( enableSearch ? currentList : choices ).map( choice => (
-        <ChoiceElement choice={choice} 
-            currentList={currentList}
-            onChange={onChange}
-            multiple={multiple}
-            includeCurrent 
-        />
-    ))
+    const selectedItems = enableSearch ? currentList : choices
 
     const Search = enableSearch && (
         <Input  
@@ -164,7 +157,7 @@ export default ({
             overflowY: 'auto'
         }}>
             {choices.map( choice => (
-                <ChoiceElement choice={choice} 
+                <ChoiceElement format='badge' choice={choice} 
                     currentList={currentList}
                     onChange={onChange}
                     multiple={multiple}
@@ -175,14 +168,21 @@ export default ({
 
     return dropdown ? (
         <Popover content={(
-            <div class="card col" style={{ width: '300px' }}>
+            <div class="card col" style={{ width: '200px' }}>
 
                 <div class="col">
 
-                    {SelectedItems.length !== 0 && (
-                        <div class="row wrap">
-                            {SelectedItems}
-                        </div>
+                    {selectedItems.length !== 0 && (
+                        <ul class="menu col">
+                            {selectedItems.map( choice => (
+                                <ChoiceElement format='list' choice={choice} 
+                                    currentList={currentList}
+                                    onChange={onChange}
+                                    multiple={multiple}
+                                    includeCurrent 
+                                />
+                            ))} 
+                        </ul>
                     )}
 
                     {Search} 
@@ -192,10 +192,15 @@ export default ({
             </div>
         )} state={popoverState}>
             <Button icon={icon} iconR="chevron-down" {...otherProps}>
-                {title} {(multiple && currentList.length > 0) 
-                    ? <span class="badge s bg accent">{currentList.length}</span> 
-                    : null
-                }
+
+                {currentList.length === 0 ? <>
+                    {title}
+                </> : multiple ? <>
+                    {title} <span class="badge s bg accent">{currentList.length}</span> 
+                </> : <>
+                    {currentList[0].label}
+                </>}
+
             </Button>
         </Popover>
     ) : (
@@ -216,7 +221,15 @@ export default ({
                         )}</label>
 
                         <div class="row al-left wrap sp-05">
-                            {SelectedItems} 
+
+                            {selectedItems.map( choice => (
+                                <ChoiceElement format='badge' choice={choice} 
+                                    currentList={currentList}
+                                    onChange={onChange}
+                                    multiple={multiple}
+                                    includeCurrent 
+                                />
+                            ))} 
 
                             {Search}  
                         </div>

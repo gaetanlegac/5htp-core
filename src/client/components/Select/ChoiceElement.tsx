@@ -5,10 +5,11 @@
 // Npm
 import React from 'react';
 
+// Cpre
+import { Button } from '@client/components';
+
 // Specific
-import type { 
-    Choice,
-} from './ChoiceSelector';
+import type { Choice } from './ChoiceSelector';
 
 import type { Props } from '.';
 
@@ -19,10 +20,11 @@ import type { Props } from '.';
 /*----------------------------------
 - COMPONENT
 ----------------------------------*/
-export default ({ choice, currentList, onChange, multiple, includeCurrent }: {
+export default ({ choice, currentList, onChange, multiple, includeCurrent, format = 'badge' }: {
     choice: Choice,
     currentList: Choice[],
-    includeCurrent: boolean
+    includeCurrent?: boolean,
+    format?: 'list' | 'badge'
 } & Pick<Props, 'onChange'|'multiple'>) => {
 
     const isCurrent = currentList.some(c => c.value === choice.value);
@@ -30,7 +32,19 @@ export default ({ choice, currentList, onChange, multiple, includeCurrent }: {
 
     const showRemoveButton = multiple;
 
-    return isCurrent ? (
+    return format === 'list' ? (
+        <li>
+            <Button icon={isCurrent ? 'check-circle' : undefined} onClick={() => onChange( current => multiple 
+                ? (isCurrent 
+                    ? currentList.filter(item => item.value !== choice.value) 
+                    : [...(current || []), choice]
+                )
+                : isCurrent ? undefined : choice
+            )}>
+                {choice.label} 
+            </Button>
+        </li>
+    ) : isCurrent ? (
         <li class={"badge bg primary"+  (showRemoveButton ? ' pdr-05' : '')}>
             {choice.label}
 
