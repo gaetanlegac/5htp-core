@@ -44,7 +44,7 @@ export type Props = {
 ----------------------------------*/
 export default ({ 
     // Decoration
-    icon, prefix, suffix, iconR, required,
+    icon, prefix, suffix, iconR, required, size,
     // State
     inputRef, errors,
     // Behavior
@@ -142,6 +142,8 @@ export default ({
         className += ' empty';
     if (focus)
         className += ' focus';
+    if (size !== undefined)
+        className += ' ' + size;
     if (errors?.length)
         className += ' error';
 

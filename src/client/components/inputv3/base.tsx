@@ -18,6 +18,7 @@ export type InputBaseProps<TValue> = {
     title: string, // Now mandatory
     required?: boolean,
     errors?: string[],
+    size?: TComponentSize,
 
     value: TValue,
     onChange?: (value: TValue) => void,
