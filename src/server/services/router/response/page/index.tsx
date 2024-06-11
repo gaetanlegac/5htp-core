@@ -27,11 +27,15 @@ const seoLimits = {
     description: 255
 }
 
+type TMetasList = ({ $: string } & { [key: string]: string })[]
+
 /*----------------------------------
 - FONCTION
 ----------------------------------*/
 
 export default class Page<TRouter extends Router = Router> extends PageResponse<TRouter> {
+
+    public metas: TMetasList = [];
 
     public constructor(
         public route: TRoute | TErrorRoute,

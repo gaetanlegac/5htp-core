@@ -83,7 +83,7 @@ export default class DocumentRenderer<TRouter extends Router> {
                     <meta content={page.description} name="description" />
                     <link rel="canonical" href={fullUrl} />
 
-                    {this.metas()}
+                    {this.metas( page )}
 
                     {this.styles( page )}
 
@@ -100,7 +100,7 @@ export default class DocumentRenderer<TRouter extends Router> {
         )
     }
 
-    private metas() {
+    private metas( page: Page ) {
         return <>
             {/* Réseaux sociaux */}
             {/*page.metas.metasAdditionnelles && Object.entries(page.metas.metasAdditionnelles).map(
@@ -130,6 +130,10 @@ export default class DocumentRenderer<TRouter extends Router> {
             <link rel="icon" type="image/png" sizes="32x32" href="/public/app/favicon-32x32.png" />
             <link rel="apple-touch-icon" sizes="180x180" href="/public/app/apple-touch-icon-180x180.png" />
             <meta name="msapplication-config" content="/public/app/browserconfig.xml" />
+
+            {page.metas?.map(({ $, ...attrs }) => (
+                React.createElement($, attrs)
+            ))}
         </>
     }
 
