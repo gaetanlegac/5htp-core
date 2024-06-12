@@ -124,7 +124,8 @@ export default class SchemaValidators {
         const checkChoice = ( choice: any ) => {
 
             // Choice object = extract value
-            if (typeof choice === 'object' && ('value' in choice) && typeof choice.value !== 'object')
+            //  We check for choice objec via the label prop, as the value can be undefined (and so, not transmitted)
+            if (typeof choice === 'object' && ('label' in choice) && typeof choice.label === 'string' && typeof choice.value !== 'object')
                 choice = choice.value;
 
             // If choices list rpovided, check if the choice is in the choices list
