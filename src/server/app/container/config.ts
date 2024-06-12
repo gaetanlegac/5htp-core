@@ -88,13 +88,8 @@ export default class ConfigParser {
         // We assume that when we run 5htp dev, we're in local
         // Otherwise, we're in production environment (docker)
         console.log("[app] Using environment:", process.env.NODE_ENV);
-        return process.env.NODE_ENV === 'development' ? {
-            name: 'local',
-            profile: 'dev'
-        } : {
-            name: 'server',
-            profile: 'prod',
-        }
+        const envFileName = this.appDir + '/env.yaml';
+        return this.loadYaml( envFileName );
     }
 
     public identity() {
