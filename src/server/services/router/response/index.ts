@@ -14,7 +14,7 @@ import express from 'express';
 import { Application } from '@server/app';
 import type ServerRouter from '@server/services/router';
 import ServerRequest from '@server/services/router/request';
-import { TRoute, TAnyRoute } from '@common/router';
+import { TRoute, TAnyRoute, TDomainsList } from '@common/router';
 import { NotFound, Forbidden, Anomaly } from '@common/errors';
 import BaseResponse, { TResponseData } from '@common/router/response';
 import Page from './page';
@@ -31,7 +31,8 @@ const debug = true;
 export type TBasicSSrData = {
     request: { data: TObjetDonnees, id: string },
     page: { chunkId: string, data?: TObjetDonnees },
-    user: User | null
+    user: User | null,
+    domains: TDomainsList
 }
 
 export type TRouterContext<TRouter extends ServerRouter = ServerRouter> = (
@@ -176,6 +177,7 @@ export default class ServerResponse<
                 chunkId: page.chunkId,
                 data: page.data
             },
+            domains: this.router.config.domains,
             ...customSsrData
         }
     }

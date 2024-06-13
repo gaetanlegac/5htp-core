@@ -126,7 +126,6 @@ type THookName = 'location.change' | 'page.changed'
 type Config<TAdditionnalContext extends {} = {}> = {
     preload: string[], // List of globs
     context: (context: ClientContext, router: ClientRouter) => TAdditionnalContext,
-    domains: TDomainsList
 }
 
 /*----------------------------------
@@ -140,6 +139,7 @@ export default class ClientRouter<
     // Context data
     public ssrRoutes = window["routes"] as TSsrUnresolvedRoute[];
     public ssrContext = window["ssr"] as (TBasicSSrData | undefined);
+    public domains = window["ssr"].domains;
     public context!: ClientContext;
 
     public setLoading!: React.Dispatch< React.SetStateAction<boolean> >;
