@@ -37,6 +37,7 @@ export default class ClientPage<TRouter = ClientRouter> extends PageResponse<TRo
 
         this.bodyId = context.route.options.bodyId;
         this.scrollToId = context.request.hash;
+        
     }
     
     public async preRender( data?: TObjetDonnees ) {

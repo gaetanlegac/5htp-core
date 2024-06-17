@@ -24,8 +24,16 @@ export default ({ page }: { page: Page }) => {
     const [apiData, setApiData] = React.useState<{[k: string]: any} | null>( 
         page.data || {}
     );
+
     page.setAllData = setApiData;
     context.data = apiData;
+
+    // Page component has not changed, but data were updated (ex: url parameters change)
+    React.useEffect(() => {
+
+        setApiData(page.data);
+
+    }, [page.data]);
 
     /*----------------------------------
     - RENDER

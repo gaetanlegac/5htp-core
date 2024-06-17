@@ -117,13 +117,8 @@ export default ({ service: clientRouter }: { service?: ClientRouter }) => {
         // Add page container
         setPages( pages => {
 
-            // Check if the page changed
-            if (pages.current?.chunkId === newpage.chunkId)  {
-                console.warn(LogPrefix, "Canceling navigation to the same page:", {...request});
-                pages.current.setAllData(newData);
-                clientRouter.setLoading(false);
-                return { ...pages }
-            }
+            // WARN: Don't cancel navigation if same page as before, as we already instanciated the new page and bound the context with it
+            //  Otherwise it would cause reference issues (ex: page.setAllData makes ref to the new context)
 
             // If if the layout changed
             const curLayout = pages.current?.layout;
