@@ -254,18 +254,6 @@ export default () => {
         const lastToast = modals[ modals.length - 1 ];
         focusContent( lastToast );
 
-        // Backdrop color
-        const header = lastToast.querySelector('header');
-        if (!header || !header.className)
-            return;
-
-        const headerColor = window.getComputedStyle(header, null).getPropertyValue('background-color');
-        if (!headerColor || !headerColor.startsWith('rgb('))
-            return;
-
-        const rgbBg = headerColor.substring(4, headerColor.length - 1);
-        lastToast.style.background = 'rgba(' + rgbBg + ', .5)';
-
     });
     
     return <>
