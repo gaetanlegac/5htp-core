@@ -443,11 +443,11 @@ export default class SQL extends Service<Config, Hooks, Application, Services> {
         let upsertStatement: string = '';
         if (opts.upsert !== undefined)
             upsertStatement = ' ' + this.buildUpsertStatement<TData>(table, opts as With<TInsertQueryOptions<TData>, 'upsert'>);
-        
+    
+        let okPacket: mysql.OkPacket = { ...emptyOkPacket }
+
         // Create basic insert query
         if (opts.bulk === false) {
-
-            const okPacket = { ...emptyOkPacket }
 
             for (const row of data) {
 
@@ -466,10 +466,10 @@ export default class SQL extends Service<Config, Hooks, Application, Services> {
         } else {
             const query = this.buildInsertStatement(table, data, opts) + upsertStatement;
 
-            const queryResult = await this.database.query<mysql.OkPacket>(query + ';', opts);
+            okPacket = await this.database.query<mysql.OkPacket>(query + ';', opts);
 
         }
-        
+
         return returnSingleResult ? data[0] : data;
     }
 
