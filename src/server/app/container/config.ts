@@ -30,6 +30,7 @@ export type TEnvName = TEnvConfig["name"];
 export type TEnvConfig = {
     name: 'local' | 'server',
     profile: 'dev' | 'prod',
+    version: string,
 }
 
 type AppIdentityConfig = {
@@ -89,7 +90,11 @@ export default class ConfigParser {
         // Otherwise, we're in production environment (docker)
         console.log("[app] Using environment:", process.env.NODE_ENV);
         const envFileName = this.appDir + '/env.yaml';
-        return this.loadYaml( envFileName );
+        const envFile = this.loadYaml( envFileName );
+        return {
+            ...envFile,
+            version: BUILD_DATE
+        }
     }
 
     public identity() {
