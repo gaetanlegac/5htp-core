@@ -102,6 +102,10 @@ export default class Schema<TFields extends TSchemaFields> {
             const cheminAstr = cheminA.join('.')
             const valOrigine = dataToValidate[fieldName];
 
+            // Key not in the input data, we don't create an entry in the output
+            if (!( fieldName in dataToValidate))
+                continue;
+
             // Validation
             try {
 
