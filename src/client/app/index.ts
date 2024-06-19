@@ -37,6 +37,12 @@ export type TBugReportInfos = {
     before?: string,
 }
 
+export type TClientBugReportInfos = TBugReportInfos & {
+    context?: string,
+    guiVersion: string,
+    url: string,
+}
+
 /*----------------------------------
 - CLASS
 ----------------------------------*/
@@ -104,7 +110,8 @@ export default abstract class Application {
 
     public abstract handleError( error: CoreError | Error, httpCode?: number );
 
-    public reportBug = (infos: TBugReportInfos) => fetch('/help/bug/gui', {
+    // TODO: move on app side
+    public reportBug = (infos: TBugReportInfos) => fetch('/feedback/bug/ui', {
         method: 'POST',
         headers: {
             'Accept': "application/json",
