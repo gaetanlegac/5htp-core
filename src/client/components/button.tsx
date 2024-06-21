@@ -163,6 +163,10 @@ export default ({
     if ('link' in props || Tag === "a") {
 
         props.href = props.link;
+        
+        // External = open in new tab by default
+        if (props.href && (props.href[0] !== '/' || props.href.startsWith('//')))
+            props.target = '_blank';
 
         if (props.target === undefined) {
 
