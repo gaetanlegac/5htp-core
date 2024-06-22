@@ -105,9 +105,8 @@ export default ({ service: clientRouter }: { service?: ClientRouter }) => {
         }
 
         // Fetch API data to hydrate the page
-        let newData;
         try {
-            newData = await newpage.fetchData();
+            await newpage.preRender();
         } catch (error) {
             console.error(LogPrefix, "Unable to fetch data:", error);
             clientRouter.setLoading(false);

@@ -21,10 +21,12 @@ export default ({ page }: { page: Page }) => {
     ----------------------------------*/
     const context = useContext();
 
-    const [apiData, setApiData] = React.useState<{[k: string]: any} | null>( 
-        page.data || {}
-    );
+    // Temporary fix: context.page may not be updated at this stage
+    //  Seems to be the case when we change page, but still same page component with different data
+    context.page = page;
 
+    // Bind data
+    const [apiData, setApiData] = React.useState<{[k: string]: any} | null>( page.data || {});
     page.setAllData = setApiData;
     context.data = apiData;
 
