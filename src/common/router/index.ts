@@ -122,14 +122,16 @@ export const defaultOptions = {
 ----------------------------------*/
 export const buildUrl = (
     path: string,
-    params: {[alias: string]: any},
+    params: {[key: string]: any},
     domains: {[alias: string]: string},
     absolute: boolean
 ) => {
 
+    let prefix: string = '';
+
     // Relative to domain
     if (path[0] === '/' && absolute)
-        return domains.current + path;
+        prefix = domains.current;
     // Other domains of the project
     else if (path[0] === '@') {
 
@@ -147,11 +149,28 @@ export const buildUrl = (
             throw new Error("Unknown API endpoint ID: " + domainId);
 
         // Return full url
-        return domain + path;
+        prefix = domain;
 
     // Absolute URL
-    } else
-        return path;
+    }
+
+    // Path parapeters
+    const searchParams = new URLSearchParams();
+    for (const key in params) {
+
+        // Exclude undefined of empty
+        if (!params[key])
+            continue;
+        // Path placeholder
+        else if (path.includes(':' + key))
+            path = path.replace(':' + key, params[key]);
+        // Query string
+        else 
+            searchParams.set(key, params[key]);
+    }
+
+    // Return final url
+    return prefix + path + (searchParams.toString() ? '?' + searchParams.toString() : '');
 }
 
 /*----------------------------------

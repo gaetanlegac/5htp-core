@@ -157,13 +157,13 @@ export default class ClientRouter<
     }
 
     public url = (path: string, params: {} = {}, absolute: boolean = true) => 
-        buildUrl(path, params, this.config.domains, absolute);
+        buildUrl(path, params, this.domains, absolute);
 
-    public go( url: string, opt: {
+    public go( url: string, data: {}, opt: {
         newTab?: boolean
     } = {}) {
 
-        url = this.url(url, {}, false);
+        url = this.url(url, data, false);
 
         if (opt.newTab)
             window.open(url)
