@@ -122,6 +122,15 @@
     display: flex;
     flex-direction: column;
 
+    &.scrollable {
+
+        overflow: auto;
+
+        > * {
+            min-height: fit-content;
+        }
+    }
+
     &.al-top { justify-content: flex-start; }
     &, &.al-middle { justify-content: center; }
     &.al-bottom { justify-content: flex-end; }
