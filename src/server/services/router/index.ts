@@ -531,7 +531,7 @@ declare type Routes = {
             for (let iKey = 0; iKey < route.keys.length; iKey++) {
                 const nomParam = route.keys[iKey];
                 if (typeof nomParam === 'string') // number = sans nom
-                    request.data[nomParam] = match[iKey + 1]
+                    request.data[nomParam] = decodeURIComponent(match[iKey + 1]);
             }
 
             // Run on resolution hooks. Ex: authentication check
