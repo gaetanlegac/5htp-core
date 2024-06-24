@@ -45,7 +45,9 @@ export type TRouterContext<TRouter extends ServerRouter = ServerRouter> = (
         response: ServerResponse<TRouter>,
         route: TRoute,
         page?: Page,
-        user: User
+        user: User,
+
+        Router: TRouter,
     }
     &
     TRouterContextServices<TRouter>
@@ -146,6 +148,7 @@ export default class ServerResponse<
 
         const customSsrData = this.router.config.context(this.request, this.app);
 
+        // TODO: transmiss safe data (especially for Router), as Router info could be printed on client side
         const context: TRequestContext = {
             // Router context
             app: this.app,
@@ -154,6 +157,9 @@ export default class ServerResponse<
             response: this,
             route: route,
             api: this.request.api,
+
+            Router: this.router,
+
             // Router services
             ...(contextServices as TRouterContextServices<TRouter>),
             ...customSsrData
