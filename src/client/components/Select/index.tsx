@@ -21,8 +21,8 @@ import ChoiceElement from './ChoiceElement';
 - TYPES
 ----------------------------------*/
 
-export type Props = DropdownProps & SelectorProps & {
-    dropdown: boolean,
+export type Props = SelectorProps & {
+    dropdown: boolean | DropdownProps,
     title: string,
     errors?: string[],
 }
@@ -168,7 +168,7 @@ export default ({
 
     return dropdown ? (
         <Popover content={(
-            <div class="card col" style={{ width: '200px' }}>
+            <div class="card col">
 
                 <div class="col">
 
@@ -190,7 +190,9 @@ export default ({
 
                 {SearchResults}
             </div>
-        )} state={popoverState}>
+        )} state={popoverState} {...(dropdown === true ? {
+            width: '200px'
+        } : dropdown)}>
             <Button icon={icon} iconR="chevron-down" {...otherProps}>
 
                 {currentList.length === 0 ? <>
