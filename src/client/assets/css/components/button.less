@@ -259,7 +259,7 @@ ul.row {
     }
 
     .btn.icon > .label,
-    > li > .btn + ul {
+    > li > .btn + .menu {
         position: absolute;
     }
 
@@ -269,8 +269,8 @@ ul.row {
         position: relative;
 
         // Submenu
-        &:not(:hover) > .btn + ul,
-        > .btn[disabled] + ul {
+        &:not(:hover) > .btn + .menu,
+        > .btn[disabled] + .menu {
             display: none;
         }
     }
@@ -321,7 +321,7 @@ ul.col {
     }
 
     .btn.icon > .label,
-    > li > .btn + ul {
+    > li > .btn + .menu {
         left: 100%;
         margin-left: @spacing;
     }
@@ -354,7 +354,7 @@ ul.col {
     &.bubble-left {
 
         .btn.icon > .label,
-        > li > .btn + ul {
+        > li > .btn + .menu {
             left: auto;
             margin-left: 0;
             right: 100%;
@@ -363,10 +363,17 @@ ul.col {
     }
 }
 
+// Submenu
 ul.row {
     .btn.icon > .label,
-    > li > .btn + ul {
+    > li > .btn + .menu {
         bottom: 100%;
+        margin-bottom: @spacing / 2;
+    }
+
+    > li > .btn + .menu.pos-bottom {
+        bottom: auto;
+        top: 100%;
         margin-bottom: @spacing / 2;
     }
 }
