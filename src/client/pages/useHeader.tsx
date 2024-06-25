@@ -22,7 +22,7 @@ export type Props = {
 /*----------------------------------
 - HOOK
 ----------------------------------*/
-export default ({ id, title, subtitle, focus, jail, error }: Props) => {
+export default ({ id, title, subtitle, focus, jail, description }: Props) => {
 
     let { page } = useContext();
 
@@ -30,9 +30,14 @@ export default ({ id, title, subtitle, focus, jail, error }: Props) => {
     if (!page)
         return;
 
+    // SEO Title
     page.title = title;
     if (subtitle !== undefined)
         page.title += ' | ' + subtitle;
+
+    // SEO Description
+    if (description !== undefined)
+        page.description = description;
 
     page.bodyId = page.bodyId || id || '';
 
