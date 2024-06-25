@@ -26,14 +26,15 @@
     //overflow: visible !important;
 }
 
+.scrollable {
+    overflow: auto;
+}
+
 .row {
     display: flex;
     flex-wrap: nowrap;
 
     &.scrollable {
-
-        overflow: auto;
-
         > * {
             min-width: fit-content;
         }
@@ -123,9 +124,6 @@
     flex-direction: column;
 
     &.scrollable {
-
-        overflow: auto;
-
         > * {
             min-height: fit-content;
         }
