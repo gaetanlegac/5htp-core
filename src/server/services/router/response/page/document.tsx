@@ -30,7 +30,7 @@ export default class DocumentRenderer<TRouter extends Router> {
 
     public staticDocument() {
         const routesForClient = JSON.stringify( this.router.ssrRoutes );
-        return renderToString(
+        return '<!doctype html>' + renderToString(
             <html lang="en">
                 <head>
                     {/* Format */}
@@ -63,7 +63,7 @@ export default class DocumentRenderer<TRouter extends Router> {
             className: [...page.bodyClass].join(' '),
         };
 
-        return renderToString(
+        return '<!doctype html>' + renderToString(
             <html lang="en" {...(page.amp ? { amp: "true" } : {})}>
                 <head>
                     {/* Format */}
