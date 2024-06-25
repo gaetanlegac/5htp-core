@@ -244,6 +244,14 @@ export default class ServerResponse<
 
     }
 
+    public xml(xml: string) {
+
+        this.headers['Content-Type'] = 'text/xml';
+        this.data = xml;
+        return this.end();
+
+    }
+
     public text(text: string) {
 
         this.headers['Content-Type'] = 'text/plain';
