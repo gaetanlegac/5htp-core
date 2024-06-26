@@ -28,6 +28,14 @@
 
 .scrollable {
     overflow: auto;
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+
+    /* For Chrome, Safari, and other WebKit-based browsers */
+    &::-webkit-scrollbar {
+        display: none;
+    }
+
 }
 
 .row {
