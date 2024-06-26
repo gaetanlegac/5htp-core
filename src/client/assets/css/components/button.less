@@ -373,15 +373,16 @@ ul.col {
 
 // Submenu
 ul.row {
+
     .btn.icon > .label,
     > li > .btn + .menu {
         bottom: 100%;
-        margin-bottom: @spacing / 2;
+        margin-bottom: 0; // User's mouse shouldnt go outside the li so the hover state is not lost
     }
 
     > li > .btn + .menu.pos-bottom {
         bottom: auto;
         top: 100%;
-        margin-bottom: @spacing / 2;
+        margin-top: 0; // User's mouse shouldnt go outside the li so the hover state is not lost
     }
 }
