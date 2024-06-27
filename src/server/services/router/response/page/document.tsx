@@ -139,7 +139,7 @@ export default class DocumentRenderer<TRouter extends Router> {
 
     private styles( page: Page ) {
         return <>
-            <link rel="stylesheet" type="text/css" href="/public/icons.css" />
+            <link rel="stylesheet" type="text/css" href={"/public/icons.css?" + BUILD_ID} />
             <link rel="preload" href="/public/client.css" as="style" />
             <link rel="stylesheet" type="text/css" href="/public/client.css" />
 
