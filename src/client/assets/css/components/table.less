@@ -9,7 +9,7 @@ table {
     width: 100%;
     padding: 0;
     border-collapse: separate; 
-    border-spacing: 0 0.5em;
+    border-spacing: 0 0; // must be fully managed by padding
 
     // By default, chrome disables text inherits
     line-height: inherit;
@@ -45,6 +45,14 @@ table {
         &.actuel td {
             background: var(--cPrincipale);
             color: #fff;
+        }
+    }
+
+    // Size
+    &.s {
+        td, th {
+            padding: 0.5em 1em;
+            font-size: 0.9rem;
         }
     }
 
