@@ -88,13 +88,12 @@ export default abstract class Application {
     public bindErrorHandlers() {
 
         // Impossible de recup le stacktrace ...
-        /*window.addEventListener("unhandledrejection", (e) => {
-            clientBug(JSON.stringify(e))
-            console.log("unhandledrejection", e.stack);
-            
-        });*/
+        window.addEventListener("unhandledrejection", (e) => {
+            console.error(`Exception catched by method A`, e);
+        });
         
-        window.onerror = (message, file, line, col, stacktrace) =>
+        window.onerror = (message, file, line, col, stacktrace) => {
+            console.error(`Exception catched by method B`, message);
             this.reportBug({
                 stacktrace: stacktrace?.stack || JSON.stringify({ message, file, line, col })
             }).then(() => {
@@ -106,9 +105,10 @@ export default abstract class Application {
                 { autohide: false });*/
 
             })
+        }
     }
 
-    public abstract handleError( error: CoreError | Error, httpCode?: number );
+    public abstract handleError( error: CoreError | Error );
 
     // TODO: move on app side
     public reportBug = (infos: TBugReportInfos) => fetch('/feedback/bug/ui', {

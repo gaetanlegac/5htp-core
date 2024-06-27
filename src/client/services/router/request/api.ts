@@ -117,11 +117,28 @@ export default class ApiClient implements ApiClientService {
         const [method, path, data, options] = args;
         return {
             method, path, data, options,
+
             // For async calls: api.post(...).then((data) => ...)
-            then: (callback: (data: any) => void) => this.fetchAsync<TData>(...args).then(callback),
-            catch: (callback: (data: any) => void) => this.fetchAsync<TData>(...args).catch(callback),
-            finally: (callback: () => void) => this.fetchAsync<TData>(...args).finally(callback),
+            then: (callback: (data: any) => void) => this.fetchAsync<TData>(...args)
+                .then(callback)
+                .catch( e => this.app.handleError(e)),
+
+            // Default error behavior only if not handled before by the app
+            catch: (callback: (data: any) => void) => this.fetchAsync<TData>(...args)
+                .catch((e) => {
+                    try {
+                        callback(e);
+                    } catch (error) {
+                        this.app.handleError(e)
+                    }
+                }),
+
+            finally: (callback: () => void) => this.fetchAsync<TData>(...args)
+                .finally(callback)
+                .catch( e => this.app.handleError(e)),
+
             run: () => this.fetchAsync<TData>(...args)
+                .catch( e => this.app.handleError(e)),
         };
     }
 
@@ -132,10 +149,7 @@ export default class ApiClient implements ApiClientService {
         /*if (options?.captcha !== undefined)
             await this.gui.captcha.check(options?.captcha);*/
 
-        return await this.execute<TData>(method, path, data, options).catch((e) => {
-            this.app.handleError(e);
-            throw e; // Throw to break the loop
-        })
+        return await this.execute<TData>(method, path, data, options);
     }
 
     public async fetchSync(fetchers: TFetcherList, alreadyLoadedData: {}): Promise<TObjetDonnees> {
@@ -163,6 +177,12 @@ export default class ApiClient implements ApiClientService {
 
                 return data;
 
+            }).catch(e => {
+
+                // API Error hook
+                this.app.handleError(e);
+
+                throw e;
             })
 
         // Errors will be catched in the caller
@@ -238,9 +258,6 @@ export default class ApiClient implements ApiClientService {
                         e.response.status || 500,
                         e.response.data
                     );
-
-                    // API Error hook
-                    this.app.handleError(error, e.response.status);
 
                     throw error;
     

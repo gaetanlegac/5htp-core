@@ -448,7 +448,8 @@ export default class ClientRouter<
         // Nor page configurated for this error
         if (route === undefined) {
             console.error(`Error page for http error code ${code} not found.`, this.errors, this.routes);
-            this.app.handleError(e, 404);
+            e.http = 404;
+            this.app.handleError(e);
             throw new Error(`Error page for http error code ${code} not found.`);
         }
 
