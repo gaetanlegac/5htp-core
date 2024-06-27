@@ -168,7 +168,7 @@ export default ({
 
     return dropdown ? (
         <Popover content={(
-            <div class="card col">
+            <div class="card col al-top">
 
                 <div class="col">
 
