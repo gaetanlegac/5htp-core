@@ -225,7 +225,13 @@ export default function useForm<TFormData extends {}>(
     const form = {
         fields: fields.current,
         data,
-        set: setData,
+        set: data => {
+            setState(current => ({
+                ...current,
+                hasChanged: true
+            }));
+            setData(data);
+        },
         validate,
         submit,
         options,
