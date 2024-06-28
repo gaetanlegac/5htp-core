@@ -9,6 +9,7 @@ import type { ClientContext } from '@/client/context';
 import type { TRouteOptions } from '.';
 // App
 import internalLayout from '@client/pages/_layout';
+
 import layouts from '@/client/pages/**/_layout/index.tsx';
 
 /*----------------------------------
@@ -63,8 +64,8 @@ export const getLayout = (routePath: string, routeOptions?: TRouteOptions): Layo
     // Automatic layout via the nearest _layout folder
     for (const layoutPath in layouts)
         if (
-            // The layout is nammed index when it's at the root (@/client/pages/_layout)
-            layoutPath === 'index' 
+            // The layout is nammed '' when it's at the root (@/client/pages/_layout)
+            layoutPath === '' // Root layout
             // Exact match
             || chunkId === layoutPath 
             // Parent
