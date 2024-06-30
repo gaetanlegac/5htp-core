@@ -7,9 +7,9 @@ import React from 'react';
 import { ComponentChild } from 'preact';
 
 // Composants
-import Button, { Props as PropsBouton } from '@client/components/button';
-import Dropdown from '@client/components/dropdown.old';
-//import Checkbox from '@client/components/Champs/Checkbox';
+import Button, { Props as TButtonProps } from '@client/components/button';
+import Popover from '../containers/Popover';
+import Checkbox from '../input/Checkbox';
 
 /*----------------------------------
 - TYPES
@@ -36,6 +36,12 @@ export type TColumn = {
     class?: string
 }
 
+export type TAction<TRow> = Omit<TButtonProps, 'onClick'> & {
+    onClick: (row: TRow) => void,
+    label: ComponentChild,
+    multi?: boolean
+}
+
 /*----------------------------------
 - COMPOSANTS
 ----------------------------------*/
@@ -55,42 +61,6 @@ export default function Liste<TRow extends TDonneeInconnue>({
         );
 
     const [selection, setSelection] = React.useState<number[]>([]);
-    const [sort, setSort] = React.useState<{ col: number, dir: 1 | -1 } | null>(null);
-
-    const trier = (colonne: TColumn, iColonne: number) => {
-
-        if (!setData) 
-            return console.warn(`[ui][table] Please specify a setData function to enable sorting features.`);
-
-        const ordre = sort && iColonne === sort.col
-            ? -1 * sort.dir as (1 | -1) // Inversement ordre
-            : 1;
-            
-        setData([
-            ...rows.sort((a: TRow, b: TRow) => {
-
-                const valA = colonne.valeur(a);
-                const valB = colonne.valeur(b);
-
-                const typeA = typeof valA;
-                const typeB = typeof valB;
-
-                if (typeA === 'number' && typeB === 'number')
-                    return ordre === 1 ? (valA as number) - (valB as number) : (valB as number) - (valA as number)
-                else if (typeA === 'string' && typeB === 'string')
-                    return ordre === 1
-                        ? (valA as string).localeCompare(valB as string)
-                        : (valB as string).localeCompare(valA as string)
-                else
-                    throw new Error(`Type de données incompatible entre deux lignes: ${valA}:${typeA} vs ${valB}:${typeB}.`);
-
-
-            })
-        ]);
-
-        setSort({ col: iColonne, dir: ordre });
-    }
-
     const selectionMultiple = actions && actions.some((action) => action.multi);
 
     /*----------------------------------
@@ -100,12 +70,12 @@ export default function Liste<TRow extends TDonneeInconnue>({
     
     const renduLignes = rows.map((row: TRow, iDonnee: number) => (
         <tr>
-            {/*selectionMultiple && (
+            {selectionMultiple && (
                 <td>
                     <Checkbox
                         nom={"selectionner" + iDonnee}
                         label={false}
-                        valeur={selection.includes(iDonnee)}
+                        value={selection.includes(iDonnee)}
                         onChange={(selectionner: boolean) => {
                             setSelection(selectionner
                                 // Ajoute
@@ -115,41 +85,51 @@ export default function Liste<TRow extends TDonneeInconnue>({
                         }}
                     />
                 </td>
-                    )*/}
+            )}
 
-            {columns(row, rows, iDonnee).map((colonne, iColonne) => {
+            {columns(row, rows, iDonnee).map((col, iColonne) => {
 
-                const triable = colonne.raw !== undefined;
+                const triable = col.raw !== undefined;
 
                 if (iDonnee === 0) renduColonnes.push(
-                    <th
-                        onClick={triable !== undefined ? () => trier(colonne, iColonne) : undefined}
-                        className={triable !== undefined ? 'cliquable' : undefined}
-                    >
-                        {colonne.label}
+                    <th>
+                        {col.label}
                     </th>
                 );
 
-                const affichageBrut = ['number', 'string'].includes(typeof colonne.cell) || React.isValidElement(colonne.cell);
+                const affichageBrut = ['number', 'string'].includes(typeof col.cell) || React.isValidElement(col.cell);
 
-                let classe = colonne.class || '';
-                if (typeof colonne.raw === 'number')
+                let classe = col.class || '';
+                if (typeof col.raw === 'number')
                     classe += 'txtRight';
 
                 return (
                     <td class={classe}>
-                        {affichageBrut ? colonne.cell : JSON.stringify(colonne.cell)}
+                        {affichageBrut ? col.cell : JSON.stringify(col.cell)}
                     </td>
                 )
             })}
 
-            {/*actions !== undefined && (
+            {actions !== undefined && (
                 <td>
-                    <Popover menu={{ actions, rows: row }}>
-                        <Button taille="s" icone="solid/ellipsis-h" />
+                    <Popover content={(
+                        <ul class="col menu card bg white">
+                            {actions.map(({ label, onClick, ...props }: TAction<TRow>) => (
+                                <li>
+                                    <Button {...props}
+                                        onClick={() => onClick && onClick(row)}
+                                        
+                                    >
+                                        {label}
+                                    </Button>
+                                </li>
+                            ))}
+                        </ul>
+                    )}>
+                        <Button size="s" icon="solid/ellipsis-h" />
                     </Popover>
                 </td>
-            )*/}
+            )}
         </tr>
     ));
 
@@ -170,9 +150,8 @@ export default function Liste<TRow extends TDonneeInconnue>({
                         {selectionMultiple && (
                             <th>
                                 <Checkbox
-                                    nom="toutSelectionner"
                                     label={false}
-                                    valeur={selection.length >= rows.length}
+                                    value={selection.length >= rows.length}
                                     onChange={(status: boolean) => {
                                         setSelection(status ? Object.keys(rows) : []);
                                     }}
@@ -197,24 +176,19 @@ export default function Liste<TRow extends TDonneeInconnue>({
                     <div className="card pdv-05 row inline pos_bottom">
                         <strong>{selection.length} selected items</strong>
 
-                        {actions.map((action: TAction<TRow>) => {
+                        {actions.map(({ label, multi, onClick, ...props }: TAction<TRow>) => {
 
-                            if (!action.multi)
+                            if (!multi)
                                 return;
 
-                            const donneesSelection = selection.map((index: number) => rows[index]);
+                            const selectedRows = selection.map((index: number) => rows[index]);
 
                             return (
                                 <Button
-                                    {...(action.bouton ? (action.multi
-                                        ? action.bouton([row], [iDonnee])
-                                        : action.bouton(row, iDonnee)
-                                    ) : {})}
-                                    icone={action.icone}
-                                    onClick={() => action.onClick && action.onClick(donneesSelection, selection)}
-                                    lien={action.lien && action.lien(donneesSelection, selection)}
+                                    {...props}
+                                    onClick={() => onClick && onClick(selectedRows)}
                                 >
-                                    {action.label}
+                                    {label}
                                 </Button>
                             )
                         })}
