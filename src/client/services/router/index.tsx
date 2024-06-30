@@ -159,7 +159,7 @@ export default class ClientRouter<
     public url = (path: string, params: {} = {}, absolute: boolean = true) => 
         buildUrl(path, params, this.domains, absolute);
 
-    public go( url: string, data: {}, opt: {
+    public go( url: string, data: {} = {}, opt: {
         newTab?: boolean
     } = {}) {
 
