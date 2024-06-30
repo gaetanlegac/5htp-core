@@ -114,14 +114,12 @@ export default class DocumentRenderer<TRouter extends Router> {
             <meta name="msapplication-TileColor" content={this.app.identity.maincolor} />
             <meta name="apple-mobile-web-app-capable" content="yes" />
             <meta name="apple-mobile-web-app-title" content={this.app.identity.web.title} />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
 
             {/* Identité */}
             <meta name="mobile-web-app-capable" content="yes" />
             <meta name="application-name" content={this.app.identity.web.title} />
             <meta name="type" content="website" />
-            {/*app.identity.social?.facebook?.appId && (
-                <meta content={app.identity.social?.facebook?.appId} property="fb:appid" />
-            )*/}
 
             {/* https://stackoverflow.com/questions/48956465/favicon-standard-2019-svg-ico-png-and-dimensions */}
             {/*<link rel="manifest" href={RES['manifest.json']} />*/}
