@@ -4,7 +4,6 @@
 
 // Npm
 import { Location } from 'history'; 
-import type Bowser from 'bowser';
 
 // Core 
 import BaseRequest from '@common/router/request';
@@ -51,12 +50,5 @@ export default class ClientRequest<TRouter extends ClientRouter = ClientRouter> 
     
         // Request services
         this.api = new ApiClient(this.app, this);
-    }
-
-    // To move to a service
-    public device(): Bowser.Parser.ParsedResult | undefined {
-        // We load bowser only when required
-        const Bowser = require("bowser");
-        return Bowser.parse(window.navigator.userAgent);
     }
 }
