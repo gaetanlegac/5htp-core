@@ -14,7 +14,7 @@ import { useInput, InputBaseProps } from '../../inputv3/base';
 ----------------------------------*/
 export type Props = {
     id: string,
-    label: ComponentChild,
+    label?: ComponentChild,
     // State
     inputRef?: React.Ref<HTMLInputElement>
 }
@@ -68,9 +68,11 @@ export default ({
                 {...fieldProps}
             />
 
-            <label htmlFor={id} class="col-1 txt-left">
-                {labelText}
-            </label>
+            {labelText !== undefined && (
+                <label htmlFor={id} class="col-1 txt-left">
+                    {labelText}
+                </label>
+            )}
             
         </div>
         
