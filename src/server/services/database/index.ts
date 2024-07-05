@@ -279,12 +279,12 @@ export default class SQL extends Service<Config, Hooks, Application, Services> {
     public query = this.select;
 
     public first = <TRowData extends TObjetDonnees = {}>(query: string, opts: TSelectQueryOptions = {}): Promise<TRowData> =>
-        this.database.query(query, opts).then((resultatRequetes: any) => {
+        this.select(query, opts).then((resultatRequetes: any) => {
             return resultatRequetes[0] || null;
         });
 
     public firstOrFail = <TRowData extends TObjetDonnees = {}>(query: string, message?: string, opts: TSelectQueryOptions = {}): Promise<TRowData> =>
-        this.database.query(query, opts).then((resultatRequetes: any) => {
+        this.select(query, opts).then((resultatRequetes: any) => {
 
             if (resultatRequetes.length === 0)
                 throw new NotFound(message);
