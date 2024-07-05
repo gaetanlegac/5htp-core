@@ -25,6 +25,10 @@ table {
         padding: 1em 1em;
         text-align: left;
 
+        + td, th {
+            border-left: solid 1px #F5F5F5
+        }
+
         &:first-child {
             padding-left: 2em;
         }
@@ -49,10 +53,10 @@ table {
     }
 
     // Size
-    &.s {
+    &.s, .table.s & {
         td, th {
-            padding: 0.5em 1em;
-            font-size: 0.9rem;
+            padding: 0.7em 1em;
+            font-size: 1rem;
         }
     }
 

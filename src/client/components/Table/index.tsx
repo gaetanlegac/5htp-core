@@ -15,7 +15,7 @@ import Checkbox from '../input/Checkbox';
 - TYPES
 ----------------------------------*/
 
-export type TDonneeInconnue = {[cle: string]: any};
+export type TDonneeInconnue = { id: any } &  {[cle: string]: any};
 
 export type Props<TRow> = {
     
@@ -39,7 +39,8 @@ export type TColumn = {
 export type TAction<TRow> = Omit<TButtonProps, 'onClick'> & {
     onClick: (row: TRow) => void,
     label: ComponentChild,
-    multi?: boolean
+    multi?: boolean,
+    default?: boolean,
 }
 
 /*----------------------------------
@@ -63,33 +64,35 @@ export default function Liste<TRow extends TDonneeInconnue>({
     const [selection, setSelection] = React.useState<number[]>([]);
     const selectionMultiple = actions && actions.some((action) => action.multi);
 
+    const defaultAction = actions && actions.find((action) => action.default);
+
     /*----------------------------------
     - RENDU COLONNES / LIGNES
     ----------------------------------*/
     let renduColonnes: ComponentChild[] = [];
     
     const renduLignes = rows.map((row: TRow, iDonnee: number) => (
-        <tr>
+        <tr {...defaultAction ? {
+            onClick: () => defaultAction.onClick(row),
+            class: 'clickable'
+        } : {}}>
             {selectionMultiple && (
                 <td>
                     <Checkbox
-                        nom={"selectionner" + iDonnee}
-                        label={false}
-                        value={selection.includes(iDonnee)}
+                        id={"selectionner" + iDonnee}
+                        value={selection.includes(row.id)}
                         onChange={(selectionner: boolean) => {
-                            setSelection(selectionner
+                            setSelection(current => selectionner
                                 // Ajoute
-                                ? [...selection, iDonnee]
+                                ? [...current, row.id]
                                 // Retire
-                                : selection.filter((e, i) => i !== iDonnee))
+                                : current.filter((currentId, i) => currentId !== row.id))
                         }}
                     />
                 </td>
             )}
 
-            {columns(row, rows, iDonnee).map((col, iColonne) => {
-
-                const triable = col.raw !== undefined;
+            {columns(row, rows, iDonnee).map((col) => {
 
                 if (iDonnee === 0) renduColonnes.push(
                     <th>
@@ -150,10 +153,9 @@ export default function Liste<TRow extends TDonneeInconnue>({
                         {selectionMultiple && (
                             <th>
                                 <Checkbox
-                                    label={false}
                                     value={selection.length >= rows.length}
                                     onChange={(status: boolean) => {
-                                        setSelection(status ? Object.keys(rows) : []);
+                                        setSelection(status ? rows.map(r => r.id) : []);
                                     }}
                                 />
                             </th>
