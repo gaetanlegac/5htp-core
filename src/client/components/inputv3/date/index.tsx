@@ -4,8 +4,7 @@
 
 // Npm
 import React from 'react';
-import type { StateUpdater } from 'preact/hooks';
-import DateRangePicker from '@wojtekmaj/react-daterange-picker';
+import DateRangePicker, { DateRangePickerProps } from '@wojtekmaj/react-daterange-picker';
 
 // Core
 
@@ -16,9 +15,9 @@ import DateRangePicker from '@wojtekmaj/react-daterange-picker';
 ----------------------------------*/
 
 type TValue = [Date, Date]
-export type Props = {
-    value: TValue,
-    onChange: StateUpdater<TValue>,
+export type Props = DateRangePickerProps & {
+    //value: TValue,
+    //onChange: StateUpdater<TValue>,
     placeholder?: string,
     min?: string,
     max?: string
@@ -29,7 +28,7 @@ export type Props = {
 ----------------------------------*/
 import './react-calendar.less';
 import './react-daterange-picker.less';
-export default ({ value, Props, min, max, onChange }) => {
+export default ({ value, Props, min, max, onChange, ...otherProps }) => {
 
     const state = React.useState(false);
 
@@ -43,7 +42,7 @@ export default ({ value, Props, min, max, onChange }) => {
     ----------------------------------*/
     return (
         <div>
-            <DateRangePicker onChange={onChange} value={value || [null, null]} />
+            <DateRangePicker {...otherProps} onChange={onChange} value={value || [null, null]} />
         </div>
     )
 }
