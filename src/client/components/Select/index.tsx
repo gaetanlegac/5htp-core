@@ -64,7 +64,7 @@ export default ({
     noneSelection, 
     enableSearch, 
     value: current, 
-    onChange, 
+    onChange: onChangeCallback, 
     multiple, 
     dropdown,
     ...otherProps
@@ -135,6 +135,18 @@ export default ({
         // It avoids the choices are fetched everytimle the parent component is re-rendered
         typeof initChoices === 'function' ? true : initChoices
     ]);
+
+    const onChange = (...args) => {
+        
+        if (onChangeCallback) {
+            onChangeCallback(...args);
+        }
+
+        // Close the popover
+        if (popoverState[1] && !multiple) {
+            popoverState[1](false);
+        }
+    }
 
     /*----------------------------------
     - RENDER
