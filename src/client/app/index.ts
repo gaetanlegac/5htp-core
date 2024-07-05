@@ -89,7 +89,8 @@ export default abstract class Application {
 
         // Impossible de recup le stacktrace ...
         window.addEventListener("unhandledrejection", (e) => {
-            console.error(`Exception catched by method A`, e);
+            const error = new Error(e.reason); // How to get stacktrace ?
+            this.handleError(error);
         });
         
         window.onerror = (message, file, line, col, stacktrace) => {
