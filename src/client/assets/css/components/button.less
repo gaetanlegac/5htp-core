@@ -249,7 +249,7 @@ ul.row {
 
             > .label {
 
-                display: none;
+                visibility: hidden;
                 position: absolute;
                 
                 background: #111;
@@ -264,7 +264,7 @@ ul.row {
             }
     
             &:not([disabled]):hover > .label {
-                display: block;
+                visibility: visible;
             }
         }
     }
@@ -282,13 +282,13 @@ ul.row {
         // Submenu
         &:not(:hover) > .btn + .menu,
         > .btn[disabled] + .menu {
-            display: none;
+            visibility: hidden;
         }
     }
 
     &.menu > li {
         &:hover > .btn:not([disabled]):hover > .label {
-            display: block;
+            visibility: visible;
         }
     }
 
@@ -322,7 +322,7 @@ ul.col {
             }
     
             &:not([disabled]):hover > .label {
-                display: block;
+                visibility: visible;
             }
         }
     }
