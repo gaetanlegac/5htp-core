@@ -4,7 +4,7 @@
 
 // Npm
 import React from 'react';
-import DateRangePicker, { DateRangePickerProps } from '@wojtekmaj/react-daterange-picker';
+import DateRangePicker, { DateTimePickerProps } from 'react-datetime-picker';
 
 // Core
 
@@ -15,7 +15,7 @@ import DateRangePicker, { DateRangePickerProps } from '@wojtekmaj/react-daterang
 ----------------------------------*/
 
 type TValue = [Date, Date]
-export type Props = DateRangePickerProps & {
+export type Props = DateTimePickerProps & {
     //value: TValue,
     //onChange: StateUpdater<TValue>,
     placeholder?: string,
@@ -26,8 +26,9 @@ export type Props = DateRangePickerProps & {
 /*----------------------------------
 - COMPOSANT
 ----------------------------------*/
-import './react-calendar.less';
-import './react-daterange-picker.less';
+import './DateTimePicker.css';
+import './Calendar.css';
+import './Clock.css';
 export default ({ value, Props, min, max, onChange, ...otherProps }) => {
 
     const state = React.useState(false);
