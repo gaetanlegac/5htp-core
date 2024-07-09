@@ -69,7 +69,7 @@
         z-index: 1; // Make the label on top of ::before for example
 
         // Handle overflow
-        white-space: nowrap;
+        //white-space: nowrap;
         text-overflow: ellipsis;
         overflow: hidden;
 
@@ -280,7 +280,7 @@ ul.row {
         position: relative;
 
         // Submenu
-        &:not(:hover) > .btn + .menu,
+        &:not(.contPopover):not(:hover) > .btn + .menu,
         > .btn[disabled] + .menu {
             visibility: hidden;
         }
