@@ -102,10 +102,6 @@ export default class Schema<TFields extends TSchemaFields> {
             const cheminAstr = cheminA.join('.')
             const valOrigine = dataToValidate[fieldName];
 
-            // Key not in the input data, we don't create an entry in the output
-            if (!( fieldName in dataToValidate))
-                continue;
-
             // Validation
             try {
 
@@ -117,7 +113,8 @@ export default class Schema<TFields extends TSchemaFields> {
                 //      Exemple: undefinec = suppression fichier | Absende donnée = conservation fihcier actuel
                 if (val === EXCLUDE_VALUE)
                     opts.debug && console.log(LogPrefix, '[' + cheminA + '] Exclusion demandée');
-                else
+                // Key not in the input data, we don't create an entry in the output
+                else if (fieldName in dataToValidate)
                     output[fieldName] = val;
 
                 opts.debug && console.log(LogPrefix, '[' + cheminA + ']', valOrigine, '=>', val);
