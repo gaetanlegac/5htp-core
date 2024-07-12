@@ -151,7 +151,7 @@ export default ({
         className += ' pressed';
 
     if (active || isActive === true)
-        className += ' selected';
+        className += ' active';
 
     // Icon
     if (prefix === undefined && icon !== undefined)

@@ -34,7 +34,7 @@
     // Hover
     //transition: all .5s linear;
     &:hover,
-    &.selected,
+    &.active,
     li:hover > & {
 
         color: var(--cTxtImportant);
@@ -123,7 +123,7 @@
 
     cursor: pointer;
 
-    &:not(.primary).selected {
+    &:not(.primary).active {
 
         &.col {
             box-shadow: 0 0 0 0.2em @c2;
@@ -229,7 +229,7 @@ ul.row {
         //width: 100%;
         background: transparent;
 
-        &.selected,
+        &.active,
         &:hover {
             background: var(--cBgActive);
             color: var(--cTxtImportant);
@@ -280,8 +280,8 @@ ul.row {
         position: relative;
 
         // Submenu
-        &:not(.contPopover):not(:hover) > .btn + .menu,
-        > .btn[disabled] + .menu {
+        &:not(.contPopover):not(:hover) > .btn + .submenu,
+        > .btn[disabled] + .submenu {
             visibility: hidden;
         }
     }
@@ -332,7 +332,7 @@ ul.col {
     }
 
     .btn.icon > .label,
-    > li > .btn + .menu {
+    > li > .btn + .submenu {
         left: 100%;
         margin-left: @spacing;
     }
@@ -340,7 +340,7 @@ ul.col {
     > li {
 
         // Sous le label quand bouton = icone seulement
-        > .btn + ul {
+        > .btn + .menu {
 
             top: @sizeComponent;
             margin-top: @spacing / 2;
@@ -365,7 +365,7 @@ ul.col {
     &.bubble-left {
 
         .btn.icon > .label,
-        > li > .btn + .menu {
+        > li > .btn + .submenu {
             left: auto;
             margin-left: 0;
             right: 100%;
@@ -378,12 +378,12 @@ ul.col {
 ul.row {
 
     .btn.icon > .label,
-    > li > .btn + .menu {
+    > li > .btn + .submenu {
         bottom: 100%;
         margin-bottom: 0; // User's mouse shouldnt go outside the li so the hover state is not lost
     }
 
-    > li > .btn + .menu.pos-bottom {
+    > li > .btn + .submenu.pos-bottom {
         bottom: auto;
         top: 100%;
         margin-top: 0; // User's mouse shouldnt go outside the li so the hover state is not lost

@@ -69,7 +69,7 @@
                 position: relative;
             }
 
-            > a.selected {
+            > a.active {
                 color: var(--cTxtImportant  );
 
                 @indicatorSize: 5px;
@@ -114,7 +114,7 @@
 
     &.inline { display: inline-flex; }
 
-    &.al-left { justify-content: flex-start; }
+    &.wrap, &.al-left { justify-content: flex-start; }
     &, 
     &.al-center { justify-content: center; }
     &.al-right { justify-content: flex-end; }
@@ -137,8 +137,8 @@
         }
     }
 
-    &.al-top { justify-content: flex-start; }
-    &, &.al-middle { justify-content: center; }
+    &, &.al-top { justify-content: flex-start; }
+    &.al-middle { justify-content: center; }
     &.al-bottom { justify-content: flex-end; }
 
     &.al-left { align-items: flex-start; }
@@ -238,7 +238,7 @@
         border-radius: @radius;
     }
 
-    &.bi-1 { // Bordure interne
+    &.sep-1 { // Bordure interne
 
         background-color: var(--cLine2);
         gap: 1px;
