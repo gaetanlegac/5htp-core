@@ -36,11 +36,11 @@ const PageLoading = ({ clientRouter }: { clientRouter?: ClientRouter }) => {
     if (clientRouter)
         clientRouter.setLoading = setLoading;
 
-    return isLoading ? (
-        <div id="loading">
+    return (
+        <div id="loading" class={isLoading ? 'display' : ''}>
             <i src="spin" />
         </div>
-    ) : null
+    )
 
 }
 
@@ -85,7 +85,7 @@ export default ({ service: clientRouter }: { service?: ClientRouter }) => {
         // WARNING: Don"t try to play with pages here, since the object will not be updated
         //  If needed to play with pages, do it in the setPages callback below
         // Unchanged path
-        if (request.path === currentRequest.path && request.hash !== currentRequest.hash) {
+        if (request.path === currentRequest.path && request.hash !== currentRequest.hash && request.hash !== undefined) {
             scrollToElement(request.hash);
             return;
         }
@@ -183,10 +183,6 @@ export default ({ service: clientRouter }: { service?: ClientRouter }) => {
     ----------------------------------*/
     // Render the page component
     return <>
-        {/*pages.previous && (
-            <Page page={pages.previous} key={pages.previous.id === undefined ? undefined : 'page_' + pages.previous.id} />
-        )*/}
-
         {pages.current && (
             <PageComponent page={pages.current} 
                 /* Create a new instance of the Page component every time the page change 
