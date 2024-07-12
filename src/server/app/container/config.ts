@@ -50,6 +50,7 @@ type AppIdentityConfig = {
 
     language: string
     maincolor: string, 
+    iconsPack?: string,
 
     web: {
         title: string,
@@ -57,7 +58,7 @@ type AppIdentityConfig = {
         fullTitle: string,
         description: string,
         version: string
-    }                                 
+    }                         
 }
 
 export type AppConfig = { 
