@@ -95,6 +95,8 @@ export default class ClientPageResponse<
             ...this.request.router.config.context( basicContext, this.request.router )
         }
 
+        newContext.context = newContext;
+
         // Update context object if already exists
         // NOTE: we don't create a nex instance of context because we don't want to rereder the full page (inc layout) to update the context given by thr react context provider
         const existingContext = this.request.router.context;
