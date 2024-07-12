@@ -44,7 +44,7 @@ export type Props = {
 ----------------------------------*/
 export default ({ 
     // Decoration
-    icon, prefix, suffix, iconR, required, size,
+    icon, prefix, suffix, iconR, required, size, className = '',
     // State
     inputRef, errors,
     // Behavior
@@ -103,7 +103,7 @@ export default ({
     - ATTRIBUTES
     ----------------------------------*/
 
-    let className: string = 'input text';
+    className += ' input text';
 
     // Auto prefix
     if (prefix === undefined && icon !== undefined)
@@ -146,9 +146,6 @@ export default ({
         className += ' ' + size;
     if (errors?.length)
         className += ' error';
-
-    if (props.className !== undefined)
-        className += ' ' + props.className;
 
     /*----------------------------------
     - VALIDATION
