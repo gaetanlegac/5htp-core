@@ -17,7 +17,6 @@ import hpp from 'hpp'; // Protection contre la pollution des reuqtees http
 import helmet from 'helmet'; // Diverses protections
 import compression from 'compression';
 import fileUpload from 'express-fileupload';
-import expressStaticGzip from 'express-static-gzip';
 import cookieParser from 'cookie-parser';
 import * as csp from 'express-csp-header';
 
@@ -114,39 +113,34 @@ export default class HttpServer {
         // Normalement, seulement utile pour le mode production, 
         // Quand mode debug, les ressources client semblent servies par le dev middlewae
         // Sauf que les ressources serveur ne semblent pas trouvées par le dev-middleware
+        routes.use(compression());
         routes.use('/public', cors());
         routes.use(
             '/public',
-            expressStaticGzip( Container.path.root + '/bin/public', {
-                enableBrotli: true,
-                serveStatic: {
-                    dotfiles: 'deny',
-                    setHeaders: function setCustomCacheControl(res, path) {
+            express.static( Container.path.root + '/bin/public', {
+                dotfiles: 'deny',
+                setHeaders: function setCustomCacheControl(res, path) {
 
-                        const dontCache = [
-                            '/public/icons',
-                            '/public/client'
-                        ]
+                    const dontCache = [
+                        '/public/icons',
+                        '/public/client'
+                    ]
 
+                    res.setHeader('Cache-Control', 'public, max-age=0');
+
+                    // Set long term cache, except for non-hashed filenames
+                    /*if (dontCache.some( p => path.startsWith( p ))) {
                         res.setHeader('Cache-Control', 'public, max-age=0');
-
-                        // Set long term cache, except for non-hashed filenames
-                        /*if (dontCache.some( p => path.startsWith( p ))) {
-                            res.setHeader('Cache-Control', 'public, max-age=0');
-                        } else {
-                            res.setHeader('Cache-Control', 'public, max-age=604800000'); // 7 Days
-                        }*/
-                        
-                    }
+                    } else {
+                        res.setHeader('Cache-Control', 'public, max-age=604800000'); // 7 Days
+                    }*/
+                    
                 }
             }),
             (req, res) => {
                 res.status(404).send();
             }
         );
-
-        // Activation Gzip
-        routes.use(compression());
  
         routes.use('/robots.txt', express.static( path.resolve(__dirname, 'public/robots.txt')) );
 
