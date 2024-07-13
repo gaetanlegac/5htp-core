@@ -2,9 +2,6 @@
 - DEPENDANCES
 ----------------------------------*/
 
-// Npm
-import axios, { AxiosResponse, AxiosError, AxiosRequestConfig } from 'axios';
-
 // Core
 import type { TApiResponseData } from '@server/services/router';
 import ApiClientService, { 
@@ -190,83 +187,65 @@ export default class ApiClient implements ApiClientService {
         return { ...alreadyLoadedData, ...fetchedData }
     }
 
-    public configure = (...[method, path, data, options]: TFetcherArgs): AxiosRequestConfig => {
-
+    public configure = (...[method, path, data, options]: TFetcherArgs) => {
         const { onProgress, captcha } = options || {};
-
-        const url = this.router.url( path, {}, false );
+    
+        const url = this.router.url(path, {}, false);
     
         debug && console.log(`[api] Sending request`, method, url, data);
     
-        // Create AXIOS config
-        const config: AxiosRequestConfig = {
-    
-            url,
+        // Create Fetch config
+        const config = {
             method: method,
             headers: {
                 'Content-Type': "application/json",
                 'Accept': "application/json",
-            },
-    
-            validateStatus: function (status: number) {
-                return status === 200;
-            },
-    
-            onUploadProgress: onProgress === undefined ? undefined : (e) => {
-                const percentCompleted = Math.round((e.loaded * 100) / e.total);
-                onProgress(percentCompleted);
             }
-    
         };
     
         // Format request data
         if (data) {
-            // URL params
             if (method === "GET") {
-                config.params = data;
-            // Post form data
+                const params = new URLSearchParams(data).toString();
+                config.url = `${url}?${params}`;
             } else if (options?.encoding === 'multipart') {
                 config.headers["Content-Type"] = 'multipart/form-data';
-                config.data = toMultipart(data);
-            // Post JSON
+                const formData = new FormData();
+                Object.keys(data).forEach(key => formData.append(key, data[key]));
+                config.body = formData;
             } else {
-                config.data = data;
+                config.body = JSON.stringify(data);
             }
         }
     
-        return config;
+        return { url, config };
     }
     
     public execute<TData = unknown>(...args: TFetcherArgs): Promise<TData> {
+        const { url, config } = this.configure(...args);
     
-        const config = this.configure(...args);
-        
-        return axios.request(config)
-            .then((res: AxiosResponse<TApiResponseData>) => {
-    
-                debug && console.log(`[api] Success:`, res);
-                return res.data as TData;
-    
-            })
-            .catch((e: AxiosError) => {
-
-                if (e.response !== undefined) {
-    
-                    // Transmiss error
-                    console.warn(`[api] Failure:`, e);
-                    const error = viaHttpCode(
-                        e.response.status || 500,
-                        e.response.data
-                    );
-
+        return fetch(url, config)
+            .then(async (response) => {
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    console.warn(`[api] Failure:`, response.status, errorData);
+                    const error = viaHttpCode(response.status || 500, errorData);
                     throw error;
-    
-                // Erreur réseau: l'utilisateur n'ets probablement plus connecté à internet
+                }
+                debug && console.log(`[api] Success:`, response);
+                return response.json() as Promise<TData>;
+            })
+            .catch((error) => {
+                if (error instanceof TypeError) {
+                    // Network error
+                    console.warn(`[api] Network Failure:`, error);
+                    const networkError = new NetworkError(error.message);
+                    this.app.handleError(networkError);
+                    throw networkError;
                 } else {
-                    const error = new NetworkError(e.message);
-                    this.app.handleError(error);
                     throw error;
                 }
             });
     }
+    
 }
