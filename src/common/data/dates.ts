@@ -1,9 +1,53 @@
-import TimeAgo from 'javascript-time-ago';
-import en from 'javascript-time-ago/locale/en'
-TimeAgo.addLocale(en)
-const timeAgo = new TimeAgo('en-US')
-
 import dayjs from 'dayjs';
+/*
+// Function to calculate the difference in the specified unit
+function dateDiffInUnits(date1, date2) {
+  const msPerSecond = 1000;
+  const msPerMinute = msPerSecond * 60;
+  const msPerHour = msPerMinute * 60;
+  const msPerDay = msPerHour * 24;
+  const msPerMonth = msPerDay * 30; // Approximation
+  const msPerYear = msPerDay * 365; // Approximation
+
+  const diffInMs = date2 - date1;
+  
+  return {
+    years: diffInMs / msPerYear,
+    months: diffInMs / msPerMonth,
+    days: diffInMs / msPerDay,
+    hours: diffInMs / msPerHour,
+    minutes: diffInMs / msPerMinute,
+    seconds: diffInMs / msPerSecond,
+  };
+}
+
+// Function to determine the best unit based on the differences
+function chooseBestUnit(diffs) {
+  if (Math.abs(diffs.years) >= 1) return 'year';
+  if (Math.abs(diffs.months) >= 1) return 'month';
+  if (Math.abs(diffs.days) >= 1) return 'day';
+  if (Math.abs(diffs.hours) >= 1) return 'hour';
+  if (Math.abs(diffs.minutes) >= 1) return 'minute';
+  return 'second';
+}
+
+// Function to format the relative time between two dates
+function formatRelativeTime(date1, date2, locale = 'en') {
+  const diffs = dateDiffInUnits(date1, date2);
+  const bestUnit = chooseBestUnit(diffs);
+  const diff = diffs[bestUnit];
+  const rtf = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+  return rtf.format(Math.round(diff), bestUnit);
+}
+
+// Example dates
+const date1 = new Date('2023-07-01');
+const date2 = new Date('2024-07-13');
+
+// Format the relative time automatically choosing the best unit
+console.log(formatRelativeTime(date1, date2)); // Output: "in 1 year"
+
+*/
 
 export type TDateInfo = {
     isPast: boolean,
@@ -30,7 +74,7 @@ export const timeSince = (date: Date | number | string): TDateInfo | null => {
     const isPast = now > timestamp;
 
     return {
-        text: timeAgo.format(date),
+        text: date,//timeAgo.format(date),
         isPast,
         delta: deltaSeconds
     };
