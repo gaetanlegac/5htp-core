@@ -3,12 +3,11 @@
 ----------------------------------*/
 
 // Npm
-import {
-    trim,
-    isISO8601, toDate,
-    isEmail, normalizeEmail,
-    isURL
-} from 'validator';
+import trim from 'validator/lib/trim';
+import isISO8601 from 'validator/lib/isISO8601';
+import toDate from 'validator/lib/toDate';
+import isEmail from 'validator/lib/isEmail';
+import isURL from 'validator/lib/isURL';
 
 import normalizeUrl, { Options as NormalizeUrlOptions } from 'normalize-url';
 
@@ -19,9 +18,6 @@ import FileToUpload from '@client/components/inputv3/file/FileToUpload';
 // Speciific
 import Schema, { TSchemaFields } from './schema'
 import Validator, { TValidator } from './validator'
-
-// Components
-import NumberInput from '@client/components/input/Number';
 
 /*----------------------------------
 - TYPES
@@ -282,7 +278,6 @@ export default class SchemaValidators {
     }, {
         // Force une valeur par défaut si requis
         defaut: opts.opt ? undefined : (opts.min || 0),
-        rendu: NumberInput,
         ...opts,
     })
 
