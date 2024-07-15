@@ -15,7 +15,6 @@ export { default as Video } from './Video';
 // Input (OLD, TO ADAPT)
 //export { default as Slider } from './input/Slider';
 //export { default as Radio } from './input/Radio';
-//export { default as Checkbox } from './input/Checkbox';
 
 // Data
 export { default as Time } from './data/Time';
@@ -26,5 +25,6 @@ export { default as CircularProgressbar } from './data/progressbar/circular';
 // Input V3
 export { default as Select } from './Select';
 export { default as Input } from './inputv3';
+export { default as Checkbox } from './inputv3/Checkbox';
 export { default as File } from './inputv3/file';
-export { default as DateRangeInput } from './inputv3/date';
+export { default as DateRangeInput } from './inputv3/Date';

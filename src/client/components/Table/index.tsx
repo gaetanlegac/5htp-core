@@ -9,7 +9,7 @@ import { ComponentChild } from 'preact';
 // Composants
 import Button, { Props as TButtonProps } from '@client/components/button';
 import Popover from '../containers/Popover';
-import Checkbox from '../input/Checkbox';
+import Checkbox from '../inputv3/Checkbox';
 
 /*----------------------------------
 - TYPES
