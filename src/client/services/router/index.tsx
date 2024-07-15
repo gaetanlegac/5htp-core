@@ -36,8 +36,10 @@ import ClientResponse from './response';
 import ClientPage from './response/page';
 
 // Routes (import __register)
-import * as coreRoutes from '@client/pages/**/*.tsx';
-import * as appRoutes from '@/client/pages/**/*.tsx';
+// We exclude files starting wiht uppercase, as they're considered as components
+// WARN: The routes babel plugin must be updated with the glob path
+import * as coreRoutes from '@client/pages/**/([a-z0-9]*).tsx';
+import * as appRoutes from '@/client/pages/**/([a-z0-9]*).tsx';
 
 /*----------------------------------
 - CONFIG
@@ -195,7 +197,7 @@ export default class ClientRouter<
 
             if (loaders[ssrRoute.chunk] === undefined) {
                 console.error("Chunk id not found for ssr route:", ssrRoute, "Searched in:", loaders);
-                throw new Error(`Loader not found for chunk id ${ssrRoute.chunk}`);
+                continue;
             }
 
             // TODO: Fix types

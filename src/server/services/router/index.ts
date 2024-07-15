@@ -330,7 +330,7 @@ export default class ServerRouter<
                 ' :: ', JSON.stringify(route.options)
             );
 
-            if (route.options["id"])
+            if (chunkId)
                 this.ssrRoutes.push({
                     regex: route.regex.source,
                     keys: route.keys,
