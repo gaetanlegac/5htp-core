@@ -1,4 +1,16 @@
 .table {
+    overflow: auto;
+
+    > table {
+        border-collapse: collapse;
+        table-layout: auto;
+        width: auto;
+
+        th, td {
+            white-space: nowrap;
+        }
+    }
+
     &.card {
         padding: 1em 0;
     }
