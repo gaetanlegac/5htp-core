@@ -169,8 +169,8 @@ export default class DocumentRenderer<TRouter extends Router> {
                 }} />
             )}
 
-            <link rel="preload" href="/public/client.js" as="script" />
-            <script defer type="text/javascript" src="/public/client.js" />
+            <link rel="preload" href={"/public/client.js?v=" + BUILD_ID} as="script" />
+            <script defer type="text/javascript" src={"/public/client.js?v=" + BUILD_ID} />
 
             {page.scripts.map( script => 'url' in script ? <>
                 <link rel="preload" href={script.url} as="script" />
