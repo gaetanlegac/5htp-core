@@ -216,58 +216,58 @@
 - BUTTON IN LISTS
 ----------------------------------*/
 
-ul.col,
-ul.row {
+.menu > .btn, 
+.menu > li > .btn {
 
-    &.menu > .btn, 
-    &.menu > li > .btn {
+    // Give less imortance to buttons which are in lists
+    color: var(--cTxtBase);  
+    box-shadow: none;
+    border: none;
+    //width: 100%;
+    background: transparent;
 
-        // Give less imortance to buttons which are in lists
-        color: var(--cTxtBase);  
-        box-shadow: none;
-        border: none;
-        //width: 100%;
-        background: transparent;
+    &.active,
+    &:hover {
+        background: var(--cBgActive);
+        color: var(--cTxtImportant);
+    }
 
-        &.active,
-        &:hover {
-            background: var(--cBgActive);
-            color: var(--cTxtImportant);
-        }
+    > .label {
+        // All the list items label must be aligned
+        justify-content: flex-start;
+        // Since they're all horizontally aligned,
+        // Label = max width, so icon right are also aligned to right
+        flex: 1;
+    }
+
+    &.icon {
+
+        color: var(--cTxtDesc);
 
         > .label {
-            // All the list items label must be aligned
-            justify-content: flex-start;
-            // Since they're all horizontally aligned,
-            // Label = max width, so icon right are also aligned to right
-            flex: 1;
+
+            visibility: hidden;
+            position: absolute;
+            
+            background: #111;
+            
+            height: @sizeComponent;
+            line-height: @sizeComponent;
+            padding: 0 @spacing * 2;
+            border-radius: @radius;
+            
+            color: #fff;
+            white-space: nowrap; // Autrement, si plusieurs mots, affiché sur plusieurs ligne
         }
 
-        &.icon {
-
-            color: var(--cTxtDesc);
-
-            > .label {
-
-                visibility: hidden;
-                position: absolute;
-                
-                background: #111;
-                
-                height: @sizeComponent;
-                line-height: @sizeComponent;
-                padding: 0 @spacing * 2;
-                border-radius: @radius;
-                
-                color: #fff;
-                white-space: nowrap; // Autrement, si plusieurs mots, affiché sur plusieurs ligne
-            }
-    
-            &:not([disabled]):hover > .label {
-                visibility: visible;
-            }
+        &:not([disabled]):hover > .label {
+            visibility: visible;
         }
     }
+}
+
+ul.col,
+ul.row {
 
     .btn.icon > .label,
     > li > .btn + .menu {
