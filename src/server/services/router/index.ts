@@ -507,45 +507,56 @@ declare type Routes = {
             console.log(LogPrefix, `Waiting for servert to be resdy before resolving request`);
             await this.started;
         }
+        try {
 
-        const response = new ServerResponse<this>(request);
+            const response = new ServerResponse<this>(request);
 
-        await this.runHook('resolve', request);
+            await this.runHook('resolve', request);
 
-        for (const route of this.routes) {
+            for (const route of this.routes) {
 
-            // Match Method
-            if (request.method !== route.method && route.method !== '*')
-                continue;
+                // Match Method
+                if (request.method !== route.method && route.method !== '*')
+                    continue;
 
-            // Match Response format
-            if (!request.accepts(route.options.accept))
-                continue;
+                // Match Response format
+                if (!request.accepts(route.options.accept))
+                    continue;
 
-            // Match Path
-            const match = route.regex.exec(request.path);
-            if (!match)
-                continue;
+                // Match Path
+                const match = route.regex.exec(request.path);
+                if (!match)
+                    continue;
 
-            // Extract URL params
-            for (let iKey = 0; iKey < route.keys.length; iKey++) {
-                const key = route.keys[iKey];
-                const value =  match[iKey + 1];
-                if (typeof key === 'string' && value) // number = sans nom
-                    request.data[key] = decodeURIComponent(value);
+                // Extract URL params
+                for (let iKey = 0; iKey < route.keys.length; iKey++) {
+                    const key = route.keys[iKey];
+                    const value =  match[iKey + 1];
+                    if (typeof key === 'string' && value) // number = sans nom
+                        request.data[key] = decodeURIComponent(value);
+                }
+
+                // Run on resolution hooks. Ex: authentication check
+                await this.runHook('resolved', route);
+
+                // Create response
+                await response.runController(route);
+                if (response.wasProvided)
+                    // On continue l'itération des routes, sauf si des données ont été fournie dans la réponse (.json(), .html(), ...)
+                    return response;
             }
 
-            // Run on resolution hooks. Ex: authentication check
-            await this.runHook('resolved', route);
+            throw new NotFound();
 
-            // Create response
-            await response.runController(route);
-            if (response.wasProvided)
-                // On continue l'itération des routes, sauf si des données ont été fournie dans la réponse (.json(), .html(), ...)
-                return response;
+        } catch (error) {
+
+            if (this.app.env.profile === 'dev') {
+                console.log('API batch error:', request.method, request.path, error);
+                error.message = request.method + ' ' + request.path + ': ' + error.message;
+            }
+
+            throw error;
         }
-
-        throw new NotFound();
     }
 
     private async resolveApiBatch( fetchers: TFetcherList, request: ServerRequest<this> ) {
