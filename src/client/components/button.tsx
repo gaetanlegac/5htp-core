@@ -134,6 +134,8 @@ export default ({
     if (size !== undefined)
         className += ' ' + size;
 
+    if (type === 'secondary')
+        className += ' bg white';
     if (type !== undefined)
         className += type === 'link' ? type : (' bg ' + type);
 

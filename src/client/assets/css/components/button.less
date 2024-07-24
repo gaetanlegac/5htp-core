@@ -28,7 +28,8 @@
     font-weight: 500;
 
     // Colors
-    background: var(--cBg);
+    // NOTE: transparent by default (menu items, etc..)
+    background: transparent;
     color: var(--cTxtAccent);  
         
     // Hover
@@ -222,9 +223,7 @@
     // Give less imortance to buttons which are in lists
     color: var(--cTxtBase);  
     box-shadow: none;
-    border: none;
     //width: 100%;
-    background: transparent;
 
     &.active,
     &:hover {

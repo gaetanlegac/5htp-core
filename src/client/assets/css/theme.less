@@ -7,6 +7,7 @@
     foreground: COLOR;
     accent1: COLOR;
     accent2: COLOR;
+    alpha: BOOLEAN
 */
 
 .apply-theme( @theme, @componentsTheme: false, @apply: true ) {
@@ -31,9 +32,12 @@
 
     // Flags
     @bg: @theme[background];
-    @bgActive: if( @isLight, 
-        @bg - #040404, 
-        @bg + #111, 
+    @bgActive: if( (@theme[alpha]) or (alpha(@bg) < 1),
+        fadeout( @bg, 90%),
+        if( @isLight, 
+            @bg - #040404, 
+            @bg + #111, 
+        )
     );
     @fg: @theme[foreground];
 
@@ -79,11 +83,23 @@
     --cTxtBase: @cTxtBase;
     
     // Discret
-    @cTxtDiscret: if( @isLight, @bg - #444, @bg + #444);
+    @cTxtDiscret: if( alpha(@cTxtBase) < 1,
+        fadeout( @cTxtBase, 50%),
+        if( @isLight, 
+            @bg - #444,
+            @bg + #444
+        )
+    );
     --cTxtDiscret: @cTxtDiscret;
 
     // Desc
-    @cTxtDesc: if( @isLight, @cTxtBase + #222, @cTxtBase - #222);
+    @cTxtDesc: if( alpha(@cTxtBase) < 1,
+        fadeout( @cTxtBase, 30%),
+        if( @isLight, 
+            @cTxtBase + #222, 
+            @cTxtBase - #222
+        )
+    );
     --cTxtDesc: @cTxtDesc;
 
     // Important
