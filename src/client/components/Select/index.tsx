@@ -148,7 +148,7 @@ export default ({
     - RENDER
     ----------------------------------*/
 
-    const selectedItems = enableSearch ? currentList : choices
+    const selectedItems = enableSearch ? currentList : []
 
     const Search = enableSearch && (
         <Input  
@@ -165,23 +165,20 @@ export default ({
         } : dropdown)} content={(
             <div class="card col al-top">
 
-                <div class="col">
+                {Search} 
 
-                    {selectedItems.length !== 0 && (
-                        <ul class="menu col">
-                            {selectedItems.map( choice => (
-                                <ChoiceElement format='list' choice={choice} 
-                                    currentList={currentList}
-                                    onChange={onChange}
-                                    multiple={multiple}
-                                    includeCurrent 
-                                />
-                            ))} 
-                        </ul>
-                    )}
-
-                    {Search} 
-                </div>   
+                {selectedItems.length !== 0 && (
+                    <ul class="row al-left wrap sp-05">
+                        {selectedItems.map( choice => (
+                            <ChoiceElement format='badge' choice={choice} 
+                                currentList={currentList}
+                                onChange={onChange}
+                                multiple={multiple}
+                                includeCurrent 
+                            />
+                        ))}
+                    </ul>
+                )}
 
                 {search.loading ? (
                     <div class="row al-center h-2">
@@ -194,7 +191,6 @@ export default ({
                                 currentList={currentList}
                                 onChange={onChange}
                                 multiple={multiple}
-                                includeCurrent 
                             />
                         ))} 
                     </ul>
@@ -247,20 +243,22 @@ export default ({
 
                 </div>
 
-                <div class="pd-1">
-                    <ul class="row al-left wrap sp-05" style={{
-                        maxHeight: '30vh',
-                        overflowY: 'auto'
-                    }}>
-                        {choices.map( choice => (
-                            <ChoiceElement format='badge' choice={choice} 
-                                currentList={currentList}
-                                onChange={onChange}
-                                multiple={multiple}
-                            />
-                        ))}
-                    </ul>
-                </div>
+                {search.keywords && (
+                    <div class="pd-1">
+                        <ul class="row al-left wrap sp-05" style={{
+                            maxHeight: '30vh',
+                            overflowY: 'auto'
+                        }}>
+                            {choices.map( choice => (
+                                <ChoiceElement format='badge' choice={choice} 
+                                    currentList={currentList}
+                                    onChange={onChange}
+                                    multiple={multiple}
+                                />
+                            ))}
+                        </ul>
+                    </div>
+                )}
                 
             </div>
             {errors?.length && (
