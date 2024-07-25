@@ -17,14 +17,14 @@ import FileToUpload from '@client/components/inputv3/file/FileToUpload';
 
 // Speciific
 import Schema, { TSchemaFields } from './schema'
-import Validator, { TValidator } from './validator'
+import Validator, { TValidator, EXCLUDE_VALUE } from './validator'
 
 /*----------------------------------
 - TYPES
 ----------------------------------*/
 
 export type TFileValidator = TValidator<FileToUpload> & {
-    type?: (keyof typeof raccourcisMime) | string[], // Raccourci, ou liste de mimetype
+    type?: string[], // Raccourci, ou liste de mimetype
     taille?: number
 }
 
@@ -35,10 +35,6 @@ type TSubtype = TSchemaSubtype | Validator<any>;
 /*----------------------------------
 - CONST
 ----------------------------------*/
-
-const raccourcisMime = {
-    image: ['image/jpeg', 'image/png']
-}
 
 /*----------------------------------
 - CLASS
@@ -329,34 +325,24 @@ export default class SchemaValidators {
     /*----------------------------------
     - FICHIER
     ----------------------------------*/
-    protected validateFile = (
-        { type, taille, ...opts }: TFileValidator = {}, 
-        val: any, 
-        input: TObjetDonnees, 
-        output: TObjetDonnees
-    ): File | undefined => {
+    public file = ({ type, taille, ...opts }: TFileValidator & {
+
+    } = {}) => new Validator<FileToUpload>('file', (val, options, path) => {
 
         if (!(val instanceof FileToUpload))
             throw new InputError(`Must be a File (${typeof val} received)`);
 
+        // Chaine = url ancien fichier = exclusion de la valeur pour conserver l'ancien fichier
+        // NOTE: Si la valeur est présente mais undefined, alors on supprimera le fichier
+        if (typeof val === 'string')
+            return EXCLUDE_VALUE;
+
         // MIME
         if (type !== undefined) {
 
-            let mimetypes: string[];
-
-            // Raccourcis
-            if (typeof type === 'string') {
-                if (type in raccourcisMime)
-                    mimetypes = raccourcisMime[type as keyof typeof raccourcisMime]
-                else
-                    throw new Error(`Aucune liste de mimetype référencée pour le type de fichier « ${type} »`);
-            } else
-                mimetypes = type;
-
-            // Vérification
-            const mimeFichier = val.type;
-            if (!mimetypes.includes(mimeFichier))
-                throw new InputError('Only the following formats are allowed: ' + mimetypes.join(', ') + '. The file you gave is ' + mimeFichier + '.');
+            const mimeMatch = type.some( t => t === val.type || val.type.startsWith(t + '/') );
+            if (!mimeMatch)
+                throw new InputError('Only the following formats are allowed: ' + type.join(', ') + '. The file you gave is ' + val.type + '.');
 
         }
 
@@ -368,6 +354,10 @@ export default class SchemaValidators {
         }
 
         return val;
-    }
+
+    }, {
+        //defaut: new Date,
+        ...opts,
+    })
 
 }
