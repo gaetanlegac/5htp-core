@@ -90,7 +90,7 @@ export default ({
         focused: boolean
     }>({
         keywords: '',
-        loading: choicesViaFunc,
+        loading: !!choicesViaFunc,
         focused: true
     });
 
@@ -98,16 +98,6 @@ export default ({
         ? [] 
         : initChoices 
     );
-
-    const displayChoices = (
-        enableSearch 
-        && 
-        choices.length !== 0 
-        && 
-        search.keywords.length !== 0
-        &&
-        search.focused
-    )
 
     const isRequired = required || validator?.options.min;
 
@@ -123,23 +113,29 @@ export default ({
     ----------------------------------*/
 
     React.useEffect(() => {
-        if (choicesViaFunc && (search.keywords || !enableSearch)) {
+
+        // Fetch choices. If dropdodown, it must be open
+        if (choicesViaFunc && (!dropdown || popoverState[0])) {
             initChoices(search.keywords).then((searchResults) => {
                 setSearch(s => ({ ...s, loading: false }))
                 setChoices(searchResults);
             })
         }
+
     }, [
+        popoverState[0],
         search.keywords,
         // When initChoices is a function, React considers it's always different
         // It avoids the choices are fetched everytimle the parent component is re-rendered
         typeof initChoices === 'function' ? true : initChoices
     ]);
 
-    const onChange = (...args) => {
+    const onChange = (getValue) => {
+
+        const newValue = getValue(current);
         
         if (onChangeCallback) {
-            onChangeCallback(...args);
+            onChangeCallback(newValue);
         }
 
         // Close the popover
@@ -163,23 +159,10 @@ export default ({
         />
     )
 
-    const SearchResults = displayChoices && (
-        <ul class="row al-left wrap sp-05" style={{
-            maxHeight: '30vh',
-            overflowY: 'auto'
-        }}>
-            {choices.map( choice => (
-                <ChoiceElement format='badge' choice={choice} 
-                    currentList={currentList}
-                    onChange={onChange}
-                    multiple={multiple}
-                />
-            ))}
-        </ul>
-    )
-
     return dropdown ? (
-        <Popover content={(
+        <Popover {...(dropdown === true ? {
+            width: '200px'
+        } : dropdown)} content={(
             <div class="card col al-top">
 
                 <div class="col">
@@ -200,11 +183,24 @@ export default ({
                     {Search} 
                 </div>   
 
-                {SearchResults}
+                {search.loading ? (
+                    <div class="row al-center h-2">
+                        <i src="spin" />
+                    </div>
+                ) : (
+                   <ul class="menu col">
+                        {choices.map( choice => (
+                            <ChoiceElement format='list' choice={choice} 
+                                currentList={currentList}
+                                onChange={onChange}
+                                multiple={multiple}
+                                includeCurrent 
+                            />
+                        ))} 
+                    </ul>
+                )} 
             </div>
-        )} state={popoverState} {...(dropdown === true ? {
-            width: '200px'
-        } : dropdown)}>
+        )} state={popoverState}>
             <Button icon={icon} iconR="chevron-down" {...otherProps}>
 
                 {currentList.length === 0 ? <>
@@ -251,13 +247,20 @@ export default ({
 
                 </div>
 
-                {SearchResults && (
-                    <div class="pd-1">
-
-                        {SearchResults}
-
-                    </div>
-                )}
+                <div class="pd-1">
+                    <ul class="row al-left wrap sp-05" style={{
+                        maxHeight: '30vh',
+                        overflowY: 'auto'
+                    }}>
+                        {choices.map( choice => (
+                            <ChoiceElement format='badge' choice={choice} 
+                                currentList={currentList}
+                                onChange={onChange}
+                                multiple={multiple}
+                            />
+                        ))}
+                    </ul>
+                </div>
                 
             </div>
             {errors?.length && (
