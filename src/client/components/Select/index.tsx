@@ -191,6 +191,7 @@ export default ({
                                 currentList={currentList}
                                 onChange={onChange}
                                 multiple={multiple}
+                                includeCurrent
                             />
                         ))} 
                     </ul>
@@ -243,26 +244,25 @@ export default ({
 
                 </div>
 
-                {search.keywords && (
-                    <div class="pd-1">
-                        <ul class="row al-left wrap sp-05" style={{
-                            maxHeight: '30vh',
-                            overflowY: 'auto'
-                        }}>
-                            {choices.map( choice => (
-                                <ChoiceElement format='badge' choice={choice} 
-                                    currentList={currentList}
-                                    onChange={onChange}
-                                    multiple={multiple}
-                                />
-                            ))}
-                        </ul>
-                    </div>
-                )}
+                <div class="pd-1">
+                    <ul class="row al-left wrap sp-05" style={{
+                        maxHeight: '30vh',
+                        overflowY: 'auto'
+                    }}>
+                        {choices.map( choice => (
+                            <ChoiceElement format='badge' choice={choice} 
+                                currentList={currentList}
+                                onChange={onChange}
+                                multiple={multiple}
+                                includeCurrent
+                            />
+                        ))}
+                    </ul>
+                </div>
                 
             </div>
             {errors?.length && (
-                <div class="fg error txt-left">
+                <div class="error">
                     {errors.join('. ')}
                 </div>
             )}
