@@ -99,9 +99,9 @@ export default class ServerRequest<
         this.data = data || {};
     }
 
-    public children(method: HttpMethod, path: string, data: TObjetDonnees | undefined, headers?: HttpHeaders) {
+    public children(method: HttpMethod, path: string, data: TObjetDonnees | undefined) {
         const children = new ServerRequest( 
-            this.id, method, path, data, { ...(headers || {}), accept: 'application/json' },
+            this.id, method, path, data, { ...this.headers, accept: 'application/json' },
             this.res, this.router, true
         );
         children.user = this.user;
@@ -143,6 +143,7 @@ export default class ServerRequest<
     }
 
     public device(): Bowser.Parser.ParsedResult | undefined {
+        console.log('device', { ...this.headers });
         return this.headers['user-agent'] !== undefined
             ? Bowser.parse(this.headers['user-agent'])
             : undefined;

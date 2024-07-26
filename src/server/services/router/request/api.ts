@@ -89,8 +89,7 @@ export default class ApiClientRequest extends RequestService implements ApiClien
                 continue;
 
             // Create a children request to resolve the api data
-            const internalHeaders = { accept: 'application/json' }
-            const request = this.request.children(method, path, data, { ...internalHeaders/*, ...headers*/ });
+            const request = this.request.children(method, path, data);
             fetchedData[id] = await request.router.resolve(request).then(res => res.data);
         }
 
