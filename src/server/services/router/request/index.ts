@@ -143,7 +143,6 @@ export default class ServerRequest<
     }
 
     public device(): Bowser.Parser.ParsedResult | undefined {
-        console.log('device', { ...this.headers });
         return this.headers['user-agent'] !== undefined
             ? Bowser.parse(this.headers['user-agent'])
             : undefined;
