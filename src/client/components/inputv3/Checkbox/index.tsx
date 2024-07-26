@@ -77,7 +77,7 @@ export default ({
         </div>
         
         {errors?.length && (
-            <div class="fg error txt-left">
+            <div class="error">
                 {errors.join('. ')}
             </div>
         )}

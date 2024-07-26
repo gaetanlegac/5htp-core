@@ -195,12 +195,13 @@ export default ({
             </div>
 
             {suffix}
+                
+            {errors?.length && (
+                <div class="error">
+                    {errors.join('. ')}
+                </div>
+            )}
             
         </div>
-        {errors?.length && (
-            <div class="fg error txt-left">
-                {errors.join('. ')}
-            </div>
-        )}
     </>
 }
