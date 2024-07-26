@@ -2,13 +2,15 @@
 - DEPENDANCES
 ----------------------------------*/
 
+import React from 'react';
+
 if (typeof window === 'undefined')
     throw new Error(`This file shouldn't be loaded on server side !!!!`);
 
 window.dev && require('preact/debug');
 
 // Core
-import { CoreError } from '@common/errors';
+import { CoreError, InputErrorSchema } from '@common/errors';
 import type { Layout } from '@common/router';
 import { createDialog } from '@client/components/Dialog/Manager';
 

@@ -6,7 +6,7 @@
 import React from 'react';
 
 // Core
-import { InputError } from '@common/errors';
+import { InputErrorSchema } from '@common/errors';
 import type { Schema } from '@common/validation';
 import type { TValidationResult } from '@common/validation/schema';
 import useContext from '@/client/context';
@@ -136,7 +136,7 @@ export default function useForm<TFormData extends {}>(
         const validated = validate(allData);
         if (validated.errorsCount !== 0) {
             context.app.handleError(
-                new InputError("You have " + validated.errorsCount + " errors in the form.")
+                new InputErrorSchema(validated.erreurs)
             );
             console.log("validated", validated.erreurs);
             return;

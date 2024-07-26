@@ -163,7 +163,7 @@ export default ({
         <Popover {...(dropdown === true ? {
             width: '200px'
         } : dropdown)} content={(
-            <div class="card col al-top">
+            <div class="card bg white col al-top">
 
                 {Search} 
 
@@ -198,7 +198,7 @@ export default ({
                 )} 
             </div>
         )} state={popoverState}>
-            <Button icon={icon} iconR="chevron-down" {...otherProps}>
+            <Button type="secondary" icon={icon} iconR="chevron-down" {...otherProps}>
 
                 {currentList.length === 0 ? <>
                     {title}
@@ -207,6 +207,12 @@ export default ({
                 </> : <>
                     {currentList[0].label}
                 </>}
+
+                {errors?.length && (
+                    <div class="bubble bg error bottom">
+                        {errors.join('. ')}
+                    </div>
+                )}
 
             </Button>
         </Popover>
@@ -262,7 +268,7 @@ export default ({
                 
             </div>
             {errors?.length && (
-                <div class="error">
+                <div class="bubble bg error bottom">
                     {errors.join('. ')}
                 </div>
             )}

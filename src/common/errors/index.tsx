@@ -1,3 +1,6 @@
+import React from 'react';
+import type { ComponentChild } from 'preact';
+
 /*----------------------------------
 - TYPES
 ----------------------------------*/
@@ -8,7 +11,7 @@ export type TReponseApi = {
     code: number,
     idRapport?: string,
     urlRequete?: string
-} & ({ message: string } | { erreursSaisie: TListeErreursSaisie })
+} & ({ message: string } | { errors: TListeErreursSaisie })
 
 type TDetailsErreur = {
     stack?: string,
@@ -98,28 +101,34 @@ export class InputErrorSchema extends CoreError {
     public title = "Bad Request";
     public static msgDefaut = "Bad Request.";
 
-    public erreursSaisie: TListeErreursSaisie;
-
     private static listeToString(liste: TListeErreursSaisie) {
         let chaines: string[] = []
         for (const champ in liste)
             chaines.push(champ + ': ' + liste[champ].join('. '));
-        return chaines.join(' | ');
+        return chaines.join('; ');
     }
 
-    public constructor(message: TListeErreursSaisie, details?: TDetailsErreur) {
+    public constructor( public errors: TListeErreursSaisie, details?: TDetailsErreur) {
 
-        super( InputErrorSchema.listeToString(message), details );
-
-        this.erreursSaisie = message;
+        super( InputErrorSchema.listeToString(errors), details );
 
     }
 
     public json(): TReponseApi {
         return {
             ...super.json(),
-            erreursSaisie: this.erreursSaisie,
+            errors: this.errors,
         }
+    }
+
+    public render(): ComponentChild {
+        return (
+            <ul class="col al-left">
+                {Object.keys(this.errors).map( champ => (
+                    <li>{champ}: {this.errors[champ].join('. ')}</li>
+                ))}
+            </ul>
+        )
     }
 }
 

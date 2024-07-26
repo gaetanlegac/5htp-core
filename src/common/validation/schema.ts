@@ -125,8 +125,8 @@ export default class Schema<TFields extends TSchemaFields> {
 
                 if (error instanceof InputErrorSchema) {
 
-                    erreurs = { ...erreurs, ...error.erreursSaisie };
-                    errorsCount += Object.keys(error.erreursSaisie).length;
+                    erreurs = { ...erreurs, ...error.errors };
+                    errorsCount += Object.keys(error.errors).length;
 
                 } else if (error instanceof CoreError) {
 
@@ -172,7 +172,7 @@ export default class Schema<TFields extends TSchemaFields> {
             this.validate(dataToValidate, opts, chemin);
         } catch (error) {
             if (error instanceof InputErrorSchema) {
-                erreurs = error.erreursSaisie;
+                erreurs = error.errors;
                 errorsCount = Object.keys(erreurs).length;
             } else {
                 throw error;
