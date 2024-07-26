@@ -56,9 +56,6 @@ export function useInput<TValue>(
 
     const setValue = (value: TValue) => {
         setState({ value, valueSource: 'internal', changed: true });
-
-        if (autoCommit)
-            commitValue();
     };
 
     const commitValue = () => {
@@ -67,7 +64,7 @@ export function useInput<TValue>(
         if (state.changed === false)
             return;
 
-        console.log(`[input] Commit value:`, state.value);
+        console.log(`[input] Commit value:`, state.value, externalValue);
         if (onChange !== undefined)
             onChange(state.value);
     }
@@ -83,7 +80,7 @@ export function useInput<TValue>(
     }, [externalValue]);
 
     React.useEffect(() => {
-        if (state.valueSource === 'internal') {
+        if (state.valueSource === 'internal' && autoCommit) {
             commitValue();
         } 
     }, [state.value]);
