@@ -87,6 +87,8 @@ export abstract class CoreError extends Error {
     public toString() {
         return this.message;
     }
+
+    public render?(): ComponentChild;
 }
 
 export class InputError extends CoreError {
