@@ -151,6 +151,13 @@ export default class DocumentRenderer<TRouter extends Router> {
         const routesForClient = JSON.stringify( this.router.ssrRoutes );
 
         return <>
+            {/* JS */}
+            <script type="text/javascript" dangerouslySetInnerHTML={{ 
+                __html: `window.ssr=${context}; window.routes=${routesForClient};` + (
+                    this.app.env.profile === 'dev' ? 'window.dev = true;' : ''
+                )
+            }} />
+
             <link rel="preload" href={"/public/client.js?v=" + BUILD_ID} as="script" />
             <script defer type="text/javascript" src={"/public/client.js?v=" + BUILD_ID} />
 
