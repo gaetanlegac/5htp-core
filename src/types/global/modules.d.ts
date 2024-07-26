@@ -36,10 +36,12 @@ declare module "*.svg" {
     export = value;
 }
 
-declare module "*.(png|webp)" {
-    const value: string;
-    export = value;
-}
+declare module "*.png";
+declare module "*.jpg";
+declare module "*.jpeg";
+declare module "*.webp";
+declare module "*.gif";
+declare module "*.bmp";
 
 declare module "*.mp3" {
     const value: string;
