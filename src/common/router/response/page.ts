@@ -67,7 +67,6 @@ export default abstract class PageResponse<TRouter extends ClientOrServerRouter 
     public bodyId?: string;
 
     // Resources
-    public amp?: boolean;
     public scripts: TPageResource[] = [];
     public style: TPageResource[] = [];
 

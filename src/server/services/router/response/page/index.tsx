@@ -83,11 +83,7 @@ export default class Page<TRouter extends Router = Router> extends PageResponse<
             attrsBody.className += ' ' + page.classeBody.join(' ');
 
         if (page.theme)
-            attrsBody.className += ' ' + page.theme;
-
-        // L'url canonique doit pointer vers la version html
-        if (page.amp && fullUrl.endsWith('/amp'))
-            fullUrl = fullUrl.substring(0, fullUrl.length - 4);*/
+            attrsBody.className += ' ' + page.theme;*/
 
         return this.router.render.page(html, this, this.context.response);
     }
@@ -113,9 +109,7 @@ export default class Page<TRouter extends Router = Router> extends PageResponse<
                         id: chunk,
                         url: '/public/' + asset
                     })
-                // Si mode amp, on ne charge pas le JS react (rendu serveur uniquement)
-                // Sauf si mode dev, car le hot reload est quand même bien pratique ...
-                else if (!this.amp)
+                else
                     this.scripts.push({
                         id: chunk,
                         url: '/public/' + asset

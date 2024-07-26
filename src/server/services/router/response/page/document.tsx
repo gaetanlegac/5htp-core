@@ -64,18 +64,12 @@ export default class DocumentRenderer<TRouter extends Router> {
         };
 
         return '<!doctype html>' + renderToString(
-            <html lang="en" {...(page.amp ? { amp: "true" } : {})}>
+            <html lang="en">
                 <head>
                     {/* Format */}
                     <meta charSet="utf-8" />
-                    {page.amp && ( // As a best practice, you should include the script as early as possible in the <head>.
-                        <script async={true} src="https://cdn.ampproject.org/v0.js"></script>
-                    )}
                     <meta content="IE=edge" httpEquiv="X-UA-Compatible" />
                     <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1" />
-                    {!page.amp && page.amp && (
-                        <link rel="amphtml" href={fullUrl + '/amp'} />
-                    )}
 
                     {/* Basique*/}
                     <meta content={this.app.identity.web.title} name="apple-mobile-web-app-title" />
@@ -147,9 +141,6 @@ export default class DocumentRenderer<TRouter extends Router> {
             </> : <>
                 <style id={style.id} dangerouslySetInnerHTML={{ __html: style.inline }} />
             </>)}
-
-            {/* Sera remplacé par la chaine exacte après renderToStaticMarkup */}
-            {page.amp && (<style amp-boilerplate=""></style>)}
         </>
     }
 
@@ -160,15 +151,6 @@ export default class DocumentRenderer<TRouter extends Router> {
         const routesForClient = JSON.stringify( this.router.ssrRoutes );
 
         return <>
-            {/* JS */}
-            {!page.amp && (
-                <script type="text/javascript" dangerouslySetInnerHTML={{ 
-                    __html: `window.ssr=${context}; window.routes=${routesForClient};` + (
-                        this.app.env.profile === 'dev' ? 'window.dev = true;' : ''
-                    )
-                }} />
-            )}
-
             <link rel="preload" href={"/public/client.js?v=" + BUILD_ID} as="script" />
             <script defer type="text/javascript" src={"/public/client.js?v=" + BUILD_ID} />
 
