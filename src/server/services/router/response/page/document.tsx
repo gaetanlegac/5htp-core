@@ -57,7 +57,8 @@ export default class DocumentRenderer<TRouter extends Router> {
 
     public async page( html: string, page: Page, response: ServerResponse<TRouter> ) {
 
-        const fullUrl = this.router.http.publicUrl + response.request.path;
+        // TODO: can be customized via page / route config
+        const canonicalUrl = response.request.req.url;
 
         let attrsBody = {
             className: [...page.bodyClass].join(' '),
@@ -75,7 +76,7 @@ export default class DocumentRenderer<TRouter extends Router> {
                     <meta content={this.app.identity.web.title} name="apple-mobile-web-app-title" />
                     <title>{page.title}</title>
                     <meta content={page.description} name="description" />
-                    <link rel="canonical" href={fullUrl} />
+                    <link rel="canonical" href={canonicalUrl} />
 
                     {this.metas( page )}
 
