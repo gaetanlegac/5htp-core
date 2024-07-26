@@ -9,7 +9,6 @@ import http from 'http';
 import https from 'https';
 import path from 'path';
 import cors, { CorsOptions } from 'cors';
-//var serveStatic = require('serve-static')
 
 // Middlewares (npm)
 import morgan from 'morgan';
@@ -21,9 +20,7 @@ import cookieParser from 'cookie-parser';
 import * as csp from 'express-csp-header';
 
 // Core
-import type { Application } from '@server/app';
 import Container from '@server/app/container';
-import Service from '@server/app/service';
 import type Router from '..';
 
 // Middlewaees (core)

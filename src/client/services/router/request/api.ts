@@ -198,7 +198,6 @@ export default class ApiClient implements ApiClientService {
         const config = {
             method: method,
             headers: {
-                'Content-Type': "application/json",
                 'Accept': "application/json",
             }
         };
@@ -206,14 +205,18 @@ export default class ApiClient implements ApiClientService {
         // Format request data
         if (data) {
             if (method === "GET") {
+
                 const params = new URLSearchParams(data).toString();
                 config.url = `${url}?${params}`;
+
             } else if (options?.encoding === 'multipart') {
-                config.headers["Content-Type"] = 'multipart/form-data';
-                const formData = new FormData();
-                Object.keys(data).forEach(key => formData.append(key, data[key]));
-                config.body = formData;
+
+                console.log("[api] Multipart request", data);
+                // Browser will automatically choose the right headers
+                config.body = toMultipart(data);
+
             } else {
+                config.headers["Content-Type"] = "application/json";
                 config.body = JSON.stringify(data);
             }
         }
@@ -223,6 +226,8 @@ export default class ApiClient implements ApiClientService {
     
     public execute<TData = unknown>(...args: TFetcherArgs): Promise<TData> {
         const { url, config } = this.configure(...args);
+
+        console.log(`[api] Fetching`, url, config);
     
         return fetch(url, config)
             .then(async (response) => {

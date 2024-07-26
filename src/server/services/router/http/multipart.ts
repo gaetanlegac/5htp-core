@@ -4,6 +4,7 @@
 
 // Npm
 import mime from 'mime-types';
+import multer from 'multer';
 
 // Core
 import FileToUpload from '@client/components/inputv3/file/FileToUpload';

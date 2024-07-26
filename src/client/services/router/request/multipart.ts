@@ -46,7 +46,12 @@ function getDefaultFormData() {
     }
 }
 
-function convertRecursively(jsonObject, options, formData, parentKey) {
+function convertRecursively(
+    jsonObject: {}, 
+    options: TOptions, 
+    formData: FormData, 
+    parentKey: string
+) {
 
     var index = 0;
 
@@ -108,7 +113,16 @@ function convertRecursively(jsonObject, options, formData, parentKey) {
     Changes:
     - Add support for FileToUpload
 */
-export const toMultipart = (jsonObject: TPostData, options) => {
+
+// options type
+type TOptions = {
+    initialFormData: FormData,
+    showLeafArrayIndexes: boolean,
+    includeNullValues: boolean,
+    mapping: (value: any) => any
+}
+
+export const toMultipart = (jsonObject: TPostData, options?: TOptions) => {
 
     if (options && options.initialFormData) {
         
