@@ -15,6 +15,8 @@ import type {
     TRouteHttpMethod 
 } from '@server/services/router';
 
+import type RouterRequest from './request';
+
 import type { TUserRole } from '@server/services/auth';
 
 import type { TAppArrowFunction } from '@common/app';
@@ -171,6 +173,24 @@ export const buildUrl = (
 
     // Return final url
     return prefix + path + (searchParams.toString() ? '?' + searchParams.toString() : '');
+}
+
+export const matchRoute = (route: TRoute, request: RouterRequest) => {
+
+    // Match Path
+    const match = route.regex.exec(request.path);
+    if (!match)
+        return false;
+
+    // Extract URL params
+    for (let iKey = 0; iKey < route.keys.length; iKey++) {
+        const key = route.keys[iKey];
+        const value =  match[iKey + 1];
+        if (typeof key === 'string' && value) // number = sans nom
+            request.data[key] = decodeURIComponent( value.replaceAll('+', '%20') );
+    }
+
+    return true;
 }
 
 /*----------------------------------

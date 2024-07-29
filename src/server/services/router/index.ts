@@ -25,7 +25,7 @@ import { CoreError, NotFound } from '@common/errors';
 import BaseRouter, {
     TRoute, TErrorRoute, TRouteModule,
     TRouteOptions, defaultOptions,
-    buildUrl, TDomainsList
+    matchRoute, buildUrl, TDomainsList
 } from '@common/router';
 import { buildRegex, getRegisterPageArgs } from '@common/router/register';
 import { layoutsList, getLayout } from '@common/router/layouts';
@@ -523,18 +523,9 @@ declare type Routes = {
                 if (!request.accepts(route.options.accept))
                     continue;
 
-                // Match Path
-                const match = route.regex.exec(request.path);
-                if (!match)
+                const isMatching = matchRoute(route, request);
+                if (!isMatching)
                     continue;
-
-                // Extract URL params
-                for (let iKey = 0; iKey < route.keys.length; iKey++) {
-                    const key = route.keys[iKey];
-                    const value =  match[iKey + 1];
-                    if (typeof key === 'string' && value) // number = sans nom
-                        request.data[key] = decodeURIComponent(value);
-                }
 
                 // Run on resolution hooks. Ex: authentication check
                 await this.runHook('resolved', route);

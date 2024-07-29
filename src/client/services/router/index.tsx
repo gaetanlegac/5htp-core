@@ -17,7 +17,7 @@ import type { TBasicSSrData } from '@server/services/router/response';
 import BaseRouter, {
     defaultOptions, TRoute, TErrorRoute, 
     TClientOrServerContext, TRouteModule,
-    buildUrl, TDomainsList
+    matchRoute, buildUrl, TDomainsList
 } from '@common/router'
 import { getLayout } from '@common/router/layouts';
 import { getRegisterPageArgs, buildRegex } from '@common/router/register';
@@ -123,7 +123,7 @@ export type TRoutesLoaders = {
 
 export type THookCallback<TRouter extends ClientRouter> = (request: ClientRequest<TRouter>) => void;
 
-type THookName = 'location.change' | 'page.changed'
+type THookName = 'page.change' | 'page.changed'
 
 type Config<TAdditionnalContext extends {} = {}> = {
     preload: string[], // List of globs
@@ -307,7 +307,6 @@ export default class ClientRouter<
     public async resolve(request: ClientRequest<this>): Promise<ClientPage | undefined | null> {
 
         debug && console.log(LogPrefix, 'Resolving request', request.path, Object.keys(request.data));
-        this.runHook('location.change', request);
 
         for (let iRoute = 0; iRoute < this.routes.length; iRoute++) {
 
@@ -315,16 +314,9 @@ export default class ClientRouter<
             if (!('regex' in route))
                 continue;
 
-            const match = route.regex.exec(request.path);
-            if (!match)
+            const isMatching = matchRoute(route, request);
+            if (!isMatching)
                 continue;
-
-            // URL data
-            for (let iKey = 0; iKey < route.keys.length; iKey++) {
-                const nomParam = route.keys[iKey];
-                if (typeof nomParam === 'string') // number = sans nom
-                    request.data[nomParam] = match[iKey + 1]
-            }
 
             // Create response
             debug && console.log(LogPrefix, 'Resolved request', request.path, '| Route:', route);
