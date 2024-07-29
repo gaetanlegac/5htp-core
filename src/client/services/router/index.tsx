@@ -145,6 +145,7 @@ export default class ClientRouter<
     public context!: ClientContext;
 
     public setLoading!: React.Dispatch< React.SetStateAction<boolean> >;
+    public navigate!: (page: ClientPage) => void;
 
     public constructor(app: TApplication, config: Config<TAdditionnalContext>) {
 
@@ -161,9 +162,17 @@ export default class ClientRouter<
     public url = (path: string, params: {} = {}, absolute: boolean = true) => 
         buildUrl(path, params, this.domains, absolute);
 
-    public go( url: string, data: {} = {}, opt: {
+    public go( url: string | number, data: {} = {}, opt: {
         newTab?: boolean
     } = {}) {
+
+        // Error code
+        if (typeof url === 'number') {
+            this.createResponse( this.errors[url], this.context.request ).then(( page ) => {
+                this.navigate(page);
+            })
+            return;
+        }
 
         url = this.url(url, data, false);
 
@@ -304,7 +313,7 @@ export default class ClientRouter<
     /*----------------------------------
     - RESOLUTION
     ----------------------------------*/
-    public async resolve(request: ClientRequest<this>): Promise<ClientPage | undefined | null> {
+    public async resolve(request: ClientRequest<this>): Promise<ClientPage> {
 
         debug && console.log(LogPrefix, 'Resolving request', request.path, Object.keys(request.data));
 
@@ -326,7 +335,10 @@ export default class ClientRouter<
 
         };
 
-        return undefined;
+        console.log("404 error page not found.", this.errors, this.routes);
+
+        const notFoundRoute = this.errors[404];
+        return await this.createResponse(notFoundRoute, request);
     }
 
     private async load(route: TUnresolvedNormalRoute): Promise<TRoute>;
@@ -407,7 +419,7 @@ export default class ClientRouter<
     }
 
     private async createResponse(
-        route: TUnresolvedRoute | TRoute,
+        route: TUnresolvedRoute | TErrorRoute | TRoute,
         request: ClientRequest<this>,
         pageData: {} = {}
     ): Promise<ClientPage> {

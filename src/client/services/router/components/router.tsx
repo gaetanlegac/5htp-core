@@ -62,17 +62,18 @@ export default ({ service: clientRouter }: { service?: ClientRouter }) => {
 
     const context = useContext();
 
-    // Bind context object to client router
-    if (clientRouter !== undefined) 
-        clientRouter.context = context;
-
     const [currentPage, setCurrentPage] = React.useState<undefined | Page>(context.page);
 
+    // Bind context object to client router
+    if (clientRouter !== undefined) {
+        clientRouter.context = context;
+        clientRouter.navigate = changePage;
+    }
     
     /*----------------------------------
     - ACTIONS
     ----------------------------------*/
-    const resolvePage = async (request: ClientRequest, locationUpdate?: Update) => {
+    const resolvePage = async (request: ClientRequest) => {
 
         if (!clientRouter) return;
 
@@ -98,22 +99,22 @@ export default ({ service: clientRouter }: { service?: ClientRouter }) => {
         clientRouter.setLoading(true);
         const newpage = context.page = await clientRouter.resolve(request);
 
-        // Page not found: Directly load with the browser
-        if (newpage === undefined) {
-            window.location.replace(request.url);
-            console.error("not found");
-            return;
         // Unable to load (no connection, server error, ....)
-        } else if (newpage === null) {
+        if (newpage === null) {
             return;
         }
+
+        return await changePage(newpage);
+    }
+
+    async function changePage(newpage: Page, request?: ClientRequest) {
 
         // Fetch API data to hydrate the page
         try {
             await newpage.preRender();
         } catch (error) {
             console.error(LogPrefix, "Unable to fetch data:", error);
-            clientRouter.setLoading(false);
+            clientRouter?.setLoading(false);
             return;
         }
 
@@ -133,7 +134,7 @@ export default ({ service: clientRouter }: { service?: ClientRouter }) => {
                 //  But when we call setLayout, the style of the previous layout are still oaded and applied
                 //  Find a way to unload the  previous layout / page resources before to load the new one
                 console.log(LogPrefix, `Changing layout. Before:`, curLayout, 'New layout:', newLayout);
-                window.location.replace(request.url);
+                window.location.replace( request ? request.url : location.href );
                 return { ...page }
 
                 context.app.setLayout(newLayout);
