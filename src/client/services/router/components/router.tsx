@@ -66,11 +66,8 @@ export default ({ service: clientRouter }: { service?: ClientRouter }) => {
     if (clientRouter !== undefined) 
         clientRouter.context = context;
 
-    const [pages, setPages] = React.useState<{
-        current: undefined | Page
-    }>({
-        current: context.page
-    });
+    const [currentPage, setCurrentPage] = React.useState<undefined | Page>(context.page);
+
     
     /*----------------------------------
     - ACTIONS
@@ -85,12 +82,19 @@ export default ({ service: clientRouter }: { service?: ClientRouter }) => {
         // WARNING: Don"t try to play with pages here, since the object will not be updated
         //  If needed to play with pages, do it in the setPages callback below
         // Unchanged path
-        if (request.path === currentRequest.path && request.hash !== currentRequest.hash && request.hash !== undefined) {
+        if (
+            request.path === currentRequest.path 
+            && 
+            request.hash !== currentRequest.hash
+            && 
+            request.hash !== undefined
+        ) {
             scrollToElement(request.hash);
             return;
         }
         
         // Set loading state
+        clientRouter.runHook('page.change', request);
         clientRouter.setLoading(true);
         const newpage = context.page = await clientRouter.resolve(request);
 
@@ -114,13 +118,13 @@ export default ({ service: clientRouter }: { service?: ClientRouter }) => {
         }
 
         // Add page container
-        setPages( pages => {
+        setCurrentPage( page => {
 
             // WARN: Don't cancel navigation if same page as before, as we already instanciated the new page and bound the context with it
             //  Otherwise it would cause reference issues (ex: page.setAllData makes ref to the new context)
 
             // If if the layout changed
-            const curLayout = pages.current?.layout;
+            const curLayout = currentPage?.layout;
             const newLayout = newpage?.layout;
             if (newLayout && curLayout && newLayout.path !== curLayout.path) {
 
@@ -130,12 +134,12 @@ export default ({ service: clientRouter }: { service?: ClientRouter }) => {
                 //  Find a way to unload the  previous layout / page resources before to load the new one
                 console.log(LogPrefix, `Changing layout. Before:`, curLayout, 'New layout:', newLayout);
                 window.location.replace(request.url);
-                return { ...pages }
+                return { ...page }
 
                 context.app.setLayout(newLayout);
             }
 
-            return { current: newpage }
+            return newpage;
         });
     }
 
@@ -169,25 +173,25 @@ export default ({ service: clientRouter }: { service?: ClientRouter }) => {
         // Reset scroll
         window.scrollTo(0, 0);
         // Should be called AFTER rendering the page (so after the state change)
-        pages.current?.updateClient();
+        currentPage?.updateClient();
         // Scroll to the selected content via url hash
-        restoreScroll(pages.current);
+        restoreScroll(currentPage);
 
         // Hooks
-        clientRouter.runHook('page.changed', pages.current)
+        clientRouter.runHook('page.changed', currentPage)
         
-    }, [pages.current]);
+    }, [currentPage]);
 
     /*----------------------------------
     - RENDER
     ----------------------------------*/
     // Render the page component
     return <>
-        {pages.current && (
-            <PageComponent page={pages.current} 
+        {currentPage && (
+            <PageComponent page={currentPage} 
                 /* Create a new instance of the Page component every time the page change 
                 Otherwise the page will memorise the data of the previous page */
-                key={pages.current.chunkId === undefined ? undefined : 'page_' + pages.current.chunkId} 
+                key={currentPage.chunkId === undefined ? undefined : 'page_' + currentPage.chunkId} 
             />
         )}
 
