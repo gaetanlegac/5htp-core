@@ -74,7 +74,7 @@ export default ({
         if (refCommit.current !== null)
             clearTimeout(refCommit.current);
 
-        refCommit.current = setTimeout(commitValue, 500);
+        refCommit.current = setTimeout(commitValue, 100);
         
     }, [value]);
     
