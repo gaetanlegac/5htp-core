@@ -27,7 +27,6 @@ export default class ClientRequest<TRouter extends ClientRouter = ClientRouter> 
     public api: ApiClient;
     public response?: ClientResponse<TRouter>;
 
-    public url: string;
     public hash?: string;
 
     public constructor( 

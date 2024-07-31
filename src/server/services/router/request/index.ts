@@ -87,6 +87,7 @@ export default class ServerRequest<
         this.router = router;
         this.api = new ApiClient(this);
 
+        this.url = this.req.url;
         this.host = this.req.get('host') as string;
         this.method = method;
         this.headers = headers || {};

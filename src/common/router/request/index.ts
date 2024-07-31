@@ -17,6 +17,7 @@ export default abstract class BaseRequest {
 
     // Permet d'accèder à l'instance complète via spread
     public request: this = this;
+    public url!: string;
     public host!: string;
 
     public data: TObjetDonnees = {};
