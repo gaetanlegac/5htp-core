@@ -96,6 +96,10 @@ export default ({ service: clientRouter }: { service?: ClientRouter }) => {
         
         // Set loading state
         clientRouter.runHook('page.change', request);
+        window.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
         clientRouter.setLoading(true);
         const newpage = context.page = await clientRouter.resolve(request);
 
