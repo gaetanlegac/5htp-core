@@ -35,7 +35,6 @@
     // Hover
     //transition: all .5s linear;
     &:hover,
-    &.active,
     li:hover > & {
 
         color: var(--cTxtImportant);
@@ -43,6 +42,38 @@
         
         > i {
             color: var(--cAccent)
+        }
+    }
+
+    &.active {
+        &::after {
+            content: ' ';
+            display: block;
+            position: absolute;
+
+            background: @c1;
+            height: @sizeActiveIndicator;
+            width: @sizeActiveIndicator;
+            border-radius: 50%;
+
+            // Default: bottom
+            left: 50%;
+            margin-left: -@sizeActiveIndicator / 2;
+            bottom: -@sizeActiveIndicator / 2;
+        }
+
+        .col > &::after,
+        .col > li > &::after {
+
+            // Reset potition
+            left: auto;
+            margin-left: auto;
+            bottom: auto;
+
+            // Position right
+            top: 50%;
+            margin-top: -@sizeActiveIndicator / 2;
+            right: -@sizeActiveIndicator / 2;
         }
     }
 
@@ -128,29 +159,6 @@
 
         &.col {
             box-shadow: 0 0 0 0.2em @c2;
-        }
-        
-        .menu &::after {
-            content: ' ';
-            display: block;
-            position: absolute;
-
-            background: @c1;
-            height: @sizeActiveIndicator;
-            width: @sizeActiveIndicator;
-            border-radius: 50%;
-        }
-
-        .menu.row &::after {
-            left: 50%;
-            margin-left: -@sizeActiveIndicator / 2;
-            bottom: -@sizeActiveIndicator / 2;
-        }
-
-        .menu.col &::after {
-            top: 50%;
-            margin-top: -@sizeActiveIndicator / 2;
-            right: -@sizeActiveIndicator / 2;
         }
     }
 
