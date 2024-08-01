@@ -145,7 +145,7 @@ export default class ClientRouter<
     public context!: ClientContext;
 
     public setLoading!: React.Dispatch< React.SetStateAction<boolean> >;
-    public navigate!: (page: ClientPage) => void;
+    public navigate!: (page: ClientPage, data?: {}) => void;
 
     public constructor(app: TApplication, config: Config<TAdditionnalContext>) {
 
@@ -169,7 +169,7 @@ export default class ClientRouter<
         // Error code
         if (typeof url === 'number') {
             this.createResponse( this.errors[url], this.context.request ).then(( page ) => {
-                this.navigate(page);
+                this.navigate(page, data);
             })
             return;
         }

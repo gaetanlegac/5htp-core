@@ -7,16 +7,17 @@ import type { ComponentChild } from 'preact';
 
 export type TListeErreursSaisie<TClesDonnees extends string = string> = {[champ in TClesDonnees]: string[]}
 
-export type TReponseApi = {
+type TJsonError = {
     code: number,
-    idRapport?: string,
-    urlRequete?: string
-} & ({ message: string } | { errors: TListeErreursSaisie })
+    origin?: string,
+    message: string,
+    // Form fields
+    errors?: TListeErreursSaisie
+} & TDetailsErreur
 
 type TDetailsErreur = {
     stack?: string,
-    idRapport?: string,
-    urlRequete?: string,
+    origin?: string,
 }
 
 /*----------------------------------
@@ -49,9 +50,7 @@ export abstract class CoreError extends Error {
     public abstract http: number;
     public title: string = "Uh Oh ...";
     public message: string;
-
-    public urlRequete?: string;
-    public idRapport?: string;
+    public details: TDetailsErreur = {};
 
     // Note: On ne le redéfini pas ici, car déjà présent dans Error
     //      La redéfinition reset la valeur du stacktrace
@@ -62,25 +61,20 @@ export abstract class CoreError extends Error {
         super(message);
 
         this.message = message || (this.constructor as typeof CoreError).msgDefaut;
+        this.details = details || {}; 
 
-        if (details !== undefined) {
-            this.idRapport = details.idRapport;
+        // Inject stack
+        if (details !== undefined)
             this.stack = details.stack;
-            this.urlRequete = details.urlRequete;
-
-            if (this.urlRequete !== undefined)
-                this.message + '(' + this.urlRequete + ') ' + this.message;
-        }
 
     }
 
-    public json(): TReponseApi {
+    public json(): TJsonError {
 
         return {
             code: this.http,
             message: this.message,
-            idRapport: this.idRapport,
-            urlRequete: this.urlRequete,
+            ...this.details
         }
     }
 
@@ -116,7 +110,7 @@ export class InputErrorSchema extends CoreError {
 
     }
 
-    public json(): TReponseApi {
+    public json(): TJsonError {
         return {
             ...super.json(),
             errors: this.errors,
@@ -182,21 +176,46 @@ export class NetworkError extends Error {
 
 export const viaHttpCode = (
     code: number, 
-    message?: string | TListeErreursSaisie, 
+    message: string, 
     details?: TDetailsErreur
 ): CoreError => {
+    return fromJson({
+        code,
+        message,
+        ...details
+    });
+}
 
-    // TODO: more reliablme detection of form errors
-    if (typeof message === 'object')
-        return new InputErrorSchema(message, details);
+export const toJson = (e: Error | CoreError): TJsonError => {
+
+    if (('json' in e) && typeof e.json === 'function')
+        return e.json();
+
+    const details = ('details' in e) 
+        ? e.details
+        : { stack: e.stack };
+
+    return { code: 500, message: e.message, ...details }
+}
+
+export const fromJson = ({ code, message, ...details }: TJsonError) => {
 
     switch (code) {
-        case 400: return new InputError( message, details);
-        case 401: return new AuthRequired( message, details);
-        case 403: return new Forbidden( message, details);
-        case 404: return new NotFound( message, details);
-        default: return new Anomaly( message, details);
+        case 400: 
+            if (details.errors)
+                return new InputErrorSchema( details.errors, details );
+            else
+                return new InputError( message, details );
+
+        case 401: return new AuthRequired( message, details );
+
+        case 403: return new Forbidden( message, details );
+
+        case 404: return new NotFound( message, details );
+
+        default: return new Anomaly( message, details );
     }
+
 }
 
 export default CoreError;

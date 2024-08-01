@@ -82,7 +82,7 @@ export default ({ service: clientRouter, loaderComponent }: TProps) => {
     /*----------------------------------
     - ACTIONS
     ----------------------------------*/
-    const resolvePage = async (request: ClientRequest) => {
+    const resolvePage = async (request: ClientRequest, data: {} = {}) => {
 
         if (!clientRouter) return;
 
@@ -117,10 +117,10 @@ export default ({ service: clientRouter, loaderComponent }: TProps) => {
             return;
         }
 
-        return await changePage(newpage);
+        return await changePage(newpage, data, request);
     }
 
-    async function changePage(newpage: Page, request?: ClientRequest) {
+    async function changePage(newpage: Page, data?: {}, request?: ClientRequest) {
 
         // Fetch API data to hydrate the page
         try {
@@ -130,6 +130,10 @@ export default ({ service: clientRouter, loaderComponent }: TProps) => {
             clientRouter?.setLoading(false);
             return;
         }
+
+        // Add additional data
+        if (data)
+            newpage.data = { ...newpage.data, ...data };
 
         // Add page container
         setCurrentPage( page => {

@@ -21,7 +21,7 @@ import Service, { AnyService } from '@server/app/service';
 import type { TRegisteredServicesIndex } from '@server/app/service/container';
 import context from '@server/context';
 import type DisksManager from '@server/services/disks';
-import { CoreError, NotFound } from '@common/errors';
+import { CoreError, NotFound, toJson as errorToJson } from '@common/errors';
 import BaseRouter, {
     TRoute, TErrorRoute, TRouteModule,
     TRouteOptions, defaultOptions,
@@ -543,7 +543,11 @@ declare type Routes = {
 
             if (this.app.env.profile === 'dev') {
                 console.log('API batch error:', request.method, request.path, error);
-                error.message = request.method + ' ' + request.path + ': ' + error.message;
+                const errOrigin = request.method + ' ' + request.path;
+                if (error.details === undefined)
+                    error.details = { origin: errOrigin }
+                else
+                    error.details.origin = errOrigin;
             }
 
             throw error;
@@ -600,14 +604,16 @@ declare type Routes = {
         } else if (code !== 404 && this.app.env.profile === "dev")
             console.warn(e);
 
-        if (request.accepts("html"))
+        // Return error based on the request format
+        if (request.accepts("html")) {
+            const jsonError = errorToJson(e);
             await response.runController(route, { 
-                message: e.message,
-                type: e.constructor.name
+                error: jsonError
             });
-        else if (request.accepts("json"))
-            await response.json(e.message);
-        else
+        } else if (request.accepts("json")) {
+            const jsonError = errorToJson(e);
+            await response.json(jsonError);
+        } else
             await response.text(e.message);
 
         return response;

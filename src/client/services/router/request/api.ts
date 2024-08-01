@@ -9,7 +9,7 @@ import ApiClientService, {
     TApiFetchOptions, TFetcherList, TFetcherArgs, TFetcher,
     TDataReturnedByFetchers
 } from '@common/router/request/api';
-import { viaHttpCode, NetworkError } from '@common/errors';
+import { fromJson as errorFromJson, NetworkError } from '@common/errors';
 import type ClientApplication from '@client/app';
 
 import { toMultipart } from './multipart';
@@ -232,9 +232,10 @@ export default class ApiClient implements ApiClientService {
         return fetch(url, config)
             .then(async (response) => {
                 if (!response.ok) {
+
                     const errorData = await response.json();
                     console.warn(`[api] Failure:`, response.status, errorData);
-                    const error = viaHttpCode(response.status || 500, errorData);
+                    const error = errorFromJson(errorData);
                     throw error;
                 }
                 debug && console.log(`[api] Success:`, response);
