@@ -23,25 +23,34 @@ export type PropsPage<TParams extends { [cle: string]: unknown }> = TParams & {
     data: {[cle: string]: unknown}
 }
 
+export type TProps = {
+    service?: ClientRouter,
+    loaderComponent?: React.ComponentType<{ isLoading: boolean }>,
+}
+
 /*----------------------------------
 - PAGE STATE
 ----------------------------------*/
 
 const LogPrefix = `[router][component]`
 
-const PageLoading = ({ clientRouter }: { clientRouter?: ClientRouter }) => {
+const PageLoading = ({ clientRouter, loaderComponent: LoaderComponent }: { 
+    clientRouter?: ClientRouter,
+    loaderComponent?: React.ComponentType<{ isLoading: boolean }>,
+}) => {
 
     const [isLoading, setLoading] = React.useState(false);
 
     if (clientRouter)
         clientRouter.setLoading = setLoading;
 
-    return (
-        <div id="loading" class={isLoading ? 'display' : ''}>
-            <i src="spin" />
-        </div>
-    )
-
+    return LoaderComponent 
+        ? <LoaderComponent isLoading={isLoading} /> 
+        : (
+            <div id="loading" class={isLoading ? 'display' : ''}>
+                <i src="spin" />
+            </div>
+        )
 }
 
 const scrollToElement = (selector: string) => document.querySelector( selector )
@@ -54,7 +63,7 @@ const scrollToElement = (selector: string) => document.querySelector( selector )
 /*----------------------------------
 - COMPONENT
 ----------------------------------*/
-export default ({ service: clientRouter }: { service?: ClientRouter }) => {
+export default ({ service: clientRouter, loaderComponent }: TProps) => {
 
     /*----------------------------------
     - INIT
@@ -200,6 +209,6 @@ export default ({ service: clientRouter }: { service?: ClientRouter }) => {
             />
         )}
 
-        <PageLoading clientRouter={clientRouter} />
+        <PageLoading clientRouter={clientRouter} loaderComponent={loaderComponent} />
     </>
 }
