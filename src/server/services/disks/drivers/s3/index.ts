@@ -99,6 +99,13 @@ export default class S3Driver<
     - ACTIONS
     ----------------------------------*/
 
+    public getFileUrl(
+        bucketName: TBucketName, 
+        filename: string
+    ) {
+        return `https://${bucketName}.s3${this.config.region}.amazonaws.com/${filename}`
+    }
+
     public readDir( bucketName: TBucketName, dirname?: string ) {
         const bucket = this.config.buckets[bucketName];
         return new Promise<SourceFile[]>((resolve, reject) => {

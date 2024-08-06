@@ -59,6 +59,11 @@ export default abstract class FsDriver<
 > extends Service<Config, {}, Application, Services> {
 
     public abstract mount(): Promise<void>;
+
+    public abstract getFileUrl(
+        bucketName: TBucketName, 
+        filename: string
+    ): string;
     
     public abstract readDir( bucketName: TBucketName, dirname?: string ): Promise<SourceFile[]>;
 

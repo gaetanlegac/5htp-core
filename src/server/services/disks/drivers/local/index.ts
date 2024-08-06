@@ -72,6 +72,13 @@ export default class LocalFS<
     - ACTIONS
     ----------------------------------*/
 
+    public getFileUrl(
+        bucketName: TBucketName, 
+        filename: string
+    ) {
+        throw new Error("Method not available for local files.");
+    }
+
     public async readDir( bucketName: TBucketName, dirname?: string ) {
 
         const bucketDir = this.config.buckets[bucketName];
