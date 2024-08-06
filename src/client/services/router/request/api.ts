@@ -238,8 +238,9 @@ export default class ApiClient implements ApiClientService {
                     const error = errorFromJson(errorData);
                     throw error;
                 }
-                debug && console.log(`[api] Success:`, response);
-                return response.json() as Promise<TData>;
+                const json = await response.json() as TData;
+                debug && console.log(`[api] Success:`, json);
+                return json;
             })
             .catch((error) => {
                 if (error instanceof TypeError) {

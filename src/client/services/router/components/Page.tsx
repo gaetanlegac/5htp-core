@@ -21,14 +21,20 @@ export default ({ page }: { page: Page }) => {
     ----------------------------------*/
     const context = useContext();
 
-    // Temporary fix: context.page may not be updated at this stage
-    //  Seems to be the case when we change page, but still same page component with different data
-    context.page = page;
-
     // Bind data
     const [apiData, setApiData] = React.useState<{[k: string]: any} | null>( page.data || {});
     page.setAllData = setApiData;
-    context.data = apiData;
+    const fullData = {
+        ...context.data,
+        ...apiData
+    }
+
+    // Temporary fix: context.page may not be updated at this stage
+    //  Seems to be the case when we change page, but still same page component with different data
+    // TODO: ensure these updated are made every tume we change page / context
+    context.page = page;
+    context.data = fullData;
+    context.context = context;
 
     // Page component has not changed, but data were updated (ex: url parameters change)
     React.useEffect(() => {
@@ -43,15 +49,7 @@ export default ({ page }: { page: Page }) => {
     //  Make request parameters and api data accessible from the page component
     return page.renderer ? (
 
-        <page.renderer 
-            // Services
-            {...context} 
-            // API data & URL params
-            data={{
-                ...apiData,
-                ...context.request.data
-            }}
-        />
+        <page.renderer {...context} />
         
     ) : <>Renderer missing</>
 }
