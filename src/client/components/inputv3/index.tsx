@@ -39,6 +39,11 @@ export type Props = {
     validator?: ReturnType< SchemaValidators["number"] >,
 })
 
+type TInputElementProps = Omit<(
+    JSX.HTMLAttributes<HTMLInputElement> & 
+    JSX.HTMLAttributes<HTMLTextAreaElement>
+), 'onChange'>
+
 /*----------------------------------
 - COMPOSANT
 ----------------------------------*/
@@ -52,7 +57,7 @@ export default ({
     // Actions
     onPressEnter,
     ...props 
-}: Props & InputBaseProps<string> & Omit<JSX.HTMLAttributes<HTMLInputElement>, 'onChange'>) => {
+}: Props & InputBaseProps<string> & TInputElementProps) => {
 
     /*----------------------------------
     - INIT
