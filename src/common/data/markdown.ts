@@ -56,7 +56,18 @@ md.block.ruler.after('list', 'test', (state, startLine, endLine, silent) => {
                 token.attrs[ aIndex ][1] = 'liste';    // replace value of existing attr
             }
 
+        } else if (token.type === 'ordered_list_open') {
+            
+            const aIndex = token.attrIndex('class');
+            if (aIndex < 0) {
+                token.attrPush(['class', 'steps']); // add new attribute
+            } else {
+                token.attrs[ aIndex ][1] = 'steps';    // replace value of existing attr
+            }
+
         }
+
+        console.log(token.type);
     }
 
 }, { alt: ['paragraph', 'reference', 'blockquote'] })

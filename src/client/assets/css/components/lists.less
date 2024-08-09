@@ -2,7 +2,7 @@
 - CONFIG
 ----------------------------------*/
 
-@sizeStep: 2.2em;
+@sizeStep: 1.8em;
 @itemLineHeight: 1.5em;
 
 /*----------------------------------
@@ -87,17 +87,12 @@ ol.steps {
 
         &:before {
             content: counter(step-counter);
-            font-size: 0.8em;
-        }
-
-        &.active::before {
-            background-color: var(--cAccent);
         }
 
         // Stepnumber = at the left
         &:not(.col) {
     
-            padding-left: @sizeStep + (@spacing / 2);
+            padding-left: /*@sizeStep + */(@spacing);
             padding-top: (@sizeStep - @itemLineHeight) / 2;
             line-height: @itemLineHeight;
             margin: 5px 0;
@@ -122,15 +117,12 @@ ol.steps {
 
 ol.steps > li:before,
 strong.step {
-    
-    background: @c1 + #666;
-    color: @c1;
-
+    color: var(--cTxtAccent);
     text-align: center;
-    width: @sizeStep * 1.2;
-    height: @sizeStep * 1.2;
-    line-height: @sizeStep * 1.2;
-    border-radius: 50%;
+    font-weight: bold;
+
+    font-size: 1em;
+    line-height: 1.8em;
 }
 
 /*----------------------------------
