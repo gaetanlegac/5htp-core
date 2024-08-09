@@ -39,9 +39,9 @@ const hsl = (h: number, s: number = 80, l: number = 70) => `hsl(${Math.floor(h)}
 export const couleurViaPc = (pc: number, couleurs: [number, number], ecart: number) => {
 
     return { 
-        couleur1: 'var(--cAccent)', 
-        couleur2: 'var(--cAccent)',
-        couleurTxt: 'var(--cAccent)'
+        couleur1: 'var(--cTxtAccent)', 
+        couleur2: 'var(--cTxtAccent)',
+        couleurTxt: 'var(--cTxtAccent)'
     }
     const [couleurMin, couleurMax] = couleurs;
     const couleur = couleurMin + (pc * (couleurMax - couleurMin));

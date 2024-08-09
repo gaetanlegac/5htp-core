@@ -22,8 +22,10 @@ ul, ol {
 
 ul.liste, 
 ol.steps {
-    // Doit hériter des parents
-    //line-height: 1.5em;
+    
+    display: flex;
+    flex-direction: column;
+    gap: 0.5em;
     text-align: left;
 
     > li {
@@ -48,7 +50,7 @@ ul.liste {
         &:before {
             content: '➜';
             font-size: 1.4em;
-            color: var(--cAccent);
+            color: var(--cTxtAccent);
         }
     }
 
