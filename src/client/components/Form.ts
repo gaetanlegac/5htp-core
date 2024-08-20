@@ -36,7 +36,6 @@ export type Form<TFormData extends {} = {}> = {
     fields: FieldsAttrs<TFormData>,
     data: TFormData,
     options: TFormOptions<TFormData>,
-    autosavedData?: Partial<TFormData>,
 
     // Actions
     validate: (data: Partial<TFormData>) => TValidationResult<{}>,
@@ -67,27 +66,13 @@ export default function useForm<TFormData extends {}>(
     ----------------------------------*/
 
     const [state, setState] = React.useState<FormState>({
-        hasChanged: false,
+        hasChanged: options.data !== undefined,
         isLoading: false,
         errorsCount: 0,
         errors: {}
     });
 
-    // Autosaving data
-    let autosavedData: TFormData | undefined;
-    if (!state.hasChanged && options.autoSave && typeof window !== 'undefined') {
-        const autosaved = localStorage.getItem('form.' + options.autoSave.id);
-        if (autosaved !== null) {
-            try {
-                console.log('[form] Parse autosaved from json:', autosaved);
-                autosavedData = JSON.parse(autosaved);
-            } catch (error) {
-                console.error('[form] Failed to decode autosaved data from json:', autosaved);
-            }
-        }
-    }
-
-    const initialData: Partial<TFormData> = options.data || autosavedData || {};
+    const initialData: Partial<TFormData> = options.data || {};
 
     // States
     const fields = React.useRef<FieldsAttrs<TFormData> | null>(null);
@@ -100,8 +85,22 @@ export default function useForm<TFormData extends {}>(
         validate(data, false);
 
         // Autosave
-        if (options.autoSave !== undefined)
-            saveLocally(data, options.autoSave.id);
+        if (options.autoSave !== undefined) {
+
+            if (state.hasChanged)
+                saveLocally(data, options.autoSave.id);
+            else {
+                const autosaved = localStorage.getItem('form.' + options.autoSave.id);
+                if (autosaved !== null) {
+                    try {
+                        console.log('[form] Parse autosaved from json:', autosaved);
+                        setData( JSON.parse(autosaved) );
+                    } catch (error) {
+                        console.error('[form] Failed to decode autosaved data from json:', autosaved);
+                    }
+                }
+            }
+        }
 
     }, [data]);
 
@@ -236,7 +235,6 @@ export default function useForm<TFormData extends {}>(
         validate,
         submit,
         options,
-        autosavedData,
         ...state
     }
 
