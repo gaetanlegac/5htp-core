@@ -56,7 +56,7 @@ type FormState = {
 ----------------------------------*/
 export default function useForm<TFormData extends {}>(
     schema: Schema<TFormData>,
-    options: TFormOptions<TFormData>
+    options: TFormOptions<TFormData> = {}
 ): [ Form, FieldsAttrs<TFormData> ] {
 
     const context = useContext();
