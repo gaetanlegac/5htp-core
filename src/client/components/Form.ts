@@ -66,9 +66,16 @@ export default function useForm<TFormData extends {}>(
     - INIT
     ----------------------------------*/
 
+    const [state, setState] = React.useState<FormState>({
+        hasChanged: false,
+        isLoading: false,
+        errorsCount: 0,
+        errors: {}
+    });
+
     // Autosaving data
     let autosavedData: TFormData | undefined;
-    if (options.autoSave && typeof window !== 'undefined') {
+    if (!state.hasChanged && options.autoSave && typeof window !== 'undefined') {
         const autosaved = localStorage.getItem('form.' + options.autoSave.id);
         if (autosaved !== null) {
             try {
@@ -80,17 +87,11 @@ export default function useForm<TFormData extends {}>(
         }
     }
 
-    const initialData: Partial<TFormData> = options.data || {};
+    const initialData: Partial<TFormData> = options.data || autosavedData || {};
 
     // States
     const fields = React.useRef<FieldsAttrs<TFormData> | null>(null);
     const [data, setData] = React.useState< Partial<TFormData> >(initialData);
-    const [state, setState] = React.useState<FormState>({
-        hasChanged: false,
-        isLoading: false,
-        errorsCount: 0,
-        errors: {}
-    });
 
     // Validate data when it changes
     React.useEffect(() => {
