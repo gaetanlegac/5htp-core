@@ -66,8 +66,6 @@ md.block.ruler.after('list', 'test', (state, startLine, endLine, silent) => {
             }
 
         }
-
-        console.log(token.type);
     }
 
 }, { alt: ['paragraph', 'reference', 'blockquote'] })
