@@ -103,7 +103,10 @@ export default class S3Driver<
         bucketName: TBucketName, 
         filename: string
     ) {
-        return `https://${bucketName}.s3${this.config.region}.amazonaws.com/${filename}`
+        const bucket = this.config.buckets[bucketName];
+        if (bucket === undefined)
+            throw new Error(`Bucket "${bucketName}" not found in configuration`);
+        return `https://${bucket}.s3.${this.config.region}.amazonaws.com/${filename}`
     }
 
     public readDir( bucketName: TBucketName, dirname?: string ) {
