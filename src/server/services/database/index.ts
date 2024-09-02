@@ -442,7 +442,7 @@ export default class SQL extends Service<Config, Hooks, Application, Services> {
         // Upsert
         let upsertStatement: string = '';
         if (opts.upsert !== undefined)
-            upsertStatement = ' ' + this.buildUpsertStatement<TData>(table, opts as With<TInsertQueryOptions<TData>, 'upsert'>);
+            upsertStatement = ' ' + this.buildUpsertStatement<TData>(table, data, opts as With<TInsertQueryOptions<TData>, 'upsert'>);
     
         let okPacket: mysql.OkPacket = { ...emptyOkPacket }
 
@@ -501,10 +501,11 @@ export default class SQL extends Service<Config, Hooks, Application, Services> {
 
     private buildUpsertStatement<TData extends TObjetDonnees>( 
         table: TMetasTable, 
+        data: TData[],
         opts: With<TInsertQueryOptions<TData>, 'upsert'> 
     ): string {
 
-        const valuesToUpdate = this.getValuesToUpdate(table, opts.upsert);
+        const valuesToUpdate = this.getValuesToUpdate(table, data, opts.upsert);
 
         // All columns are ps
         const valuesToUpdatesEntries = Object.entries(valuesToUpdate);
@@ -519,35 +520,39 @@ export default class SQL extends Service<Config, Hooks, Application, Services> {
     // TODO: Fix typings
     private getValuesToUpdate<TData extends TObjetDonnees>(
         table: TMetasTable,
+        data: TData[],
         colsToUpdate: TColsToUpsert<TData>
     ) {
 
         // Column name => SQL
         let valuesToUpdate: Partial<TData> = {};
-
         // Define which columns to update when the record already exists
         let valuesNamesToUpdate: (keyof TData)[] = [];
-        if (colsToUpdate === '*') {
-
-            valuesNamesToUpdate = Object.keys(table.colonnes);// table.columnNamesButPk;
-            console.log(LogPrefix, `Automatic upsert into ${table.chemin} using ${table.pk.join(', ')} as pk: ${valuesNamesToUpdate.join(', ')}`);
-            // We don't take columnNamesButPk, because if all the columns are pks, we don't have yny value for the ON DUPLICATE KEY
-            //  Meaning
-
-        } else if (Array.isArray( colsToUpdate )) {
+        let updateAll: boolean | undefined;
+        
+        if (Array.isArray( colsToUpdate )) {
 
             valuesNamesToUpdate = colsToUpdate;
 
+        } else if (colsToUpdate === '*') {
+
+            updateAll = true;
+
         } else {
 
-            const { '*': updateAll, ...customValuesToUpdate } = colsToUpdate;
+            let customValuesToUpdate: Partial<TData>;
+            ({ '*': updateAll, ...customValuesToUpdate } = colsToUpdate);
 
             for (const colKey in customValuesToUpdate)
                 valuesToUpdate[ colKey ] = this.esc(customValuesToUpdate[ colKey ], true);
 
-            if (updateAll)
-                valuesNamesToUpdate = Object.keys(table.colonnes);//table.columnNamesButPk;
+        }
 
+        if (updateAll) {
+            for (const record of data)
+                for (const key in record)
+                    if (!valuesNamesToUpdate.includes( key ))
+                        valuesNamesToUpdate.push( key );
         }
 
         for (const colToUpdate of valuesNamesToUpdate)   
