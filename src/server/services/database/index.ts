@@ -551,7 +551,7 @@ export default class SQL extends Service<Config, Hooks, Application, Services> {
         if (updateAll) {
             for (const record of data)
                 for (const key in record)
-                    if (!valuesNamesToUpdate.includes( key ))
+                    if (!valuesNamesToUpdate.includes( key ) && (key in table.colonnes))
                         valuesNamesToUpdate.push( key );
         }
 
