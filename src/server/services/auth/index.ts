@@ -62,13 +62,24 @@ export type TServices = {
 
 }
 
+export type TBasicUser = {
+    type: string,
+    name: string,
+    roles: string[]
+}
+
+export type TBasicJwtSession = {
+    accountType: string,
+    apiKey?: string
+}
+
 /*----------------------------------
 - SERVICE
 ----------------------------------*/
 export default abstract class AuthService<
-    TUser extends {},
+    TUser extends TBasicUser,
     TApplication extends Application,
-    TJwtSession extends {} = {},
+    TJwtSession extends TBasicJwtSession = TBasicJwtSession,
     TRequest extends ServerRequest<Router> = ServerRequest<Router>,
 > extends Service<TConfig, THooks, TApplication, TServices> {
 
@@ -95,51 +106,37 @@ export default abstract class AuthService<
     public abstract login( ...args: any[] ): Promise<{ user: TUser, token: string }>;
     public abstract decodeSession( jwt: TJwtSession, req: THttpRequest ): Promise<TUser | null>;
 
-    protected abstract displayName(user?: TUser | null): string;
     protected abstract displaySessionName(session: TJwtSession): string;
 
+    // https://beeceptor.com/docs/concepts/authorization-header/#examples
     public async decode( req: THttpRequest, withData: true ): Promise<TUser | null>;
     public async decode( req: THttpRequest, withData?: false ): Promise<TJwtSession | null>;
     public async decode( req: THttpRequest, withData: boolean = false ): Promise<TJwtSession | TUser | null> {
 
         this.config.debug && console.log(LogPrefix, 'Decode:', { cookie: req.cookies['authorization'] });
         
-        let token: string | undefined;
-        if (('cookies' in req) && typeof req.cookies['authorization'] === 'string')
-            token = req.cookies['authorization'];
-        // Desktop app webview do not support cookie config, so wwe retrieve it from headers
-        else if (typeof req.headers['authorization'] === 'string')
-            token = req.headers['authorization'];
+        // Get auth token
+        const authMethod = this.getAuthMethod(req);
+        if (authMethod === null)
+            return null;
+        const { tokenType, token } = authMethod;
 
-        if (token === undefined)
-            return this.unauthorized(req);
-
-        let session: TJwtSession;
-        try {
-            session = jwt.verify(token, this.config.jwt.key, { 
-                maxAge: this.config.jwt.expiration 
-            });
-        } catch (error) {
-            console.warn(LogPrefix, "Failed to decode jwt token:", token);
-            return this.unauthorized(req);
-        }
+        // Get auth session
+        const session = this.getAuthSession(tokenType, token);
 
         // Return email only
-        const sessionName = this.displaySessionName(session);
         if (!withData) {
-            this.config.debug && console.log(LogPrefix, `Auth user ${sessionName} successfull. Return email only`);
+            this.config.debug && console.log(LogPrefix, `Auth user successfull. Return email only`);
             return session;
         }
 
         // Deserialize full user data
-        this.config.debug && console.log(LogPrefix, `Deserialize user ${sessionName}`);
+        this.config.debug && console.log(LogPrefix, `Deserialize user`, session);
         const user = await this.decodeSession(session, req);
-        
-        // User not found
         if (user === null)
             return null;
 
-        this.config.debug && console.log(LogPrefix, `Deserialized user ${sessionName}:`, this.displayName(user));
+        this.config.debug && console.log(LogPrefix, `Deserialized user:`, user.name);
 
         return {
             ...user,
@@ -147,15 +144,55 @@ export default abstract class AuthService<
         };    
     }
 
-    public unauthorized( req: THttpRequest ) {
+    private getAuthMethod( req: THttpRequest ): null | { token: string, tokenType?: string } {
 
-        if ('res' in req) {
-            // If use auth failed, we remove the jwt token so we avoid to trigger the same auth error in the next request
-            console.warn(LogPrefix, "Auth failed: remove authorization cookie");
-            req.res?.clearCookie('authorization');
-        }
+        let token: string | undefined;
+        let tokenType: string | undefined;
+        if (typeof req.headers['authorization'] === 'string') {
 
-        return null;
+            ([ tokenType, token ] = req.headers['authorization'].split(' '));
+
+        } else if (('cookies' in req) && typeof req.cookies['authorization'] === 'string') {
+
+            token = req.cookies['authorization'];
+            tokenType = 'Bearer';
+
+        } else 
+            return null;
+
+        if (token === undefined)
+            return null;
+
+        return { tokenType, token };
+    }
+
+    private getAuthSession( tokenType: string | undefined, token: string ): TJwtSession {
+
+        let session: TJwtSession;
+
+        // API Key
+        if (tokenType === 'Apikey') {
+
+            const [accountType] = token.split('-');
+
+            this.config.debug && console.log(LogPrefix, `Auth via API Key`, token);
+            session = { accountType, apiKey: token } as TJwtSession;
+
+        // JWT
+        } else if (tokenType === 'Bearer') {
+            this.config.debug && console.log(LogPrefix, `Auth via JWT token`, token);
+            try {
+                session = jwt.verify(token, this.config.jwt.key, { 
+                    maxAge: this.config.jwt.expiration 
+                });
+            } catch (error) {
+                console.warn(LogPrefix, "Failed to decode jwt token:", token);
+                throw new Forbidden(`The JWT token provided in the Authorization header is invalid`);
+            }
+        } else 
+            throw new InputError(`The authorization scheme provided in the Authorization header is unsupported.`);
+
+        return session;
     }
 
     public createSession( session: TJwtSession, request: TRequest ): string {
@@ -176,26 +213,23 @@ export default abstract class AuthService<
         const user = request.user;
         if (!user) return;
 
-        this.config.debug && console.info(LogPrefix, `Logout ${this.displayName(user)}`);
+        this.config.debug && console.info(LogPrefix, `Logout ${user.name}`);
         request.res.clearCookie('authorization');
     }
 
-    public check( request: TRequest, role: TUserRole, motivation?: string): TUser;
-    public check( request: TRequest, role: false, motivation?: string): null;
-    public check( request: TRequest, role: TUserRole | boolean = 'USER', motivation?: string): TUser | null {
+    public check( request: TRequest, entity: string, role: TUserRole, motivation?: string): TUser;
+    public check( request: TRequest, entity: string, role: false, motivation?: string): null;
+    public check( request: TRequest, entity: string, role: TUserRole | false = 'USER', motivation?: string): TUser | null {
 
         const user = request.user;
 
-        this.config.debug && console.warn(LogPrefix, `Check auth, role = ${role}. Current user =`, this.displayName(user));
+        this.config.debug && console.warn(LogPrefix, `Check auth, role = ${role}. Current user =`, user?.name);
+
+        console.log({ entity, role, motivation });
 
         if (user === undefined) {
 
             throw new Error(`request.user has not been decoded.`);
-
-        // Shortcut: { auth: true } <=> { auth: 'USER' }
-        } else if (role === true) {
-
-            role = 'USER';
 
         // No auth needed
         } else if (role === false) {
@@ -206,18 +240,23 @@ export default abstract class AuthService<
         } else if (user === null) {
 
             this.config.debug && console.warn(LogPrefix, "Refusé pour anonyme (" + request.ip + ")");
-            throw new AuthRequired(motivation);
+            throw new AuthRequired('Please login to continue');
+
+        } else if (user.type !== entity) {
+
+            this.config.debug && console.warn(LogPrefix, `User type mismatch: ${user.type} (user) vs ${entity} (expected) (${request.ip})`);
+            throw new AuthRequired("Your account type doesn't have access to the requested content.");
             
         // Insufficient permissions
         } else if (!user.roles.includes(role)) {
 
-            console.warn(LogPrefix, "Refusé: " + role + " pour " + this.displayName(user) + " (" + (user.roles ? user.roles.join(', ') : 'role inconnu') + ")");
+            console.warn(LogPrefix, "Refusé: " + role + " pour " + user.name + " (" + (user.roles ? user.roles.join(', ') : 'role inconnu') + ")");
 
             throw new Forbidden("You do not have sufficient permissions to access this resource.");
 
         } else {
 
-            console.warn(LogPrefix, "Autorisé " + role + " pour " + this.displayName(user) + " (" + user.roles.join(', ') + ")");
+            console.warn(LogPrefix, "Autorisé " + role + " pour " + user.name + " (" + user.roles.join(', ') + ")");
 
         }
 

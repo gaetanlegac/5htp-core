@@ -5,6 +5,9 @@
 // Core
 import Response from '../response';
 
+// Types
+import type { TBasicUser } from '@server/services/auth';
+
 /*----------------------------------
 - TYPES
 ----------------------------------*/
@@ -22,7 +25,7 @@ export default abstract class BaseRequest {
 
     public data: TObjetDonnees = {};
     public abstract response?: Response;
-    public user: User | null = null;
+    public user: TBasicUser | null = null;
 
     public constructor(
         public path: string,

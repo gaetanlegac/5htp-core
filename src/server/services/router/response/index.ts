@@ -22,6 +22,9 @@ import Page from './page';
 // To move into a new npm module: json-mask
 import jsonMask from './mask';
 
+// Types
+import type { TBasicUser } from '@server/services/auth';
+
 /*----------------------------------
 - TYPES
 ----------------------------------*/
@@ -31,7 +34,7 @@ const debug = true;
 export type TBasicSSrData = {
     request: { data: TObjetDonnees, id: string },
     page: { chunkId: string, data?: TObjetDonnees },
-    user: User | null,
+    user: TBasicUser | null,
     domains: TDomainsList
 }
 
@@ -45,7 +48,7 @@ export type TRouterContext<TRouter extends ServerRouter = ServerRouter> = (
         response: ServerResponse<TRouter>,
         route: TRoute,
         page?: Page,
-        user: User,
+        user: TBasicUser,
 
         Router: TRouter,
     }

@@ -37,17 +37,6 @@ type Hooks = {
     }
 }
 
-declare global {
-
-    //interface Services { }    
-
-    interface AppHooks {
-       
-    }
-
-    interface User { }
-}
-
 export const Service = ServicesContainer;
 
 /*----------------------------------
