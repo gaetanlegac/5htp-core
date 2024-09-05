@@ -62,7 +62,7 @@ export type TApiRegisterArgs<TRouter extends ServerRouter> = ([
 
 export type TServerController<TRouter extends ServerRouter> = (context: TRouterContext<TRouter>) => any;
 
-export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'OPTIONS'
+export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'OPTIONS'
 export type TRouteHttpMethod = HttpMethod | '*';
 
 export type TApiResponseData = {
@@ -264,6 +264,7 @@ export default class ServerRouter<
     public get = (...args: TApiRegisterArgs<this>) => this.registerApi('GET', ...args);
     public post = (...args: TApiRegisterArgs<this>) => this.registerApi('POST', ...args);
     public put = (...args: TApiRegisterArgs<this>) => this.registerApi('PUT', ...args);
+    public patch = (...args: TApiRegisterArgs<this>) => this.registerApi('PATCH', ...args);
     public delete = (...args: TApiRegisterArgs<this>) => this.registerApi('DELETE', ...args)
 
     protected registerApi(method: TRouteHttpMethod, ...args: TApiRegisterArgs<this>): this {
