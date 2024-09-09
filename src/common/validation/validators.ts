@@ -42,6 +42,28 @@ type TSubtype = TSchemaSubtype | Validator<any>;
 export default class SchemaValidators {
 
     /*----------------------------------
+    - UTILITIES
+    ----------------------------------*/
+    // Make every field optional
+    public partial = ( schema: TSchemaFields ) => {
+
+        const partialSchema: TSchemaFields = {};
+        for (const key in schema) {
+
+            // Only if validator
+            if (schema[key] instanceof Validator)
+                partialSchema[key] = new Validator(schema[key].type, schema[key].validateType, {
+                    ...schema[key].options,
+                    opt: true
+                });
+            else
+                partialSchema[key] = schema[key];
+        }
+
+        return partialSchema;
+    }
+
+    /*----------------------------------
     - CONTENEURS
     ----------------------------------*/
     public object = ( subtype?: TSchemaSubtype, { ...opts }: TValidator<object> & {
