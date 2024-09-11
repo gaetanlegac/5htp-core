@@ -4,7 +4,7 @@
 ----------------------------------*/
 // Libs
 import React from 'react';
-import { ComponentChild } from 'preact';
+import { JSX, ComponentChild } from 'preact';
 
 // Composants
 import Button, { Props as TButtonProps } from '@client/components/button';
@@ -21,6 +21,7 @@ export type Props<TRow> = {
     
     data: TRow[],
     columns: (row: TRow, rows: TRow[], index: number) => TColumn[];
+    stickyHeader?: boolean,
 
     setData?: (rows: TRow[]) => void,
     empty?: ComponentChild | false,
@@ -29,11 +30,11 @@ export type Props<TRow> = {
     actions?: TAction<TRow>[]
 }
 
-export type TColumn = {
+export type TColumn = JSX.HTMLAttributes<HTMLElement> & {
     label: ComponentChild,
     cell: ComponentChild,
     raw?: number | string | boolean,
-    class?: string
+    stick?: string
 }
 
 export type TAction<TRow> = Omit<TButtonProps, 'onClick'> & {
@@ -47,6 +48,7 @@ export type TAction<TRow> = Omit<TButtonProps, 'onClick'> & {
 - COMPOSANTS
 ----------------------------------*/
 export default function Liste<TRow extends TDonneeInconnue>({
+    stickyHeader,
     data: rows, setData, empty,
     columns, actions, ...props
 }: Props<TRow>) {
@@ -92,23 +94,35 @@ export default function Liste<TRow extends TDonneeInconnue>({
                 </td>
             )}
 
-            {columns(row, rows, iDonnee).map((col) => {
+            {columns(row, rows, iDonnee).map(({ label, cell, class: className, raw, stick, ...cellProps }) => {
+
+                let classe = className || '';
+                if (typeof raw === 'number')
+                    classe += 'txtRight';
+
+                if (stick) {
+                    classe += ' stickyColumn';
+                    if (cellProps.style === undefined)
+                        cellProps.style = {};
+                    cellProps.style = {
+                        ...cellProps.style,
+                        minWidth: stick,
+                        width: stick,
+                        maxWidth: stick,
+                    }
+                }
 
                 if (iDonnee === 0) renduColonnes.push(
-                    <th>
-                        {col.label}
+                    <th class={classe} {...cellProps}>
+                        {label}
                     </th>
                 );
 
-                const affichageBrut = ['number', 'string'].includes(typeof col.cell) || React.isValidElement(col.cell);
-
-                let classe = col.class || '';
-                if (typeof col.raw === 'number')
-                    classe += 'txtRight';
+                const affichageBrut = ['number', 'string'].includes(typeof cell) || React.isValidElement(cell);
 
                 return (
-                    <td class={classe}>
-                        {affichageBrut ? col.cell : JSON.stringify(col.cell)}
+                    <td class={classe} {...cellProps}>
+                        {affichageBrut ? cell : JSON.stringify(cell)}
                     </td>
                 )
             })}
@@ -148,7 +162,7 @@ export default function Liste<TRow extends TDonneeInconnue>({
     return <>
         <div {...props}>
             <table>
-                <thead>
+                <thead className={stickyHeader ? 'stickyHeader' : undefined}>
                     <tr>
                         {selectionMultiple && (
                             <th>
