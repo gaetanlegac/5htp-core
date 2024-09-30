@@ -53,10 +53,17 @@ table {
 
         &.stickyColumn {
             position: sticky;
-            left: 0;
             background: var(--cBg);
             white-space: break-spaces;
             z-index: 5;
+
+            &:first-child {
+                left: 0;
+            }
+
+            &:last-child {
+                right: 0;
+            }
         }
     }
 
@@ -165,4 +172,5 @@ table {
 
 .modal .tableCellExtended .row {
     flex-wrap: wrap;
+    justify-content: flex-start;
 }

@@ -36,7 +36,7 @@ export type TColumn = JSX.HTMLAttributes<HTMLElement> & {
     label: ComponentChild,
     cell: ComponentChild,
     raw?: number | string | boolean,
-    stick?: string
+    stick?: boolean,
 }
 
 export type TAction<TRow> = Omit<TButtonProps, 'onClick'> & {
@@ -98,7 +98,10 @@ export default function Liste<TRow extends TDonneeInconnue>({
                 </td>
             )}
 
-            {columns(row, rows, iDonnee).map(({ label, cell, class: className, raw, stick, ...cellProps }) => {
+            {columns(row, rows, iDonnee).map(({ 
+                label, cell, class: className, raw, 
+                stick, width, ...cellProps 
+            }) => {
 
                 let classe = className || '';
                 if (typeof raw === 'number')
@@ -106,13 +109,18 @@ export default function Liste<TRow extends TDonneeInconnue>({
 
                 if (stick) {
                     classe += ' stickyColumn';
+                }
+
+                if (width) {
+
                     if (cellProps.style === undefined)
                         cellProps.style = {};
+
                     cellProps.style = {
                         ...cellProps.style,
-                        minWidth: stick,
-                        width: stick,
-                        maxWidth: stick,
+                        minWidth: width,
+                        width: width,
+                        maxWidth: width,
                     }
                 }
 
@@ -158,7 +166,7 @@ export default function Liste<TRow extends TDonneeInconnue>({
             })}
 
             {actions !== undefined && (
-                <td>
+                <td class="stickyColumn">
                     <Popover content={(
                         <ul class="col menu card bg white">
                             {actions.map(({ label, onClick, ...props }: TAction<TRow>) => (
