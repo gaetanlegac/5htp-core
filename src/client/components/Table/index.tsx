@@ -2,11 +2,13 @@
 /*----------------------------------
 - DEPENDANCES
 ----------------------------------*/
+
 // Libs
 import React from 'react';
 import { JSX, ComponentChild } from 'preact';
 
 // Composants
+import useContext from '@/client/context';
 import Button, { Props as TButtonProps } from '@client/components/button';
 import Popover from '../containers/Popover';
 import Checkbox from '../inputv3/Checkbox';
@@ -53,9 +55,11 @@ export default function Liste<TRow extends TDonneeInconnue>({
     columns, actions, ...props
 }: Props<TRow>) {
 
+    const { modal } = useContext();
+
     if (rows.length === 0)
         return empty === false ? null : (
-            <div class="pd-2 col al-center">
+            <div class={"pd-2 col al-center " + (props.className || '')}>
                 {empty || <>
                     <i src="meh-rolling-eyes" class="xl" />
                     Uh ... No rows here.
@@ -118,11 +122,37 @@ export default function Liste<TRow extends TDonneeInconnue>({
                     </th>
                 );
 
-                const affichageBrut = ['number', 'string'].includes(typeof cell) || React.isValidElement(cell);
+                let render: ComponentChild;
+                if (Array.isArray(cell)) {
+
+                    classe += ' extendable';
+
+                    render = (
+                        <div class="row sp-05">
+                            {cell.map((item, i) => (
+                                <span class={"badge bg light" + ((i % 7) + 1)}>
+                                    {item}
+                                </span>
+                            ))}
+                        </div>
+                    )
+
+                    // Extension
+                    cellProps.onClick = () => modal.show(() => (
+                        <div class="card col tableCellExtended">
+                            <h3>{label}</h3>
+                            {render}
+                        </div>
+                    ));
+                    
+                } else if (['number', 'string'].includes(typeof cell) || React.isValidElement(cell)) {
+                    render = cell;
+                } else 
+                    render = JSON.stringify(cell);
 
                 return (
                     <td class={classe} {...cellProps}>
-                        {affichageBrut ? cell : JSON.stringify(cell)}
+                        {render}
                     </td>
                 )
             })}
