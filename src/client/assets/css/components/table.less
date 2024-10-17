@@ -1,5 +1,6 @@
 .table {
     overflow: auto;
+    max-height: 90vh;
 
     > table {
         border-collapse: collapse;
@@ -13,7 +14,7 @@
     }
 
     &.card {
-        padding: 1em 0;
+        padding: 0;
     }
 }
 
@@ -55,7 +56,7 @@ table {
             position: sticky;
             background: var(--cBg);
             white-space: break-spaces;
-            z-index: 5;
+            z-index: 1;
 
             &:first-child {
                 left: 0;
@@ -67,11 +68,12 @@ table {
         }
     }
 
-    thead.stickyHeader {
+    thead {
         position: sticky;
         top: 0;
         background: var(--cBg);
         white-space: break-spaces;
+        z-index: 5;
     }
 
     tbody {
