@@ -45,10 +45,16 @@ export default class SchemaValidators {
     - UTILITIES
     ----------------------------------*/
     // Make every field optional
-    public partial = ( schema: TSchemaFields ) => {
+    public partial = <TFields extends TSchemaFields>(schema: TFields, fieldsList?: (keyof TFields)[] ) => {
 
-        const partialSchema: TSchemaFields = {};
-        for (const key in schema) {
+        if (fieldsList === undefined)
+            fieldsList = Object.keys(schema) as (keyof TFields)[];
+
+        const partialSchema: Partial<TFields> = {};
+        for (const key of fieldsList) {
+
+            if (!(key in schema))
+                throw new Error("The field " + key + " is not in the schema.");
 
             // Only if validator
             if (schema[key] instanceof Validator)
@@ -60,7 +66,7 @@ export default class SchemaValidators {
                 partialSchema[key] = schema[key];
         }
 
-        return partialSchema;
+        return partialSchema as TFields;
     }
 
     /*----------------------------------
