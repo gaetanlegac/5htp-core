@@ -369,7 +369,7 @@ export default class MySQLMetasParser {
         // Given that this file is updated during run time, 
         // We output a typescript ambient file, so the file change doest trigger infinite app reload
         fs.outputFileSync( 
-            path.join( Container.path.server.generated, 'models.d.ts'), 
+            path.join( Container.path.server.generated, 'models.ts'), 
             types.join('\n') 
         );
     }
