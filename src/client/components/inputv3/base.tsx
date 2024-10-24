@@ -4,6 +4,7 @@
 
 // Npm
 import React from 'react';
+import type { ComponentChild }  from 'preact';
 import type { StateUpdater } from 'preact/hooks';
 
 // Core libs
@@ -16,6 +17,7 @@ import { useState } from '@client/hooks';
 export type InputBaseProps<TValue> = {
 
     title: string, // Now mandatory
+    hint?: ComponentChild,
     required?: boolean,
     errors?: string[],
     size?: TComponentSize,
@@ -64,7 +66,7 @@ export function useInput<TValue>(
         if (state.changed === false)
             return;
 
-        console.log(`[input] Commit value:`, state.value, externalValue);
+        //console.log(`[input] Commit value:`, state.value, externalValue);
         if (onChange !== undefined)
             onChange(state.value);
     }

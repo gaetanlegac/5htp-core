@@ -18,9 +18,7 @@ import type { TDialogControls } from '@client/components/dropdown';
 
 export type Choice = { label: ComponentChild, value: string }
 
-export type Choices = Choice[]
-
-type ChoicesFunc = (search: string) => Promise<Choices>
+type ChoicesFunc = (search: string) => Promise<Choice[]>
 
 export type Props = (
     {
@@ -37,10 +35,13 @@ export type Props = (
         validator?: StringValidator
     }
 ) & {
-    choices: Choices | ChoicesFunc,
+    choices: Choice[] | ChoicesFunc | string[],
     enableSearch?: boolean,
     required?: boolean,
     noneSelection?: false | string,
+}
+
+type SelectorProps = Props & {
     currentList: Choice[],
     refDropdown?: RefObject<TDialogControls>
 }
@@ -67,7 +68,7 @@ export default React.forwardRef<HTMLDivElement, Props>(({
     currentList,
     refDropdown,
     ...otherProps
-}: Props, ref) => {
+}: SelectorProps, ref) => {
 
    
 

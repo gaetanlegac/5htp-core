@@ -128,7 +128,7 @@ export default ({
 
     } else if (type === 'longtext') {
 
-        prefix = prefix || <i src="text" />;
+        // No icon because not good looking ane we want as much space as possible
         Tag = 'textarea';
         className += ' multiline';
 
