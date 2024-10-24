@@ -139,7 +139,7 @@ export default class SchemaValidators {
             return undefined;
 
         // Normalize for verifications
-        const choicesValues = choices?.map(v => v.value)
+        const choicesValues = choices?.map(v => typeof v === 'object' ? v.value : v)
 
         const checkChoice = ( choice: any ) => {
 

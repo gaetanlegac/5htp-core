@@ -22,7 +22,7 @@ import ChoiceElement from './ChoiceElement';
 ----------------------------------*/
 
 export type Props = SelectorProps & {
-    dropdown: boolean | DropdownProps,
+    dropdown?: boolean | DropdownProps,
     title: string,
     errors?: string[],
 }
@@ -77,8 +77,10 @@ export default ({
     const popoverState = React.useState(false);
 
     const choicesViaFunc = typeof initChoices === 'function';
-    if (choicesViaFunc && enableSearch === undefined)
+    if (choicesViaFunc)
         enableSearch = true;
+    else if (typeof initChoices[0] === 'string')
+        initChoices = initChoices.map( c => ({ label: c, value: c }));
 
     const refInputSearch = React.useRef<HTMLInputElement | null>(null);
 
