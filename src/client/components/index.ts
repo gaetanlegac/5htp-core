@@ -28,3 +28,4 @@ export { default as Input } from './inputv3';
 export { default as Checkbox } from './inputv3/Checkbox';
 export { default as File } from './inputv3/file';
 export { default as DateRangeInput } from './inputv3/Date';
+export { default as Rte } from './inputv3/Rte';

@@ -8,6 +8,7 @@ import React from 'react';
 // Core
 import { Props as DropdownProps } from '@client/components/dropdown';
 import { Popover, Button, Input } from '@client/components';
+import { InputWrapper, InputBaseProps } from '@client/components/inputv3/base';
 
 // Specific
 import { 
@@ -21,10 +22,8 @@ import ChoiceElement from './ChoiceElement';
 - TYPES
 ----------------------------------*/
 
-export type Props = SelectorProps & {
+export type Props = SelectorProps & Omit<InputBaseProps<Choice>, 'value'> & {
     dropdown?: boolean | DropdownProps,
-    title: string,
-    errors?: string[],
 }
 
 export type { Choice } from './ChoiceSelector';
@@ -51,24 +50,27 @@ const ensureChoice = (choice: Choice | string, choices: Choice[]): Choice => {
 /*----------------------------------
 - COMONENT
 ----------------------------------*/
-export default ({ 
-    // Input basics
-    title, 
-    errors,
-    icon,
-    required,
-    validator, 
+export default (props: Props) => {
 
-    // Choice selection
-    choices: initChoices, 
-    noneSelection, 
-    enableSearch, 
-    value: current, 
-    onChange: onChangeCallback, 
-    multiple, 
-    dropdown,
-    ...otherProps
-}: Props) => {
+    let {
+        // Input basics
+        title,
+        errors,
+        icon,
+        required,
+        validator,
+        wrapper = true,
+
+        // Choice selection
+        choices: initChoices,
+        noneSelection,
+        enableSearch,
+        value: current,
+        onChange: onChangeCallback,
+        multiple,
+        dropdown,
+        ...otherProps
+    } = props;
 
     /*----------------------------------
     - INIT
@@ -161,119 +163,122 @@ export default ({
         />
     )
 
-    return dropdown ? (
-        <Popover {...(dropdown === true ? {
-            width: '200px'
-        } : dropdown)} content={(
-            <div class="card bg white col al-top">
+    return (
+        <InputWrapper {...props}>
+            {dropdown ? (
+                <Popover {...(dropdown === true ? {
+                    width: '200px'
+                } : dropdown)} content={(
+                    <div class="card bg white col al-top">
 
-                {Search} 
+                        {Search} 
 
-                {selectedItems.length !== 0 && (
-                    <ul class="row al-left wrap sp-05">
-                        {selectedItems.map( choice => (
-                            <ChoiceElement format='badge' choice={choice} 
-                                currentList={currentList}
-                                onChange={onChange}
-                                multiple={multiple}
-                                includeCurrent 
-                            />
-                        ))}
-                    </ul>
-                )}
+                        {selectedItems.length !== 0 && (
+                            <ul class="row al-left wrap sp-05">
+                                {selectedItems.map( choice => (
+                                    <ChoiceElement format='badge' choice={choice} 
+                                        currentList={currentList}
+                                        onChange={onChange}
+                                        multiple={multiple}
+                                        includeCurrent 
+                                    />
+                                ))}
+                            </ul>
+                        )}
 
-                {search.loading ? (
-                    <div class="row al-center h-2">
-                        <i src="spin" />
+                        {search.loading ? (
+                            <div class="row al-center h-2">
+                                <i src="spin" />
+                            </div>
+                        ) : (
+                        <ul class="menu col">
+                                {choices.map( choice => (
+                                    <ChoiceElement format='list' choice={choice} 
+                                        currentList={currentList}
+                                        onChange={onChange}
+                                        multiple={multiple}
+                                        includeCurrent
+                                    />
+                                ))} 
+                            </ul>
+                        )} 
                     </div>
-                ) : (
-                   <ul class="menu col">
-                        {choices.map( choice => (
-                            <ChoiceElement format='list' choice={choice} 
-                                currentList={currentList}
-                                onChange={onChange}
-                                multiple={multiple}
-                                includeCurrent
-                            />
-                        ))} 
-                    </ul>
-                )} 
-            </div>
-        )} state={popoverState}>
-            <Button type="secondary" icon={icon} iconR="chevron-down" {...otherProps}>
+                )} state={popoverState}>
+                    <Button type="secondary" icon={icon} iconR="chevron-down" {...otherProps}>
 
-                {currentList.length === 0 ? <>
-                    {title}
-                </> : multiple ? <>
-                    {title} <span class="badge s bg accent">{currentList.length}</span> 
-                </> : <>
-                    {currentList[0].label}
-                </>}
+                        {currentList.length === 0 ? <>
+                            {title}
+                        </> : multiple ? <>
+                            {title} <span class="badge s bg accent">{currentList.length}</span> 
+                        </> : <>
+                            {currentList[0].label}
+                        </>}
 
-                {errors?.length && (
-                    <div class="bubble bg error bottom">
-                        {errors.join('. ')}
-                    </div>
-                )}
+                        {errors?.length && (
+                            <div class="bubble bg error bottom">
+                                {errors.join('. ')}
+                            </div>
+                        )}
 
-            </Button>
-        </Popover>
-    ) : (
+                    </Button>
+                </Popover>
+            ) : (
+                <div class="col sp-05">
+                    <div class={className} onMouseDown={() => refInputSearch.current?.focus()}>
+                            
+                        <div class="row al-left wrap pd-1">
+                            
+                            {icon !== undefined && (
+                                <i src={icon} />
+                            )}
 
-        <div class="col sp-05">
-            <div class={className} onMouseDown={() => refInputSearch.current?.focus()}>
-                    
-                <div class="row al-left wrap pd-1">
-                    
-                    {icon !== undefined && (
-                        <i src={icon} />
-                    )}
+                            <div class="col al-left sp-05">
+                                
+                                <label>{title}{isRequired && (
+                                    <span class="fg error">&nbsp;*</span>
+                                )}</label>
 
-                    <div class="col al-left sp-05">
-                        
-                        <label>{title}{isRequired && (
-                            <span class="fg error">&nbsp;*</span>
-                        )}</label>
+                                <div class="row al-left wrap sp-05">
 
-                        <div class="row al-left wrap sp-05">
+                                    {selectedItems.map( choice => (
+                                        <ChoiceElement format='badge' choice={choice} 
+                                            currentList={currentList}
+                                            onChange={onChange}
+                                            multiple={multiple}
+                                            includeCurrent 
+                                        />
+                                    ))} 
 
-                            {selectedItems.map( choice => (
-                                <ChoiceElement format='badge' choice={choice} 
-                                    currentList={currentList}
-                                    onChange={onChange}
-                                    multiple={multiple}
-                                    includeCurrent 
-                                />
-                            ))} 
+                                    {Search}  
+                                </div>
+                            </div>
 
-                            {Search}  
                         </div>
+
+                        <div class="pd-1">
+                            <ul class="row al-left wrap sp-05" style={{
+                                maxHeight: '30vh',
+                                overflowY: 'auto'
+                            }}>
+                                {choices.map( choice => (
+                                    <ChoiceElement format='badge' choice={choice} 
+                                        currentList={currentList}
+                                        onChange={onChange}
+                                        multiple={multiple}
+                                        includeCurrent
+                                    />
+                                ))}
+                            </ul>
+                        </div>
+                        
                     </div>
-
-                </div>
-
-                <div class="pd-1">
-                    <ul class="row al-left wrap sp-05" style={{
-                        maxHeight: '30vh',
-                        overflowY: 'auto'
-                    }}>
-                        {choices.map( choice => (
-                            <ChoiceElement format='badge' choice={choice} 
-                                currentList={currentList}
-                                onChange={onChange}
-                                multiple={multiple}
-                                includeCurrent
-                            />
-                        ))}
-                    </ul>
-                </div>
-                
-            </div>
-            {errors?.length && (
-                <div class="bubble bg error bottom">
-                    {errors.join('. ')}
+                    {errors?.length && (
+                        <div class="bubble bg error bottom">
+                            {errors.join('. ')}
+                        </div>
+                    )}
                 </div>
             )}
-        </div>
+        </InputWrapper>
     )
 }

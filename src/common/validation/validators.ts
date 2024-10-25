@@ -350,6 +350,51 @@ export default class SchemaValidators {
         ...opts,
     })
 
+    public richText = (opts: TValidator<string> & {
+        
+    } = {}) => new Validator<string>('richText', (val, options, path) => {
+
+        // Check that the root exists and has a valid type
+        if (!val || typeof val !== 'object' || typeof val.root !== 'object' || val.root.type !== 'root')
+            throw new InputError("Invalid rich text value (1).");
+
+        // Check if root has children array
+        if (!Array.isArray(val.root.children))
+            throw new InputError("Invalid rich text value (2).");
+
+        // Recursive function to validate each node
+        function validateNode(node) {
+            // Each node should be an object with a `type` property
+            if (typeof node !== 'object' || !node.type || typeof node.type !== 'string')
+                throw new InputError("Invalid rich text value (3).");
+
+            // Validate text nodes
+            if (node.type === 'text') {
+                if (typeof node.text !== 'string') 
+                    throw new InputError("Invalid rich text value (4).");
+            }
+
+            // Validate paragraph, heading, or other structural nodes that may contain children
+            if (['paragraph', 'heading', 'list', 'listitem'].includes(node.type))
+                if (!Array.isArray(node.children) || !node.children.every(validateNode)) {
+                    throw new InputError("Invalid rich text value (5).");
+            }
+
+            return true;
+        }
+
+        // Validate each child node in root
+        for (const child of val.root.children) {
+            validateNode(child);
+        }
+
+        return val;
+
+    }, {
+        //defaut: new Date,
+        ...opts,
+    })
+
     /*----------------------------------
     - FICHIER
     ----------------------------------*/

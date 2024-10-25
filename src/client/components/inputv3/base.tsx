@@ -22,6 +22,8 @@ export type InputBaseProps<TValue> = {
     errors?: string[],
     size?: TComponentSize,
 
+    wrapper?: boolean,
+
     value: TValue,
     onChange?: (value: TValue) => void,
 }
@@ -75,7 +77,7 @@ export function useInput<TValue>(
     React.useEffect(() => {
 
         if (externalValue !== undefined && externalValue !== state.value) {
-            console.log("External value change", externalValue);
+            //console.log("External value change", externalValue);
             setState({ value: externalValue, valueSource: 'external', changed: true })
         }
         
@@ -93,4 +95,34 @@ export function useInput<TValue>(
 /*----------------------------------
 - COMPONENT
 ----------------------------------*/
+export const InputWrapper = ({ children, wrapper = true, title, hint, required }: InputBaseProps<unknown> & {
+    children: ComponentChild
+}) => {
+
+    /*----------------------------------
+    - INIT
+    ----------------------------------*/
+
+    /*----------------------------------
+    - ACTIONS
+    ----------------------------------*/
+
+    /*----------------------------------
+    - RENDER
+    ----------------------------------*/
+    return wrapper === false ? <>{children}</> : (
+        <div class="inputWrapper">
+
+            <label>{title}{required && (
+                <span class="fg error">&nbsp;*</span>
+            )}</label>
+
+            {hint && <p class="hint">{hint}</p>}
+
+            {children}
+            
+        </div>
+    )
+}
+
 import './base.less';

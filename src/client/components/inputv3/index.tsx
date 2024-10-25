@@ -8,7 +8,7 @@ import { VNode, JSX } from 'preact';
 import TextareaAutosize from 'react-textarea-autosize';
 
 // Core libs
-import { useInput, InputBaseProps } from './base';
+import { useInput, InputBaseProps, InputWrapper } from './base';
 import { default as Validator } from '../../../common/validation/validator';
 import type SchemaValidators from '@common/validation/validators';
 
@@ -47,17 +47,18 @@ type TInputElementProps = Omit<(
 /*----------------------------------
 - COMPOSANT
 ----------------------------------*/
-export default ({ 
-    // Decoration
-    icon, prefix, suffix, iconR, required, size, className = '',
-    // State
-    inputRef, errors,
-    // Behavior
-    type, choice, validator,
-    // Actions
-    onPressEnter,
-    ...props 
-}: Props & InputBaseProps<string> & TInputElementProps) => {
+export default (props: Props & InputBaseProps<string> & TInputElementProps) => {
+
+    let {
+        // Decoration
+        icon, prefix, suffix, iconR, required, size, className = '',
+        // State
+        inputRef, errors,
+        // Behavior
+        type, validator,
+        // Actions
+        onPressEnter
+    } = props;
 
     /*----------------------------------
     - INIT
@@ -170,43 +171,43 @@ export default ({
     /*----------------------------------
     - RENDER
     ----------------------------------*/
-    return <>
-        <div class={className} onClick={() => refInput.current?.focus()}>
+    return (
+        <InputWrapper {...props}>
+            <div class={className} onClick={() => refInput.current?.focus()}>
 
-            {prefix}
+                {prefix}
 
-            <div class="contValue">
+                <div class="contValue">
 
-                <Tag {...fieldProps}
-                    // @ts-ignore: Property 'ref' does not exist on type 'IntrinsicAttributes'
-                    ref={refInput}
-                    value={value}
-                    onFocus={() => setState({ focus: true })}
-                    onBlur={() => setState({ focus: false })}
-                    onChange={(e) => updateValue(e.target.value)}
+                    <Tag {...fieldProps}
 
-                    onKeyDown={(e: KeyboardEvent) => {
+                        placeholder={props.title}
 
-                        if (onPressEnter && e.key === 'Enter' && value !== undefined) {
-                            commitValue();
-                            onPressEnter(value)
-                        }
-                    }}
-                />
+                        // @ts-ignore: Property 'ref' does not exist on type 'IntrinsicAttributes'
+                        ref={refInput}
+                        value={value}
+                        onFocus={() => setState({ focus: true })}
+                        onBlur={() => setState({ focus: false })}
+                        onChange={(e) => updateValue(e.target.value)}
+                        onKeyDown={(e: KeyboardEvent) => {
 
-                <label>{props.title}{required && (
-                    <span class="fg error">&nbsp;*</span>
-                )}</label>
-            </div>
-
-            {suffix}
-                
-            {errors?.length && (
-                <div class="bubble bg error bottom">
-                    {errors.join('. ')}
+                            if (onPressEnter && e.key === 'Enter' && value !== undefined) {
+                                commitValue();
+                                onPressEnter(value)
+                            }
+                        }}
+                    />
                 </div>
-            )}
-            
-        </div>
-    </>
+
+                {suffix}
+                    
+                {errors?.length && (
+                    <div class="bubble bg error bottom">
+                        {errors.join('. ')}
+                    </div>
+                )}
+                
+            </div>
+        </InputWrapper>
+    )
 }
