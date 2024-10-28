@@ -116,16 +116,16 @@ export default (props: Props & InputBaseProps<{}>) => {
                                     contentEditable={
                                         <ContentEditable
                                             className="editor-input"
-                                            aria-placeholder={title}
+                                            aria-placeholder={"Type text here ..."}
                                             placeholder={
-                                                <div className="editor-placeholder">{title}</div>
+                                                <div className="editor-placeholder">Type text here ...</div>
                                             }
                                         />
                                     }
                                     ErrorBoundary={LexicalErrorBoundary}
                                 />
                                 <HistoryPlugin />
-                                <AutoFocusPlugin />
+                                {/* <AutoFocusPlugin /> */}
                                 <OnChangePlugin onChange={onChange} />
                                 <ValueControlPlugin props={props} value={value} />
                             </div>
