@@ -27,6 +27,7 @@ export type Props = {
     cover?: string,
     icon?: ComponentChild,
     title?: string | ComponentChild,
+    className?: string,
 
     children?: ComponentChild,
     isToast?: boolean,
@@ -49,6 +50,7 @@ export default ({
     cover,
     icon, 
     title, 
+    className = '',
 
     children, 
     isToast,
@@ -149,7 +151,7 @@ export default ({
             
         </div>
     ) : (
-        <div class={"card pd-2 col al-top"} style={width === undefined 
+        <div class={"card pd-2 col al-top " + className} style={width === undefined 
             ? {}
             : { minWidth: width + "px", maxWidth: width + "px" }
         }>

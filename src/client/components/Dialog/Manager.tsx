@@ -27,7 +27,11 @@ type TParams = { [cle: string]: unknown }
 
 type ComposantToast = React.FunctionComponent<{ close?: any }> & { data?: object };
 
-type TOptsToast = (CardInfos & { content?: ComponentChild })
+type TOptsToast = (CardInfos & { 
+    content?: ComponentChild,
+    data?: {},
+    className?: string,
+})
 
 type TOnCloseCallback<TReturnType extends any> = (returnedValue: TReturnType) => void
 
@@ -43,16 +47,25 @@ export type TDialogControls = {
     then: (cb: TOnCloseCallback<any>) => any
 }
 
+type TDialogContentArg = ComposantToast | Promise<{ default: ComposantToast }> | TOptsToast;
+
+type TDialogShowArgs = [
+    // On utilise une fonction pour pouvoir accéder aux fonctions (close, ...) lors de la déclaration des infos de la toast
+    Content: TDialogContentArg,
+    paramsInit?: TParams
+] | [
+    title: string,
+    // On utilise une fonction pour pouvoir accéder aux fonctions (close, ...) lors de la déclaration des infos de la toast
+    Content: TDialogContentArg,
+    paramsInit?: TParams
+]
+
 type DialogActions = {
 
     setToasts: ( setter: (old: ComponentChild[]) => ComponentChild[]) => void,
     setModals: ( setter: (old: ComponentChild[]) => ComponentChild[]) => void,
 
-    show: (
-        // On utilise une fonction pour pouvoir accéder aux fonctions (close, ...) lors de la déclaration des infos de la toast
-        Content: ComposantToast | Promise<{ default: ComposantToast }> | TOptsToast,
-        paramsInit?: TParams
-    ) => TDialogControls,
+    show: (...args: TDialogShowArgs ) => TDialogControls,
 
     confirm: (title: string, content: string | ComponentChild, defaultBtn: 'Yes'|'No') => TDialogControls,
 
@@ -73,26 +86,33 @@ type DialogActions = {
 let idA: number = 0;
 export const createDialog = (app: Application, isToast: boolean): DialogActions => {
 
-    const show = <TReturnType extends any = true>(
-        // On utilise une fonction pour pouvoir accéder aux fonctions (close, ...) lors de la déclaration des infos de la toast
-        Content: ComposantToast | Promise<{ default: ComposantToast }> | TOptsToast,
-        paramsInit?: TParams
-    ): TDialogControls => {
+    const show = <TReturnType extends any = true>( ...args: TDialogShowArgs ): TDialogControls => {
 
         let onClose: TOnCloseCallback<TReturnType>;
         const id = idA++;
 
+        // Parse args
+        let title: string | undefined; 
+        let Content: TDialogContentArg;
+        let paramsInit: TParams = {};
+        if (typeof args[0] === 'string') {
+            [title, Content, paramsInit] = args;
+        } else {
+            [Content, paramsInit] = args;
+        }
+
+        // Set instance management function
         const setDialog = isToast
             ? instance.setToasts
             : instance.setModals;
 
+        // Close function
         const close = (retour: TReturnType) => {
 
             setDialog(q => q.filter(m => m.id !== id))
 
             if (onClose !== undefined)
                 onClose(retour);
-
         };
 
         const promise = new Promise(async (resolve: TOnCloseCallback<TReturnType>) => {
@@ -101,33 +121,49 @@ export const createDialog = (app: Application, isToast: boolean): DialogActions 
             let render: ComponentChild;
             let propsRendu: CardInfos = {
                 ...paramsInit,
-                close: close,
-                data: {}
-            };
+                close: close
+            }; 
+            
+            // modal.show( import('./modalSupprimer') )
+            //  -> Fetch component
+            if (Content.constructor === Promise)
+                Content = (await Content).default;
 
-            // toast.show({ title: 'supprimer', content: <>...</> })
+            // modal.show('Supprimer', import('./modalSupprimer'))
+            //  -> Shortcut for modal.show({ title: 'Suoorimer', content: <Component> })
+            if (title !== undefined) {
+                Content = {
+                    title: title,
+                    content: Content
+                }
+            }
+
+            // modal.show({ title: 'supprimer', content: <>...</> })
             if (Content.constructor === Object) {
 
-                const { content, ...propsToast } = Content as TOptsToast;
+                const { content: CardContent, data = {}, ...propsToast } = Content as TOptsToast;
+                
+                let cardContent: ComponentChild;
+                if (typeof CardContent === 'function') {
+                    cardContent = <CardContent {...propsRendu} {...data} />
+                    propsToast.boutons = null; // Component content = advanced content = should include buttons
+                } else {
+                    cardContent = CardContent;
+                }
+                
                 render = (
-                    <Card {...propsRendu} children={content} {...propsToast} isToast={isToast} />
+                    <Card {...propsRendu} {...propsToast} isToast={isToast}>
+                        {cardContent}
+                    </Card>
                 )
 
-            // toast.show( import('./modalSupprimer') )
-            // toast.show( ToastSupprimer )
+            // modal.show( ToastSupprimer )
+            //  -> Content is a component rendering a Card
             } else {
 
-                let DialogCard;
-                if (Content.constructor === Promise) {
-                    DialogCard = (await Content).default;
-                } else {
-                    DialogCard = Content as typeof Card;
-                }
-
                 render = (
-                    <DialogCard {...propsRendu} isToast={isToast} />
+                    <Content {...propsRendu} isToast={isToast} />
                 )
-
             }
 
             // Chargeur de données
