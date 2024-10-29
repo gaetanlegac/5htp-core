@@ -225,8 +225,6 @@ export default abstract class AuthService<
 
         this.config.debug && console.warn(LogPrefix, `Check auth, role = ${role}. Current user =`, user?.name);
 
-        console.log({ entity, role, motivation });
-
         if (user === undefined) {
 
             throw new Error(`request.user has not been decoded.`);
