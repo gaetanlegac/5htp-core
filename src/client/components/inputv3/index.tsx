@@ -51,7 +51,7 @@ export default (props: Props & InputBaseProps<string> & TInputElementProps) => {
 
     let {
         // Decoration
-        icon, prefix, suffix, iconR, required, size, className = '',
+        icon, prefix, suffix, iconR, placeholder, size, className = '',
         // State
         inputRef, errors,
         // Behavior
@@ -181,7 +181,7 @@ export default (props: Props & InputBaseProps<string> & TInputElementProps) => {
 
                     <Tag {...fieldProps}
 
-                        placeholder={props.title}
+                        placeholder={placeholder || props.title}
 
                         // @ts-ignore: Property 'ref' does not exist on type 'IntrinsicAttributes'
                         ref={refInput}
