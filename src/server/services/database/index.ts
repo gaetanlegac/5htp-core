@@ -256,7 +256,7 @@ export default class SQL extends Service<Config, Hooks, Application, Services> {
     }
 
     public equalities = (data: TObjetDonnees, keys = Object.keys(data)) => 
-        keys.map(k => '' + k + ' = ' + mysql.escape( data[k] ))
+        keys.map(k => '' + k + ' = ' + this.esc( data[k] ))
 
     /*----------------------------------
     - OPERATIONS: LOW LEVELf
