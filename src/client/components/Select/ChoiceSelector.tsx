@@ -39,6 +39,7 @@ export type Props = (
     enableSearch?: boolean,
     required?: boolean,
     noneSelection?: false | string,
+    addNew?: (search?: string) => Promise<Choice>
 }
 
 type SelectorProps = Props & {

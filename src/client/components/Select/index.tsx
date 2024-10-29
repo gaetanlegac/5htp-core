@@ -69,6 +69,7 @@ export default (props: Props) => {
         onChange: onChangeCallback,
         multiple,
         dropdown,
+        addNew,
         ...otherProps
     } = props;
 
@@ -148,6 +149,17 @@ export default (props: Props) => {
         }
     }
 
+    const clickAddNew = () => addNew(search.keywords).then( newItem => {
+
+        if (!newItem)
+            return;
+
+        onChange( current => multiple
+            ? [...(current || []), newItem]
+            : newItem
+        )
+    })
+
     /*----------------------------------
     - RENDER
     ----------------------------------*/
@@ -156,10 +168,13 @@ export default (props: Props) => {
 
     const Search = enableSearch && (
         <Input  
+            icon="search"
             placeholder="Type your search here"
             value={search.keywords} 
             onChange={keywords => setSearch(s => ({ ...s, loading: true, keywords }))} 
             inputRef={refInputSearch}
+            wrapper={false}
+            className="bg white"
         />
     )
 
@@ -167,13 +182,15 @@ export default (props: Props) => {
         <InputWrapper {...props}>
             {dropdown ? (
                 <Popover {...(dropdown === true ? {
-                    width: '200px'
+                    width: '200px',
                 } : dropdown)} content={(
-                    <div class="card bg white col al-top">
+                    <div class="bg white col al-top">
 
-                        {Search} 
+                        <div class="bb-1" style={{ position: 'sticky', top: 0, zIndex: 5 }}>
+                            {Search}
+                        </div>
 
-                        {selectedItems.length !== 0 && (
+                        {(multiple && selectedItems.length !== 0) && (
                             <ul class="row al-left wrap sp-05">
                                 {selectedItems.map( choice => (
                                     <ChoiceElement format='badge' choice={choice} 
@@ -191,7 +208,7 @@ export default (props: Props) => {
                                 <i src="spin" />
                             </div>
                         ) : (
-                        <ul class="menu col">
+                            <ul class="menu col">
                                 {choices.map( choice => (
                                     <ChoiceElement format='list' choice={choice} 
                                         currentList={currentList}
@@ -202,6 +219,14 @@ export default (props: Props) => {
                                 ))} 
                             </ul>
                         )} 
+
+                        {addNew && (
+                            <div class="col" style={{ position: 'sticky', bottom: '0px', zIndex: 5 }}>
+                                <Button type="primary" icon="plus" onClick={clickAddNew}>
+                                    Add new
+                                </Button> 
+                            </div>   
+                        )}
                     </div>
                 )} state={popoverState}>
                     <Button type="secondary" icon={icon} iconR="chevron-down" {...otherProps}>
