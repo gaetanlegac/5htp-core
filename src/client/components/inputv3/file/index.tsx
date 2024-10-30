@@ -60,7 +60,7 @@ export type Props = {
 
     // Input
     title: ComponentChild,
-    value?: FileToUpload,    
+    value?: string | FileToUpload, // string = already registered 
 
     // Display
     emptyText?: ComponentChild,
@@ -96,7 +96,7 @@ export default ({
 
     const [previewUrl, setPreviewUrl] = React.useState<string | undefined>(previewUrlInit);
 
-    className = 'input upload ' + (className === undefined ? '' : ' ' + className)
+    className = 'input upload ' + (className === undefined ? '' : ' ' + className);
 
     /*----------------------------------
     - ACTIONS
@@ -115,7 +115,7 @@ export default ({
     React.useEffect(() => {
 
         // Image = decode & display preview
-        if (file !== undefined && file.type.startsWith('image/'))
+        if (file !== undefined && typeof file === 'object' && file.type.startsWith('image/'))
             createImagePreview(file.data).then(setPreviewUrl);
         else 
             setPreviewUrl(undefined);
@@ -135,14 +135,20 @@ export default ({
 
                     {previewUrl ? (
                         <img src={previewUrl} />
-                    ) : file ? <>
+                    ) : typeof file === 'string' ? <>
+                        <strong>A file has been selected</strong>
+                    </> : file ? <>
                         <strong>{file.name}</strong>
                     </> : null}
                 </div>
 
                 <div class="row actions sp-05">
+
+                    {typeof file === 'string' && <>
+                        <Bouton type="secondary" icon="eye" shape="pill" size="s" link={file} />
+                    </>}
                     
-                    <Bouton class='fg error' icon="trash" shape="pill" size="s"  
+                    <Bouton class='bg error' icon="trash" shape="pill" size="s"  
                         async onClick={() => onChange(undefined)} />
                 </div>
             </>}

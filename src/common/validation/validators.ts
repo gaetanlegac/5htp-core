@@ -402,13 +402,13 @@ export default class SchemaValidators {
 
     } = {}) => new Validator<FileToUpload>('file', (val, options, path) => {
 
-        if (!(val instanceof FileToUpload))
-            throw new InputError(`Must be a File (${typeof val} received)`);
-
         // Chaine = url ancien fichier = exclusion de la valeur pour conserver l'ancien fichier
         // NOTE: Si la valeur est présente mais undefined, alors on supprimera le fichier
         if (typeof val === 'string')
             return EXCLUDE_VALUE;
+
+        if (!(val instanceof FileToUpload))
+            throw new InputError(`Must be a File (${typeof val} received)`);
 
         // MIME
         if (type !== undefined) {
