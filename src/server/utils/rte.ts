@@ -1,26 +1,33 @@
-import { createHeadlessEditor } from '@lexical/headless';
-import { $generateNodesFromDOM, $generateHtmlFromNodes } from '@lexical/html'; 
-import { $getRoot } from 'lexical';
+/*----------------------------------
+- DEPENDANCES
+----------------------------------*/
 
+// Npm
+import { createHeadlessEditor } from '@lexical/headless';
+import { $generateNodesFromDOM, $generateHtmlFromNodes } from '@lexical/html';
+import { $getRoot } from 'lexical';
 import { JSDOM } from 'jsdom';
 
-import editorNodes from './nodes';
+// Core
+import editorNodes from '@common/data/rte/nodes';
 
+/*----------------------------------
+- FUNCTIONS
+----------------------------------*/
 export const htmlToJson = async (htmlString: string) => {
 
-    const editor = createHeadlessEditor({ 
-        nodes: editorNodes 
+    const editor = createHeadlessEditor({
+        nodes: editorNodes
     });
-    
+
     await editor.update(() => {
 
         const root = $getRoot();
 
-        // In a headless environment you can use a package such as JSDom to parse the HTML string.
         const dom = new JSDOM(htmlString);
 
         // Once you have the DOM instance it's easy to generate LexicalNodes.
-        const lexicalNodes = $generateNodesFromDOM(editor, dom.window.document);
+        const lexicalNodes = $generateNodesFromDOM(editor, dom ? dom.window.document : window.document);
 
         lexicalNodes.forEach((node) => root.append(node));
     });
@@ -30,18 +37,19 @@ export const htmlToJson = async (htmlString: string) => {
 };
 
 export const jsonToHtml = async (jsonString: string) => {
-    
 
+    // Server side: simulate DOM environment
     const dom = new JSDOM(`<!DOCTYPE html><body></body>`);
     global.window = dom.window;
     global.document = dom.window.document;
     global.DOMParser = dom.window.DOMParser;
     global.MutationObserver = dom.window.MutationObserver;
-    
+
     // Create a headless Lexical editor instance
     const editor = createHeadlessEditor({
         namespace: 'headless',
         editable: false,
+        nodes: editorNodes
     });
 
     // Set the editor state from JSON
@@ -49,14 +57,14 @@ export const jsonToHtml = async (jsonString: string) => {
     if (state.isEmpty())
         return null;
 
-    editor.setEditorState( state );
+    editor.setEditorState(state);
 
     // Generate HTML from the Lexical nodes
     const html = await editor.getEditorState().read(() => {
         return $generateHtmlFromNodes(editor);
-    });  
-    
-    // Clean up global variables set for JSDOM to avoid memory leaks
+    });
+
+        // Clean up global variables set for JSDOM to avoid memory leaks
     delete global.window;
     delete global.document;
     delete global.DOMParser;

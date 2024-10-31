@@ -354,6 +354,13 @@ export default class SchemaValidators {
         
     } = {}) => new Validator<string>('richText', (val, options, path) => {
 
+        // We get a stringified json as input since the editor workds with JSON string
+        try {
+            val = JSON.parse(val);
+        } catch (error) {
+            throw new InputError("Invalid rich text format.");
+        }
+
         // Check that the root exists and has a valid type
         if (!val || typeof val !== 'object' || typeof val.root !== 'object' || val.root.type !== 'root')
             throw new InputError("Invalid rich text value (1).");

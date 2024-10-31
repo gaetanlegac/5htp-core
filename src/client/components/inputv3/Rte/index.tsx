@@ -5,7 +5,8 @@
 // Npm
 import React from 'react';
 
-import { EditorState, $getRoot } from 'lexical';
+import { EditorState, createEditor } from 'lexical';
+import { $generateHtmlFromNodes } from '@lexical/html';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
@@ -14,6 +15,7 @@ import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
+import RichEditorUtils from './currentEditor';
 
 // Core libs
 import { useInput, InputBaseProps, InputWrapper } from '../base';
@@ -31,7 +33,7 @@ const EMPTY_STATE = '{"root":{"children":[{"children":[],"direction":null,"forma
 ----------------------------------*/
 
 export type Props = {
-    onPressEnter?: (value: string) => void,
+    preview?: boolean,
 } 
 
 const ValueControlPlugin = ({ props, value }) => {
@@ -52,20 +54,24 @@ const ValueControlPlugin = ({ props, value }) => {
 /*----------------------------------
 - COMPOSANT
 ----------------------------------*/
-export default (props: Props & InputBaseProps<{}>) => {
+export default (props: Props & InputBaseProps<string>) => {
 
     let {
         // Decoration
         required, size, title, className = '',
         // State
-        inputRef, errors,
+        errors,
         // Actions
-        onPressEnter
+        preview = true
     } = props;
 
     /*----------------------------------
     - INIT
     ----------------------------------*/
+
+    const [isPreview, setIsPreview] = React.useState(preview);
+
+    const [html, setHTML] = React.useState();
 
     const [{ value }, setValue] = useInput(props, EMPTY_STATE, true);
 
@@ -78,16 +84,52 @@ export default (props: Props & InputBaseProps<{}>) => {
     - ACTIONS
     ----------------------------------*/
 
+    React.useEffect(async () => {
+
+        if (isPreview)
+            renderPreview(value);
+        
+    }, [value, isPreview]);
+
+    // When isPreview changes, close the active editor
+    React.useEffect(() => {
+        if (!isPreview) {
+
+            // Close active editor
+            if (RichEditorUtils.active && RichEditorUtils.active?.title !== title)
+                RichEditorUtils.active.close();
+
+            // Set active editor
+            RichEditorUtils.active = {
+                title,
+                close: () => setIsPreview(true)
+            }
+
+        }
+    }, [isPreview]);
+
+    const renderPreview = async (value: {}) => {
+
+        if (typeof document === 'undefined')
+            throw new Error("HTML preview disabled in server side.");
+
+        const html = await RichEditorUtils.jsonToHtml(value);
+
+        setHTML(html);
+    }
+
     const onChange = (editorState: EditorState) => {
         editorState.read(() => {
-
-            const stateJson = editorState.toJSON();
 
             if (refCommit.current !== null)
                 clearTimeout(refCommit.current);
     
             refCommit.current = setTimeout(() => {
+
+                const stateJson = JSON.stringify(editorState.toJSON());
+
                 setValue(stateJson);
+
             }, 100);
         });
     };
@@ -99,9 +141,20 @@ export default (props: Props & InputBaseProps<{}>) => {
         <InputWrapper {...props}>
             <div class={className}>
 
-                {typeof window !== 'undefined' && (
+                {isPreview ? (
+
+                    !html ? (
+                        <div class="col al-center h-4">
+                            <i src="spin" />
+                        </div>
+                    ) : (
+                        <div class="h-4 scrollable col clickable" 
+                            onClick={() => setIsPreview(false)}
+                            dangerouslySetInnerHTML={{ __html: html }} />
+                    )
+
+                ) : typeof window !== 'undefined' && (
                     <LexicalComposer initialConfig={{
-                        namespace: 'React.js Demo',
                         editorState: value || EMPTY_STATE,
                         nodes: editorNodes,
                         // Handling of errors during update
@@ -125,7 +178,7 @@ export default (props: Props & InputBaseProps<{}>) => {
                                     ErrorBoundary={LexicalErrorBoundary}
                                 />
                                 <HistoryPlugin />
-                                {/* <AutoFocusPlugin /> */}
+                                <AutoFocusPlugin />
                                 <OnChangePlugin onChange={onChange} />
                                 <ValueControlPlugin props={props} value={value} />
                             </div>
