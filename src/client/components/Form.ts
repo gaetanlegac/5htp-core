@@ -135,11 +135,7 @@ export default function useForm<TFormData extends {}>(
         // Validation
         const validated = validate(allData);
         if (validated.errorsCount !== 0) {
-            context.app.handleError(
-                new InputErrorSchema(validated.erreurs)
-            );
-            console.log("validated", validated.erreurs);
-            return;
+            throw new InputErrorSchema(validated.erreurs);
         }
 
         // Callback
