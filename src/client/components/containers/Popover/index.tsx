@@ -4,7 +4,7 @@
 
 // Npm
 import React from 'react';
-import { JSX, ComponentChild } from 'preact';
+import { JSX, ComponentChild, VNode } from 'preact';
 import type { StateUpdater } from 'preact/hooks';
 
 // Libs
@@ -20,7 +20,7 @@ export type Props = JSX.HTMLAttributes<HTMLDivElement> & {
     id?: string,
 
     // Display
-    content?: JSX.Element,
+    content?: ComponentChild | JSX.Element
     state?: [boolean, StateUpdater<boolean>],
     width?: number | string,
     disable?: boolean

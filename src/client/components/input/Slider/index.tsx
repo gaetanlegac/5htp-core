@@ -9,8 +9,6 @@ import Slider from 'react-slider';
 
 // Core libs
 import { useInput, InputBaseProps } from '../../inputv3/base';
-import { default as Validator } from '@common/validation/validator';
-import type SchemaValidators from '@common/validation/validators';
 
 /*----------------------------------
 - TYPES

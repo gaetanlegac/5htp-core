@@ -8,15 +8,16 @@ import { ComponentChild, RefObject } from 'preact';
 
 // Core
 import Button, { Props as ButtonProps } from '../button';
-import Popover from '../containers/Popover';
+import Popover, { Props as PopoverProps } from '../containers/Popover';
 
 /*----------------------------------
 - TYPES
 ----------------------------------*/
 
 export type Props = ButtonProps & {
-    content: ComponentChild | (() => ComponentChild),
-    refDropdown?: RefObject<TDropdownControl>
+    label?: ComponentChild,
+    refDropdown?: RefObject<TDropdownControl>,
+    popover?: Partial<PopoverProps>
 }
 
 export type TDropdownControl = {
@@ -29,8 +30,10 @@ export type TDropdownControl = {
 export default (props: Props) => {
 
     let {
-        content,
+        children,
+        label,
         refDropdown,
+        popover,
         ...buttonProps
     } = props;
 
@@ -44,8 +47,15 @@ export default (props: Props) => {
         }
 
     return (
-        <Popover content={content} state={popoverState}>
-            <Button {...buttonProps} refElem={refButton} />
+        <Popover content={(
+            <div class="bg white col menu">
+                {children}
+            </div>
+        )} state={popoverState} {...(popover || {})}>
+
+            <Button {...buttonProps} iconR={<i src="chevron-down" class="s" />} 
+                refElem={refButton} children={label} />
+                
         </Popover>
     )
 }

@@ -34,7 +34,7 @@ export default class RequestValidator extends ServerSchemaValidator implements R
         public app = router.app
     ) {
 
-        super();
+        super(app);
 
     }
 
@@ -49,7 +49,8 @@ export default class RequestValidator extends ServerSchemaValidator implements R
         // Les InputError seront propagées vers le middleware dédié à la gestion des erreurs
         const values = schema.validate( this.request.data, {
             debug: this.config.debug,
-            validateDeps: false
+            validateDeps: false,
+            validators: this
         }, []);
 
         return values;

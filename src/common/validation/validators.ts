@@ -17,15 +17,16 @@ import FileToUpload from '@client/components/inputv3/file/FileToUpload';
 
 // Speciific
 import Schema, { TSchemaFields } from './schema'
-import Validator, { TValidator, EXCLUDE_VALUE } from './validator'
+import Validator, { TValidatorOptions, EXCLUDE_VALUE } from './validator'
 
 /*----------------------------------
 - TYPES
 ----------------------------------*/
 
-export type TFileValidator = TValidator<FileToUpload> & {
+export type TFileValidator = TValidatorOptions<FileToUpload> & {
     type?: string[], // Raccourci, ou liste de mimetype
-    taille?: number
+    taille?: number,
+    disk?: string, // Disk to upload files to
 }
 
 type TSchemaSubtype = Schema<{}> | TSchemaFields;
@@ -35,6 +36,48 @@ type TSubtype = TSchemaSubtype | Validator<any>;
 /*----------------------------------
 - CONST
 ----------------------------------*/
+
+export type TRichTextValidatorOptions = {
+    attachements?: TFileValidator
+}
+
+// Recursive function to validate each node
+function validateLexicalNode(node: any, opts: TRichTextValidatorOptions ) {
+
+    // Each node should be an object with a `type` property
+    if (typeof node !== 'object' || !node.type || typeof node.type !== 'string')
+        throw new InputError("Invalid rich text value (3).");
+
+    // Validate text nodes
+    if (node.type === 'text') {
+
+        if (typeof node.text !== 'string')
+            throw new InputError("Invalid rich text value (4).");
+
+        // Validate paragraph, heading, or other structural nodes that may contain children
+    } else if (['paragraph', 'heading', 'list', 'listitem'].includes(node.type)) {
+
+        if (!Array.isArray(node.children) || !node.children.every(children => validateLexicalNode(children, opts))) {
+            throw new InputError("Invalid rich text value (5).");
+        }
+
+        // Files upload
+    } else if (node.type === 'image') {
+
+        // Check if allowed
+        /*if (opts.attachements === undefined)
+            throw new InputError("Image attachments not allowed in this rich text field.");*/
+
+        // TODO: check mime
+
+
+        // Upload file
+
+
+    }
+
+    return true;
+}
 
 /*----------------------------------
 - CLASS
@@ -72,7 +115,7 @@ export default class SchemaValidators {
     /*----------------------------------
     - CONTENEURS
     ----------------------------------*/
-    public object = ( subtype?: TSchemaSubtype, { ...opts }: TValidator<object> & {
+    public object = ( subtype?: TSchemaSubtype, { ...opts }: TValidatorOptions<object> & {
 
     } = {}) => 
         new Validator<object>('object', (val, options, path) => {
@@ -96,7 +139,7 @@ export default class SchemaValidators {
             return value;
         }, opts)
 
-    public array = ( subtype: TSubtype, { choice, min, max, ...opts }: TValidator<any[]> & {
+    public array = ( subtype: TSubtype, { choice, min, max, ...opts }: TValidatorOptions<any[]> & {
         choice?: any[],
         min?: number, 
         max?: number
@@ -130,7 +173,7 @@ export default class SchemaValidators {
         //multiple: true, // Sélection multiple
     })
 
-    public choice = (choices?: any[], { multiple, ...opts }: TValidator<any> & { 
+    public choice = (choices?: any[], { multiple, ...opts }: TValidatorOptions<any> & { 
         multiple?: boolean 
     } = {}) => new Validator<any>('choice', (val, options, path) => {
 
@@ -169,7 +212,7 @@ export default class SchemaValidators {
     /*----------------------------------
     - CHAINES
     ----------------------------------*/
-    public string = ({ min, max, in: choices, ...opts }: TValidator<string> & { 
+    public string = ({ min, max, in: choices, ...opts }: TValidatorOptions<string> & { 
         min?: number, 
         max?: number,
         in?: string[]
@@ -205,7 +248,7 @@ export default class SchemaValidators {
         
     }, opts)
 
-    public url = (opts: TValidator<string> & {
+    public url = (opts: TValidatorOptions<string> & {
         normalize?: NormalizeUrlOptions
     } = {}) => 
         new Validator<string>('url', (inputVal, options, path) => {
@@ -225,7 +268,7 @@ export default class SchemaValidators {
             return val;
         }, opts)
 
-    public email = (opts: TValidator<string> & {} = {}) => 
+    public email = (opts: TValidatorOptions<string> & {} = {}) => 
         new Validator<string>('email', (inputVal, options, path) => {
 
             let val = this.string(opts).validate(inputVal, options, path);
@@ -263,7 +306,7 @@ export default class SchemaValidators {
     - NOMBRES
     ----------------------------------*/
     // On ne spread pas min et max afin quils soient passés dans les props du composant
-    public number = (withDecimals: boolean) => ({ ...opts }: TValidator<number> & {
+    public number = (withDecimals: boolean) => ({ ...opts }: TValidatorOptions<number> & {
         min?: number,
         max?: number,
         step?: number,
@@ -309,7 +352,7 @@ export default class SchemaValidators {
 
     public float = this.number(true) 
 
-    public bool = (opts: TValidator<boolean> & {} = {}) => 
+    public bool = (opts: TValidatorOptions<boolean> & {} = {}) => 
         new Validator<boolean>('bool', (val, options, path) => {
 
             if (typeof val !== 'boolean' && !['true', 'false'].includes(val))
@@ -326,7 +369,7 @@ export default class SchemaValidators {
     /*----------------------------------
     - AUTRES
     ----------------------------------*/
-    public date = (opts: TValidator<Date> & {
+    public date = (opts: TValidatorOptions<Date> & {
 
     } = {}) => new Validator<Date>('date', (val, options, path) => {
 
@@ -350,57 +393,36 @@ export default class SchemaValidators {
         ...opts,
     })
 
-    public richText = (opts: TValidator<string> & {
-        
-    } = {}) => new Validator<string>('richText', (val, options, path) => {
+    public richText(opts: TValidatorOptions<string> & TRichTextValidatorOptions = {}) {
+        return new Validator<string>('richText', (val, options, path) => {
 
-        // We get a stringified json as input since the editor workds with JSON string
-        try {
-            val = JSON.parse(val);
-        } catch (error) {
-            throw new InputError("Invalid rich text format.");
-        }
-
-        // Check that the root exists and has a valid type
-        if (!val || typeof val !== 'object' || typeof val.root !== 'object' || val.root.type !== 'root')
-            throw new InputError("Invalid rich text value (1).");
-
-        // Check if root has children array
-        if (!Array.isArray(val.root.children))
-            throw new InputError("Invalid rich text value (2).");
-
-        // Recursive function to validate each node
-        function validateNode(node) {
-            // Each node should be an object with a `type` property
-            if (typeof node !== 'object' || !node.type || typeof node.type !== 'string')
-                throw new InputError("Invalid rich text value (3).");
-
-            // Validate text nodes
-            if (node.type === 'text') {
-                if (typeof node.text !== 'string') 
-                    throw new InputError("Invalid rich text value (4).");
+            // We get a stringified json as input since the editor workds with JSON string
+            try {
+                val = JSON.parse(val);
+            } catch (error) {
+                throw new InputError("Invalid rich text format.");
             }
 
-            // Validate paragraph, heading, or other structural nodes that may contain children
-            if (['paragraph', 'heading', 'list', 'listitem'].includes(node.type))
-                if (!Array.isArray(node.children) || !node.children.every(validateNode)) {
-                    throw new InputError("Invalid rich text value (5).");
+            // Check that the root exists and has a valid type
+            if (!val || typeof val !== 'object' || typeof val.root !== 'object' || val.root.type !== 'root')
+                throw new InputError("Invalid rich text value (1).");
+
+            // Check if root has children array
+            if (!Array.isArray(val.root.children))
+                throw new InputError("Invalid rich text value (2).");
+
+            // Validate each child node in root
+            for (const child of val.root.children) {
+                validateLexicalNode(child, opts);
             }
 
-            return true;
-        }
+            return val;
 
-        // Validate each child node in root
-        for (const child of val.root.children) {
-            validateNode(child);
-        }
-
-        return val;
-
-    }, {
-        //defaut: new Date,
-        ...opts,
-    })
+        }, {
+            //defaut: new Date,
+            ...opts,
+        })
+    }
 
     /*----------------------------------
     - FICHIER

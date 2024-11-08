@@ -5,28 +5,15 @@
 // Npm
 import React from 'react';
 
-import { EditorState, createEditor } from 'lexical';
-import { $generateHtmlFromNodes } from '@lexical/html';
-import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
-import { LexicalComposer } from '@lexical/react/LexicalComposer';
-import { ContentEditable } from '@lexical/react/LexicalContentEditable';
-import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
-import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
-import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
-import { OnChangePlugin } from '@lexical/react/LexicalOnChangePlugin';
+// Lexical
 import RichEditorUtils from './currentEditor';
 
 // Core libs
 import { useInput, InputBaseProps, InputWrapper } from '../base';
-import editorNodes from '@common/data/rte/nodes';
 
 // Special componets
-import ExampleTheme from './ExampleTheme';
-import ToolbarPlugin from './ToolbarPlugin';
+import type TEditor from './Editor';
 import './style.less';
-
-const EMPTY_STATE = '{"root":{"children":[{"children":[],"direction":null,"format":"","indent":0,"type":"paragraph","version":1}],"direction":null,"format":"","indent":0,"type":"root","version":1}}';
 
 /*----------------------------------
 - TYPES
@@ -35,21 +22,6 @@ const EMPTY_STATE = '{"root":{"children":[{"children":[],"direction":null,"forma
 export type Props = {
     preview?: boolean,
 } 
-
-const ValueControlPlugin = ({ props, value }) => {
-
-    const [editor] = useLexicalComposerContext();
-
-    React.useEffect(() => {
-        if (props.value && props.value !== value) {
-
-            const initialEditorState = editor.parseEditorState(props.value)
-            editor.setEditorState(initialEditorState);
-        }
-    }, [props.value]);
-
-    return null;
-}
 
 /*----------------------------------
 - COMPOSANT
@@ -69,14 +41,10 @@ export default (props: Props & InputBaseProps<string>) => {
     - INIT
     ----------------------------------*/
 
+    const [Editor, setEditor] = React.useState<{ default: typeof TEditor }>(null);
     const [isPreview, setIsPreview] = React.useState(preview);
-
-    const [html, setHTML] = React.useState();
-
-    const [{ value }, setValue] = useInput(props, EMPTY_STATE, true);
-
-    // Trigger onchange oly when finished typing
-    const refCommit = React.useRef<NodeJS.Timeout | null>(null);
+    const [html, setHTML] = React.useState(null);
+    const [{ value }, setValue] = useInput(props, undefined, true);
 
     className += ' input rte';
 
@@ -84,11 +52,10 @@ export default (props: Props & InputBaseProps<string>) => {
     - ACTIONS
     ----------------------------------*/
 
-    React.useEffect(async () => {
-
-        if (isPreview)
-            renderPreview(value);
-        
+    React.useEffect(() => {
+        if (isPreview) {
+            renderPreview(value).then(setHTML);
+        }
     }, [value, isPreview]);
 
     // When isPreview changes, close the active editor
@@ -105,34 +72,27 @@ export default (props: Props & InputBaseProps<string>) => {
                 close: () => setIsPreview(true)
             }
 
+            // Load editor component if not alreayd done
+            // We lazy load since it's heavy and needs to be loade donly on client side
+            if (!Editor) {
+                import('./Editor').then(setEditor);
+            }
+
         }
     }, [isPreview]);
 
-    const renderPreview = async (value: {}) => {
+    const renderPreview = async (value: {} | undefined) => {
+
+        if (!value)
+            return '';
 
         if (typeof document === 'undefined')
             throw new Error("HTML preview disabled in server side.");
 
         const html = await RichEditorUtils.jsonToHtml(value);
 
-        setHTML(html);
+        return html;
     }
-
-    const onChange = (editorState: EditorState) => {
-        editorState.read(() => {
-
-            if (refCommit.current !== null)
-                clearTimeout(refCommit.current);
-    
-            refCommit.current = setTimeout(() => {
-
-                const stateJson = JSON.stringify(editorState.toJSON());
-
-                setValue(stateJson);
-
-            }, 100);
-        });
-    };
 
     /*----------------------------------
     - RENDER
@@ -143,47 +103,18 @@ export default (props: Props & InputBaseProps<string>) => {
 
                 {isPreview ? (
 
-                    !html ? (
-                        <div class="col al-center h-4">
+                    html === null ? (
+                        <div class="col al-center h-2">
                             <i src="spin" />
                         </div>
                     ) : (
-                        <div class="h-4 scrollable col clickable" 
+                        <div class="preview reading h-1-4 scrollable col clickable" 
                             onClick={() => setIsPreview(false)}
                             dangerouslySetInnerHTML={{ __html: html }} />
                     )
 
-                ) : typeof window !== 'undefined' && (
-                    <LexicalComposer initialConfig={{
-                        editorState: value || EMPTY_STATE,
-                        nodes: editorNodes,
-                        // Handling of errors during update
-                        onError(error: Error) { throw error; },
-                        // The editor theme
-                        theme: ExampleTheme,
-                    }}>
-                        <div className="editor-container">
-                            <ToolbarPlugin />
-                            <div className="editor-inner">
-                                <RichTextPlugin
-                                    contentEditable={
-                                        <ContentEditable
-                                            className="editor-input"
-                                            aria-placeholder={"Type text here ..."}
-                                            placeholder={
-                                                <div className="editor-placeholder">Type text here ...</div>
-                                            }
-                                        />
-                                    }
-                                    ErrorBoundary={LexicalErrorBoundary}
-                                />
-                                <HistoryPlugin />
-                                <AutoFocusPlugin />
-                                <OnChangePlugin onChange={onChange} />
-                                <ValueControlPlugin props={props} value={value} />
-                            </div>
-                        </div>
-                    </LexicalComposer>   
+                ) : Editor !== null && (
+                    <Editor.default value={value} setValue={setValue} props={props} />
                 )}
 
                 {/* <Tag {...fieldProps}

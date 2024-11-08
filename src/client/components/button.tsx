@@ -23,7 +23,7 @@ export type Props = {
     iconR?: ComponentChild,
 
     prefix?: ComponentChild,
-    children?: ComponentChild,
+    children?: ComponentChild | ComponentChild[],
     suffix?: ComponentChild,
     
     tag?: "a" | "button",
@@ -31,6 +31,7 @@ export type Props = {
     shape?: 'default' | 'icon' | 'tile' | 'pill',
     size?: TComponentSize,
     class?: string,
+    title?: string,
 
     state?: [string, React.StateUpdater<string>],
     active?: boolean,

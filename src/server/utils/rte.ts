@@ -5,19 +5,21 @@
 // Npm
 import { createHeadlessEditor } from '@lexical/headless';
 import { $generateNodesFromDOM, $generateHtmlFromNodes } from '@lexical/html';
-import { $getRoot } from 'lexical';
+import { $getRoot, SerializedEditorState } from 'lexical';
 import { JSDOM } from 'jsdom';
 
 // Core
 import editorNodes from '@common/data/rte/nodes';
+import ExampleTheme from '@client/components/inputv3/Rte/themes/PlaygroundEditorTheme';
 
 /*----------------------------------
 - FUNCTIONS
 ----------------------------------*/
-export const htmlToJson = async (htmlString: string) => {
+export const htmlToJson = async (htmlString: string): Promise<SerializedEditorState> => {
 
     const editor = createHeadlessEditor({
-        nodes: editorNodes
+        nodes: editorNodes,
+        theme: ExampleTheme,
     });
 
     await editor.update(() => {
@@ -49,7 +51,8 @@ export const jsonToHtml = async (jsonString: string) => {
     const editor = createHeadlessEditor({
         namespace: 'headless',
         editable: false,
-        nodes: editorNodes
+        nodes: editorNodes,
+        theme: ExampleTheme,
     });
 
     // Set the editor state from JSON

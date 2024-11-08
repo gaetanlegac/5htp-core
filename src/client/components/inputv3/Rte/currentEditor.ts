@@ -1,6 +1,7 @@
 import { createEditor, LexicalEditor } from 'lexical';
 import { $generateHtmlFromNodes } from '@lexical/html';
 import editorNodes from '@common/data/rte/nodes';
+import ExampleTheme from '@client/components/inputv3/Rte/themes/PlaygroundEditorTheme';
 
 class RichEditorUtils {
 
@@ -16,7 +17,8 @@ class RichEditorUtils {
         if (!this.virtualEditor) {
             // Create a headless Lexical editor instance
             this.virtualEditor = createEditor({
-                nodes: editorNodes
+                nodes: editorNodes,
+                theme: ExampleTheme,
             });
         }
 

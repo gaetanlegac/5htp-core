@@ -21,6 +21,7 @@ export type InputBaseProps<TValue> = {
     required?: boolean,
     errors?: string[],
     size?: TComponentSize,
+    className?: string,
 
     wrapper?: boolean,
 
@@ -95,7 +96,7 @@ export function useInput<TValue>(
 /*----------------------------------
 - COMPONENT
 ----------------------------------*/
-export const InputWrapper = ({ children, wrapper = true, title, hint, required }: InputBaseProps<unknown> & {
+export const InputWrapper = ({ children, wrapper = true, title, hint, required, className = '' }: InputBaseProps<unknown> & {
     children: ComponentChild
 }) => {
 
@@ -111,11 +112,13 @@ export const InputWrapper = ({ children, wrapper = true, title, hint, required }
     - RENDER
     ----------------------------------*/
     return wrapper === false ? <>{children}</> : (
-        <div class="inputWrapper">
+        <div className={'inputWrapper ' + className}>
 
-            <label>{title}{required && (
-                <span class="fg error">&nbsp;*</span>
-            )}</label>
+            {title && (
+                <label>{title}{required && (
+                    <span class="fg error">&nbsp;*</span>
+                )}</label>
+            )}
 
             {hint && <p class="hint">{hint}</p>}
 

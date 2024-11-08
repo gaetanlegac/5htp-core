@@ -3,11 +3,11 @@
 ----------------------------------*/
 
 // Core
+import type { Application } from '@server/app';
 
 // Specific
 import SchemaValidator, { TFileValidator } from '@common/validation/validators';
-
-import Validator, { EXCLUDE_VALUE,} from '@common/validation/validator';
+import Validator, { TValidatorOptions } from '@common/validation/validator';
 
 import type FileToUpload from '@client/components/inputv3/file/FileToUpload';
 
@@ -20,5 +20,27 @@ import type FileToUpload from '@client/components/inputv3/file/FileToUpload';
 - SERVICE
 ----------------------------------*/
 export default class ServerSchemaValidator extends SchemaValidator {
+
+    public constructor( private app: Application ) {
+        super();
+    }
+
+    public richText = (opts: TValidatorOptions<string> & {
+        attachements?: TFileValidator
+    } = {}) => new Validator<string>('richText', (val, options, path) => {
+
+        // Default validation
+        val = super.richText(opts).validate(val, options, path);
+
+        // Uploads are done in the business code since the process is specific to every case:
+        // - ID in the destination directory
+        // - Cleanup before upload
+
+        return val;
+
+    }, {
+        //defaut: new Date,
+        ...opts,
+    })
 
 }

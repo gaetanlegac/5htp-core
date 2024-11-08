@@ -10,13 +10,21 @@ import { InputError } from '@common/errors';
 
 // Specific
 import type { TValidateOptions } from './schema';
+import type Validators from './validators';
 import type { InputBaseProps } from '@client/components/inputv3/base';
 
 /*----------------------------------
 - TYPES
 ----------------------------------*/
 
-export type TValidator<TValue> = {
+export type TValidatorDefinition<K extends keyof Validators = keyof Validators> = [
+    type: K, 
+    args: Parameters<Validators[K]>, 
+    returnType: ReturnType<Validators[K]> 
+]
+
+// TODO: remove
+export type TValidatorOptions<TValue> = {
 
     rendu?: TFieldRenderer,
 
@@ -48,7 +56,7 @@ type TValidationFunction<TValue, TAllValues extends {} = {}> = (
 ) => TValue | typeof EXCLUDE_VALUE;
 
 type TValidateReturnType<
-    TOptions extends TValidator<TValue>, 
+    TOptions extends TValidatorOptions<TValue>, 
     TValue extends any
 > = TOptions extends { opt: true } 
     ? (undefined | TValue) 
@@ -65,8 +73,8 @@ export const EXCLUDE_VALUE = "action:exclure" as const;
 ----------------------------------*/
 export default class Validator<
     TValue, 
-    TOptions extends TValidator<TValue> = TValidator<TValue>,
-    TComponent = React.FunctionComponent< InputBaseProps< TValue > >
+    TOptions extends TValidatorOptions<TValue> = TValidatorOptions<TValue>,
+    //TComponent = React.FunctionComponent< InputBaseProps< TValue > >
 > {
 
     public constructor( 

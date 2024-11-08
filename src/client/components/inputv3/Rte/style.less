@@ -1,4 +1,34 @@
 .input.rte {
+
+    .preview {
+        position: relative;
+
+        &:before {
+
+            content: 'Click here to edit';
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+
+            background: fade(#FFF, 50%);
+            pointer-events: none;
+            z-index: 1;
+            opacity: 0;
+            transition: all 0.3s linear;
+        }
+
+        &:hover:before {
+           opacity: 1;
+        }
+    }
+
     .other h2 {
         font-size: 18px;
         color: #444;
@@ -236,26 +266,6 @@
         padding-left: 16px;
     }
 
-    .editor-list-ol {
-        padding: 0;
-        margin: 0;
-        margin-left: 16px;
-    }
-
-    .editor-list-ul {
-        padding: 0;
-        margin: 0;
-        margin-left: 16px;
-    }
-
-    .editor-listitem {
-        margin: 8px 32px 8px 32px;
-    }
-
-    .editor-nested-listitem {
-        list-style-type: none;
-    }
-
     pre::-webkit-scrollbar {
         background: transparent;
         width: 10px;
@@ -384,45 +394,5 @@
         margin-right: 8px;
         line-height: 16px;
         background-size: contain;
-    }
-
-    i.undo {
-        background-image: url(icons/arrow-counterclockwise.svg);
-    }
-
-    i.redo {
-        background-image: url(icons/arrow-clockwise.svg);
-    }
-
-    i.bold {
-        background-image: url(icons/type-bold.svg);
-    }
-
-    i.italic {
-        background-image: url(icons/type-italic.svg);
-    }
-
-    i.underline {
-        background-image: url(icons/type-underline.svg);
-    }
-
-    i.strikethrough {
-        background-image: url(icons/type-strikethrough.svg);
-    }
-
-    i.left-align {
-        background-image: url(icons/text-left.svg);
-    }
-
-    i.center-align {
-        background-image: url(icons/text-center.svg);
-    }
-
-    i.right-align {
-        background-image: url(icons/text-right.svg);
-    }
-
-    i.justify-align {
-        background-image: url(icons/justify.svg);
     }
 }

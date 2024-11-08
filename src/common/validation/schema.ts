@@ -6,13 +6,17 @@
 import { CoreError, TListeErreursSaisie, InputErrorSchema } from '@common/errors';
 
 // Specific
-import { default as Validator, EXCLUDE_VALUE } from './validator';
+import { default as Validator, EXCLUDE_VALUE, TValidatorDefinition } from './validator';
+import DefaultValidators from './validators';
+const defaultValidators = new DefaultValidators;
 
 /*----------------------------------
 - TYPES
 ----------------------------------*/
 
-export type TSchemaFields = { [fieldName: string]: TSchemaFields | Schema<{}> | Validator<any> }
+export type TSchemaFields = { 
+    [fieldName: string]: TSchemaFields | Schema<{}> | TValidatorDefinition
+}
 
 type TSchemaOptions = {
     opt?: boolean
@@ -25,6 +29,7 @@ export type TValidateOptions<TFields extends TSchemaFields = {}> = {
     only?: (keyof TFields)[],
     validateDeps?: boolean,
     autoCorrect?: boolean,
+    validators?: DefaultValidators
 }
 
 export type TValidationResult<TFields extends TSchemaFields> = {
@@ -59,11 +64,43 @@ export default class Schema<TFields extends TSchemaFields> {
 
     }
 
+    public getFieldValidator(
+        fieldName: string,
+        validators: DefaultValidators = defaultValidators
+    ): null | Validator<any> | Schema<{}> {
+
+        let field = this.fields[fieldName];
+        if (field === undefined) {
+
+            return null;
+
+        // TValidatorDefinition
+        } else if (Array.isArray(field)) {
+
+            const [validatorName, validatorArgs] = field;
+            const getValidator = validators[validatorName];
+            if (getValidator === undefined)
+                throw new Error('Unknown validator: ' + validatorName);
+
+            return getValidator(...validatorArgs);
+
+            // TSchemaFields
+        } else if (field.constructor === Object) {
+
+            return new Schema(field as TSchemaFields);
+
+            // Schema
+        } else
+            return field as Validator<any>;
+    }
+
     public validate<TDonnees extends TObjetDonnees>(
         dataToValidate: Partial<TDonnees>,
         opts: TValidateOptions<TFields> = {},
         chemin: string[] = []
     ): TValidatedData<TFields> {
+
+        const validators = opts.validators || defaultValidators;
 
         // Check data type
         if (typeof dataToValidate !== 'object')
@@ -86,16 +123,11 @@ export default class Schema<TFields extends TSchemaFields> {
         let errorsCount = 0;
         for (const fieldName of keysToValidate) {
     
-            // La donnée est répertoriée dans le schema
-            let field = this.fields[fieldName];
-            let validator: Validator<any> | Schema<{}>;
-            if (field === undefined) {
+            const validator = this.getFieldValidator(fieldName, validators);
+            if (validator === null) {
                 opts.debug && console.warn(LogPrefix, '[' + fieldName + ']', 'Exclusion (pas présent dans le schéma)');
                 continue;
-            } else if (field.constructor === Object)
-                validator = new Schema(field as TSchemaFields);
-            else
-                validator = field as Validator<any>;
+            }
 
             // Create field path
             const cheminA = [...chemin, fieldName]

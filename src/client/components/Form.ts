@@ -180,7 +180,7 @@ export default function useForm<TFormData extends {}>(
         fields.current = {} as FieldsAttrs<TFormData>
         for (const fieldName in schema.fields) {
 
-            const validator = schema.fields[fieldName];
+            const validator = schema.getFieldValidator(fieldName);
 
             fields.current[fieldName] = {
 
