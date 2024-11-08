@@ -7,8 +7,7 @@ import { CoreError, TListeErreursSaisie, InputErrorSchema } from '@common/errors
 
 // Specific
 import { default as Validator, EXCLUDE_VALUE, TValidatorDefinition } from './validator';
-import DefaultValidators from './validators';
-const defaultValidators = new DefaultValidators;
+import defaultValidators, { SchemaValidators, getFieldValidator } from './validators';
 
 /*----------------------------------
 - TYPES
@@ -29,7 +28,7 @@ export type TValidateOptions<TFields extends TSchemaFields = {}> = {
     only?: (keyof TFields)[],
     validateDeps?: boolean,
     autoCorrect?: boolean,
-    validators?: DefaultValidators
+    validators?: SchemaValidators
 }
 
 export type TValidationResult<TFields extends TSchemaFields> = {
@@ -66,7 +65,7 @@ export default class Schema<TFields extends TSchemaFields> {
 
     public getFieldValidator(
         fieldName: string,
-        validators: DefaultValidators = defaultValidators
+        validators: SchemaValidators = defaultValidators
     ): null | Validator<any> | Schema<{}> {
 
         let field = this.fields[fieldName];
@@ -75,23 +74,8 @@ export default class Schema<TFields extends TSchemaFields> {
             return null;
 
         // TValidatorDefinition
-        } else if (Array.isArray(field)) {
-
-            const [validatorName, validatorArgs] = field;
-            const getValidator = validators[validatorName];
-            if (getValidator === undefined)
-                throw new Error('Unknown validator: ' + validatorName);
-
-            return getValidator(...validatorArgs);
-
-            // TSchemaFields
-        } else if (field.constructor === Object) {
-
-            return new Schema(field as TSchemaFields);
-
-            // Schema
         } else
-            return field as Validator<any>;
+            return getFieldValidator(field);
     }
 
     public validate<TDonnees extends TObjetDonnees>(
@@ -172,6 +156,7 @@ export default class Schema<TFields extends TSchemaFields> {
 
                 } else {
 
+                    console.error(LogPrefix, '[' + cheminA + ']', error);
                     erreurs[cheminAstr] = ["Technical error while validating data"];
                     errorsCount++;
                 }

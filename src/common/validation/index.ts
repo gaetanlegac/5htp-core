@@ -3,7 +3,7 @@
 ----------------------------------*/
 
 import type { TValidatorDefinition } from './validator';
-import type Validators from './validators';
+import type { SchemaValidators } from './validators';
 
 /*----------------------------------
 - EXPORT
@@ -12,12 +12,12 @@ import type Validators from './validators';
 export { default as Schema } from './schema';
 export type { TSchemaFields, TValidatedData } from './schema';
 
-export const field = new Proxy<Validators>({} as Validators, {
+export const field = new Proxy<SchemaValidators>({} as SchemaValidators, {
     get: (target, propKey) => {
         return (...args: any[]) => ([ propKey, args ]);
     }
 }) as unknown as {
-    [K in keyof Validators]: Validators[K] extends (...args: any[]) => any
-    ? (...args: Parameters<Validators[K]>) => TValidatorDefinition<K>
-    : Validators[K];
+    [K in keyof SchemaValidators]: SchemaValidators[K] extends (...args: any[]) => any
+    ? (...args: Parameters<SchemaValidators[K]>) => TValidatorDefinition<K>
+    : SchemaValidators[K];
 };

@@ -6,7 +6,7 @@
 import type { Application } from '@server/app';
 
 // Specific
-import SchemaValidator, { TFileValidator } from '@common/validation/validators';
+import { SchemaValidators, TFileValidator } from '@common/validation/validators';
 import Validator, { TValidatorOptions } from '@common/validation/validator';
 
 import type FileToUpload from '@client/components/inputv3/file/FileToUpload';
@@ -19,9 +19,9 @@ import type FileToUpload from '@client/components/inputv3/file/FileToUpload';
 /*----------------------------------
 - SERVICE
 ----------------------------------*/
-export default class ServerSchemaValidator extends SchemaValidator {
+export default class ServerSchemaValidator extends SchemaValidators {
 
-    public constructor( private app: Application ) {
+    public constructor( public app: Application ) {
         super();
     }
 

@@ -10,7 +10,7 @@ import TextareaAutosize from 'react-textarea-autosize';
 // Core libs
 import { useInput, InputBaseProps, InputWrapper } from './base';
 import { default as Validator } from '../../../common/validation/validator';
-import type SchemaValidators from '@common/validation/validators';
+import type { SchemaValidators } from '@common/validation/validators';
 
 /*----------------------------------
 - TYPES

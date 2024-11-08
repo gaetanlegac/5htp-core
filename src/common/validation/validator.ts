@@ -10,17 +10,17 @@ import { InputError } from '@common/errors';
 
 // Specific
 import type { TValidateOptions } from './schema';
-import type Validators from './validators';
+import type { SchemaValidators } from './validators';
 import type { InputBaseProps } from '@client/components/inputv3/base';
 
 /*----------------------------------
 - TYPES
 ----------------------------------*/
 
-export type TValidatorDefinition<K extends keyof Validators = keyof Validators> = [
+export type TValidatorDefinition<K extends keyof SchemaValidators = keyof SchemaValidators> = [
     type: K, 
-    args: Parameters<Validators[K]>, 
-    returnType: ReturnType<Validators[K]> 
+    args: Parameters<SchemaValidators[K]>, 
+    returnType: ReturnType<SchemaValidators[K]> 
 ]
 
 // TODO: remove

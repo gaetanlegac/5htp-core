@@ -17,7 +17,7 @@ import FileToUpload from '@client/components/inputv3/file/FileToUpload';
 
 // Speciific
 import Schema, { TSchemaFields } from './schema'
-import Validator, { TValidatorOptions, EXCLUDE_VALUE } from './validator'
+import Validator, { TValidatorOptions, EXCLUDE_VALUE, TValidatorDefinition } from './validator'
 
 /*----------------------------------
 - TYPES
@@ -29,9 +29,9 @@ export type TFileValidator = TValidatorOptions<FileToUpload> & {
     disk?: string, // Disk to upload files to
 }
 
-type TSchemaSubtype = Schema<{}> | TSchemaFields;
+type TSchemaSubtype = Schema<{}> | TSchemaFields | TValidatorDefinition;
 
-type TSubtype = TSchemaSubtype | Validator<any>;
+type TSubtype = TSchemaSubtype | Validator<any> | TValidatorDefinition;
 
 /*----------------------------------
 - CONST
@@ -39,6 +39,27 @@ type TSubtype = TSchemaSubtype | Validator<any>;
 
 export type TRichTextValidatorOptions = {
     attachements?: TFileValidator
+}
+
+export const getFieldValidator = (field: TValidatorDefinition) => {
+
+    if (Array.isArray(field)) {
+
+        const [validatorName, validatorArgs] = field;
+        const getValidator = validators[validatorName];
+        if (getValidator === undefined)
+            throw new Error('Unknown validator: ' + validatorName);
+
+        return getValidator(...validatorArgs);
+
+        // TSchemaFields
+    } else if (field.constructor === Object) {
+
+        return new Schema(field as TSchemaFields);
+
+        // Schema
+    } else
+        return field as Validator<any>
 }
 
 // Recursive function to validate each node
@@ -82,7 +103,7 @@ function validateLexicalNode(node: any, opts: TRichTextValidatorOptions ) {
 /*----------------------------------
 - CLASS
 ----------------------------------*/
-export default class SchemaValidators {
+export class SchemaValidators {
 
     /*----------------------------------
     - UTILITIES
@@ -129,9 +150,7 @@ export default class SchemaValidators {
                 return val;
 
             // If subtype is a schema
-            const schema = subtype.constructor === Object 
-                ? new Schema(subtype as TSchemaFields) 
-                : subtype as Schema<{}>;
+            const schema = getFieldValidator(subtype) as Schema<{}>;
 
             // Validate schema
             const value = schema.validate(val, options, path);
@@ -159,9 +178,7 @@ export default class SchemaValidators {
         if (subtype === undefined)
             return items;
 
-        const validator = subtype.constructor === Object
-            ? new Schema(subtype as TSchemaFields)
-            : subtype as Schema<{}> | Validator<any>;
+        const validator = getFieldValidator(subtype);
 
         items = items.map( item =>
             validator.validate( item, options, path )
@@ -461,5 +478,8 @@ export default class SchemaValidators {
         //defaut: new Date,
         ...opts,
     })
-
 }
+
+const validators = new SchemaValidators();
+
+export default validators;
