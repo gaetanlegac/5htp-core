@@ -29,7 +29,8 @@ export type Props<TRow> = {
     empty?: ComponentChild | false,
     className?: string,
 
-    actions?: TAction<TRow>[]
+    selection?: [TRow[], React.SetStateAction<TRow[]>],
+    maxSelection?: number,
 }
 
 export type TColumn = JSX.HTMLAttributes<HTMLElement> & {
@@ -39,24 +40,26 @@ export type TColumn = JSX.HTMLAttributes<HTMLElement> & {
     stick?: boolean,
 }
 
-export type TAction<TRow> = Omit<TButtonProps, 'onClick'> & {
-    onClick: (row: TRow) => void,
-    label: ComponentChild,
-    multi?: boolean,
-    default?: boolean,
-}
-
 /*----------------------------------
 - COMPOSANTS
 ----------------------------------*/
 export default function Liste<TRow extends TDonneeInconnue>({
     stickyHeader,
     data: rows, setData, empty,
-    columns, actions, ...props
+    selection: selectionState, maxSelection,
+    columns, ...props
 }: Props<TRow>) {
 
     const { modal } = useContext();
 
+    // Selection
+    const selection = selectionState ? {
+        current: selectionState[0],
+        set: selectionState[1],
+        isMultiple: maxSelection === undefined || maxSelection > 1
+    } : undefined;
+
+    // Empty data
     if (rows.length === 0)
         return empty === false ? null : (
             <div class={"pd-2 col al-center " + (props.className || '')}>
@@ -67,32 +70,28 @@ export default function Liste<TRow extends TDonneeInconnue>({
             </div>
         );
 
-    const [selection, setSelection] = React.useState<number[]>([]);
-    const selectionMultiple = actions && actions.some((action) => action.multi);
-
-    const defaultAction = actions && actions.find((action) => action.default);
-
     /*----------------------------------
     - RENDU COLONNES / LIGNES
     ----------------------------------*/
     let renduColonnes: ComponentChild[] = [];
     
     const renduLignes = rows.map((row: TRow, iDonnee: number) => (
-        <tr {...defaultAction ? {
-            onClick: () => defaultAction.onClick(row),
+        <tr {...(maxSelection === 1 && selection) ? {
+            onClick: () => selection.set([row]),
             class: 'clickable'
         } : {}}>
-            {selectionMultiple && (
+
+            {selection?.isMultiple && (
                 <td>
                     <Checkbox
                         id={"selectionner" + iDonnee}
-                        value={selection.includes(row.id)}
-                        onChange={(selectionner: boolean) => {
-                            setSelection(current => selectionner
+                        value={selection.current.some(s => s.id === row.id)}
+                        onChange={(isSelected: boolean) => {
+                            selection.set(current => isSelected
                                 // Ajoute
-                                ? [...current, row.id]
+                                ? [...current, row]
                                 // Retire
-                                : current.filter((currentId, i) => currentId !== row.id))
+                                : current.filter((currentElem) => currentElem.id !== row.id))
                         }}
                     />
                 </td>
@@ -164,27 +163,6 @@ export default function Liste<TRow extends TDonneeInconnue>({
                     </td>
                 )
             })}
-
-            {actions !== undefined && (
-                <td class="stickyColumn">
-                    <Popover content={(
-                        <ul class="col menu card bg white">
-                            {actions.map(({ label, onClick, ...props }: TAction<TRow>) => (
-                                <li>
-                                    <Button {...props}
-                                        onClick={() => onClick && onClick(row)}
-                                        
-                                    >
-                                        {label}
-                                    </Button>
-                                </li>
-                            ))}
-                        </ul>
-                    )}>
-                        <Button size="s" icon="solid/ellipsis-h" />
-                    </Popover>
-                </td>
-            )}
         </tr>
     ));
 
@@ -202,57 +180,24 @@ export default function Liste<TRow extends TDonneeInconnue>({
             <table>
                 <thead className={stickyHeader ? 'stickyHeader' : undefined}>
                     <tr>
-                        {selectionMultiple && (
+                        {selection?.isMultiple && (
                             <th>
                                 <Checkbox
-                                    value={selection.length >= rows.length}
+                                    value={selection.current.length >= rows.length}
                                     onChange={(status: boolean) => {
-                                        setSelection(status ? rows.map(r => r.id) : []);
+                                        selection.set(status ? rows : []);
                                     }}
                                 />
                             </th>
                         )}
 
                         {renduColonnes}
-
-                        {actions !== undefined && (
-                            <th>Actions</th>
-                        )}
                     </tr>
                 </thead>
                 <tbody>
                     {renduLignes}
                 </tbody>
             </table>
-
-            {(selection.length !== 0 && actions) && (
-                <footer>
-                    <div className="card pdv-05 row inline pos_bottom">
-                        <strong>{selection.length} selected items</strong>
-
-                        {actions.map(({ label, multi, onClick, ...props }: TAction<TRow>) => {
-
-                            if (!multi)
-                                return;
-
-                            const selectedRows = selection.map((index: number) => rows[index]);
-
-                            return (
-                                <Button
-                                    {...props}
-                                    onClick={() => onClick && onClick(selectedRows)}
-                                >
-                                    {label}
-                                </Button>
-                            )
-                        })}
-
-                        <Button onClick={() => setSelection([])}>
-                            Cancel
-                        </Button>
-                    </div>
-                </footer>
-            )}
         </div>
     </>
 }
