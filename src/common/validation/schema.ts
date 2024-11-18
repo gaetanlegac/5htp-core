@@ -14,7 +14,7 @@ import defaultValidators, { SchemaValidators, getFieldValidator } from './valida
 ----------------------------------*/
 
 export type TSchemaFields = { 
-    [fieldName: string]: TSchemaFields | Schema<{}> | TValidatorDefinition
+    [fieldName: string]: TSchemaFields | Schema<{}> | Validator<any> | TValidatorDefinition
 }
 
 type TSchemaOptions = {
@@ -42,8 +42,14 @@ export type TSchemaData<TSchema extends Schema<{}>> =
 
 export type TValidatedData<TFields extends TSchemaFields> = {
     // For each field, the values returned by validator.validate()
-    [name in keyof TFields]: ReturnType<TFields[name]["validate"]>
+    [name in keyof TFields]: TFieldReturnType<TFields[name]>
 }
+
+type TFieldReturnType<TField> = TField extends TValidatorDefinition
+    ? TField[2]
+    : TField extends Schema<infer T>
+    ? TValidatedData<T>
+    : never
 
 /*----------------------------------
 - CONST

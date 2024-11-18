@@ -44,7 +44,7 @@ export default class ServerRequest<
 
     // Requete
     public method: HttpMethod;
-    public ip: string;
+    public ip?: string;
     public locale: string;
     public domain: string;
     public headers: HttpHeaders = {};

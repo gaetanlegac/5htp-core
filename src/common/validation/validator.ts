@@ -18,9 +18,9 @@ import type { InputBaseProps } from '@client/components/inputv3/base';
 ----------------------------------*/
 
 export type TValidatorDefinition<K extends keyof SchemaValidators = keyof SchemaValidators> = [
-    type: K, 
-    args: Parameters<SchemaValidators[K]>, 
-    returnType: ReturnType<SchemaValidators[K]> 
+    type: string, 
+    args: any[], 
+    returnType: string
 ]
 
 // TODO: remove
