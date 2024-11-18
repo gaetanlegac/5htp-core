@@ -8,7 +8,8 @@ import { ComponentChild } from 'preact';
 // Composants généraux
 import Bouton from '@client/components/button';
 
-// Libs
+// Core libs
+import { InputWrapper } from '../base';
 import useContext from '@/client/context';
 
 // specific
@@ -59,7 +60,7 @@ const normalizeFile = (file: File) => new FileToUpload({
 export type Props = {
 
     // Input
-    title: ComponentChild,
+    title: string,
     value?: string | FileToUpload, // string = already registered 
 
     // Display
@@ -75,24 +76,24 @@ export type Props = {
 /*----------------------------------
 - COMPOSANT
 ----------------------------------*/
-export default ({
-
-    // Input
-    title,
-    value: file, 
-    className, 
-
-    // Display
-    emptyText = 'Click here to select a File',
-    previewUrl: previewUrlInit,
-
-    // Actions
-    onChange
-}: Props) => {
+export default (props: Props) => {
 
     /*----------------------------------
     - INITIALIZE
     ----------------------------------*/
+
+    let {
+        // Input
+        value: file,
+        className,
+
+        // Display
+        emptyText = 'Click here to select a File',
+        previewUrl: previewUrlInit,
+
+        // Actions
+        onChange
+    } = props;
 
     const [previewUrl, setPreviewUrl] = React.useState<string | undefined>(previewUrlInit);
 
@@ -125,39 +126,40 @@ export default ({
     /*----------------------------------
     - RENDER
     ----------------------------------*/
-    return <>
-        <label>{title}</label>
+    return (
+        <InputWrapper {...props}>
 
-        <div class={className}>
+            <div class={className}>
 
-            {file && <>
-                <div class="preview">
+                {file && <>
+                    <div class="preview">
 
-                    {previewUrl ? (
-                        <img src={previewUrl} />
-                    ) : typeof file === 'string' ? <>
-                        <strong>A file has been selected</strong>
-                    </> : file ? <>
-                        <strong>{file.name}</strong>
-                    </> : null}
+                        {previewUrl ? (
+                            <img src={previewUrl} />
+                        ) : typeof file === 'string' ? <>
+                            <strong>A file has been selected</strong>
+                        </> : file ? <>
+                            <strong>{file.name}</strong>
+                        </> : null}
+                    </div>
+
+                    <div class="row actions sp-05">
+
+                        {typeof file === 'string' && <>
+                            <Bouton type="secondary" icon="eye" shape="pill" size="s" link={file} />
+                        </>}
+                        
+                        <Bouton class='bg error' icon="trash" shape="pill" size="s"  
+                            async onClick={() => onChange(undefined)} />
+                    </div>
+                </>}
+
+                <div class="indication col al-center">
+                    {emptyText}
                 </div>
 
-                <div class="row actions sp-05">
-
-                    {typeof file === 'string' && <>
-                        <Bouton type="secondary" icon="eye" shape="pill" size="s" link={file} />
-                    </>}
-                    
-                    <Bouton class='bg error' icon="trash" shape="pill" size="s"  
-                        async onClick={() => onChange(undefined)} />
-                </div>
-            </>}
-
-            <div class="indication col al-center">
-                {emptyText}
+                <input type="file" onChange={selectFile} />
             </div>
-
-            <input type="file" onChange={selectFile} />
-        </div>
-    </>
+        </InputWrapper>
+    )
 }
