@@ -17,7 +17,7 @@ export type { TValidationResult, TSchemaData } from '@common/validation/schema';
 /*----------------------------------
 - TYPES
 ----------------------------------*/
-type TFormOptions<TFormData extends {}> = {
+export type TFormOptions<TFormData extends {}> = {
     data?: Partial<TFormData>,
     submit?: (data: TFormData) => Promise<void>,
     autoValidateOnly?: (keyof TFormData)[],
