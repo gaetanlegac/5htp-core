@@ -119,6 +119,12 @@ export default ({ value, setValue, props }: {
     // Trigger onchange oly when finished typing
     const refCommit = React.useRef<NodeJS.Timeout | null>(null);
 
+    const onRef = (_floatingAnchorElem: HTMLDivElement) => {
+        if (_floatingAnchorElem !== null) {
+            setFloatingAnchorElem(_floatingAnchorElem);
+        }
+    };
+
     const { historyState } = useSharedHistoryContext();
     const {
         settings: {
@@ -176,16 +182,18 @@ export default ({ value, setValue, props }: {
         }}>
             <div className="editor-container">
                 <ToolbarPlugin setIsLinkEditMode={setIsLinkEditMode} />
-                <div className="editor-inner reading">
+                <div className="editor-inner">
                     <RichTextPlugin
                         contentEditable={
-                            <ContentEditable
-                                className="editor-input"
-                                aria-placeholder={"Type text here ..."}
-                                placeholder={
-                                    <div className="editor-placeholder">Type text here ...</div>
-                                }
-                            />
+                            <div className="editor pdh-2" ref={onRef}>
+                                <ContentEditable
+                                    className="editor-input reading col"
+                                    aria-placeholder={"Type text here ..."}
+                                    placeholder={
+                                        <div className="editor-placeholder">Type text here ...</div>
+                                    }
+                                />
+                            </div>
                         }
                         ErrorBoundary={LexicalErrorBoundary}
                     />

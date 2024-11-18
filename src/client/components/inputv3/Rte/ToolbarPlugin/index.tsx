@@ -482,7 +482,12 @@ export default function ToolbarPlugin({
     const canViewerSeeInsertCodeButton = !isImageCaption;
 
     return (
-        <div className="row menu al-left">
+        <div className="row menu al-left" style={{ 
+            position: 'sticky', 
+            top: 0, 
+            background: 'white', 
+            'zIndex': 5 
+        }}>
 
             {/* <Button icon="undo" size="s"
                 disabled={!canUndo || !isEditable}
