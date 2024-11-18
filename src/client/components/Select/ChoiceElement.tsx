@@ -34,7 +34,7 @@ export default ({ choice, currentList, onChange, multiple, includeCurrent, forma
 
     return format === 'list' ? (
         <li>
-            <Button icon={isCurrent ? 'check-circle' : undefined} onClick={() => onChange( current => multiple 
+            <Button active={isCurrent} onClick={() => onChange( current => multiple 
                 ? (isCurrent 
                     ? currentList.filter(item => item.value !== choice.value) 
                     : [...(current || []), choice]
@@ -44,34 +44,27 @@ export default ({ choice, currentList, onChange, multiple, includeCurrent, forma
                 {choice.label} 
             </Button>
         </li>
-    ) : isCurrent ? (
-        <li class={"badge bg primary"+  (showRemoveButton ? ' pdr-05' : '')}>
-            {choice.label}
-
-            {showRemoveButton && (
-                <span class="badge xs clickable" onClick={(e) => {
-                    e.stopPropagation();
-                    onChange( current => current.filter( c => c.value !== choice.value))
-                    return false;
-                }}>
-                    x
-                </span>
-            )}
-        </li>
     ) : (
-        <li class={"badge clickable"} onClick={() => {
-            onChange( current => multiple 
-                ? [...(current || []), choice] 
-                : choice
-            );
-        }}>
-            {/*search.keywords ? (
-                <span>
-                
-                    <strong>{search.keywords}</strong>{choice.label.slice( search.keywords.length )}
+        <li>
+            <Button type="secondary" active={isCurrent} onClick={() => onChange(current => multiple
+                ? (isCurrent
+                    ? currentList.filter(item => item.value !== choice.value)
+                    : [...(current || []), choice]
+                )
+                : isCurrent ? undefined : choice
+            )}>
+                {choice.label}
 
-                </span>
-            ) : */choice.label}
+                {showRemoveButton && (
+                    <span class="badge xs clickable" onClick={(e) => {
+                        e.stopPropagation();
+                        onChange( current => current.filter( c => c.value !== choice.value))
+                        return false;
+                    }}>
+                        x
+                    </span>
+                )}
+            </Button>
         </li>
     )
 }
