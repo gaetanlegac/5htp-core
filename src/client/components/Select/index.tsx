@@ -250,51 +250,33 @@ export default (props: Props) => {
             ) : (
                 <div class="col sp-05">
                     <div class={className} onMouseDown={() => refInputSearch.current?.focus()}>
-                            
-                        <div class="row al-left wrap pd-1">
-                            
-                            {icon !== undefined && (
-                                <i src={icon} />
-                            )}
 
-                            <div class="col al-left sp-05">
-                                
-                                <label>{title}{isRequired && (
-                                    <span class="fg error">&nbsp;*</span>
-                                )}</label>
+                        <div class="row al-left wrap sp-05">
 
-                                <div class="row al-left wrap sp-05">
+                            {selectedItems.map( choice => (
+                                <ChoiceElement format='badge' choice={choice} 
+                                    currentList={currentList}
+                                    onChange={onChange}
+                                    multiple={multiple}
+                                    includeCurrent 
+                                />
+                            ))} 
 
-                                    {selectedItems.map( choice => (
-                                        <ChoiceElement format='badge' choice={choice} 
-                                            currentList={currentList}
-                                            onChange={onChange}
-                                            multiple={multiple}
-                                            includeCurrent 
-                                        />
-                                    ))} 
-
-                                    {Search}  
-                                </div>
-                            </div>
-
+                            {Search}  
                         </div>
 
-                        <div class="pd-1">
-                            <ul class="row al-left wrap sp-05" style={{
-                                maxHeight: '30vh',
-                                overflowY: 'auto'
-                            }}>
-                                {choices.map( choice => (
-                                    <ChoiceElement format='badge' choice={choice} 
-                                        currentList={currentList}
-                                        onChange={onChange}
-                                        multiple={multiple}
-                                        includeCurrent
-                                    />
-                                ))}
-                            </ul>
-                        </div>
+                        <ul class="row al-left wrap sp-05" style={{
+                            maxHeight: '30vh',
+                        }}>
+                            {choices.map( choice => (
+                                <ChoiceElement format='badge' choice={choice} 
+                                    currentList={currentList}
+                                    onChange={onChange}
+                                    multiple={multiple}
+                                    includeCurrent
+                                />
+                            ))}
+                        </ul>
                         
                     </div>
                     {errors?.length && (
