@@ -3,19 +3,19 @@
 ----------------------------------*/
 
 // Core
-import type { TApiResponseData } from '@server/services/router';
+import type ClientApplication from '@client/app';
+import { fromJson as errorFromJson, NetworkError } from '@common/errors';
 import ApiClientService, { 
-    TPostData,
+    TPostData, TPostDataWithoutFile,
     TApiFetchOptions, TFetcherList, TFetcherArgs, TFetcher,
     TDataReturnedByFetchers
 } from '@common/router/request/api';
-import { fromJson as errorFromJson, NetworkError } from '@common/errors';
-import type ClientApplication from '@client/app';
 
-import { toMultipart } from './multipart';
 
 // Specific
 import type { default as Router, Request } from '..';
+import { toMultipart } from './multipart';
+import FileToUpload from '@client/components/inputv3/file/FileToUpload';
 
 /*----------------------------------
 - TYPES
@@ -187,29 +187,45 @@ export default class ApiClient implements ApiClientService {
         return { ...alreadyLoadedData, ...fetchedData }
     }
 
-    public configure = (...[method, path, data, options]: TFetcherArgs) => {
-        const { onProgress, captcha } = options || {};
+    public configure = (...[method, path, data, options = {}]: TFetcherArgs) => {
     
-        const url = this.router.url(path, {}, false);
+        let url = this.router.url(path, {}, false);
     
         debug && console.log(`[api] Sending request`, method, url, data);
     
         // Create Fetch config
-        const config = {
+        const config: With<RequestInit, 'headers'> = {
             method: method,
             headers: {
                 'Accept': "application/json",
             }
         };
     
-        // Format request data
+        // Update options depending on data
         if (data) {
+
+            // If file included in data, need to use multipart
+            // TODO: deep check
+            const hasFile = Object.values(data).some((value) => value instanceof FileToUpload);
+            if (hasFile) {
+                // GET request = Can't send files
+                if (method === "GET")
+                    throw new Error("Cannot send file in GET request");
+                // Auto switch to multiplart
+                else if (options.encoding === undefined)
+                    options.encoding = 'multipart';
+                else if (options.encoding !== 'multipart')
+                // Encoding set to JSON = Can't send files
+                    throw new Error("Cannot send file in non-multipart request");
+            }
+
+            // Data encoding
             if (method === "GET") {
 
-                const params = new URLSearchParams(data).toString();
-                config.url = `${url}?${params}`;
+                const params = new URLSearchParams( data as unknown as TPostDataWithoutFile ).toString();
+                url = `${url}?${params}`;
 
-            } else if (options?.encoding === 'multipart') {
+            } else if (options.encoding === 'multipart') {
 
                 console.log("[api] Multipart request", data);
                 // Browser will automatically choose the right headers

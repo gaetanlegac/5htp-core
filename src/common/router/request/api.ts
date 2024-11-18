@@ -22,14 +22,14 @@ export type TFetcher<TData extends any = unknown> = {
     
     method: HttpMethod,
     path: string,
-    data?: TPostData,
+    data?: TPostDataWithFile,
     options?: TApiFetchOptions
 }
 
 export type TFetcherArgs = [
     method: HttpMethod,
     path: string,
-    data?: TPostData,
+    data?: TPostDataWithFile,
     options?: TApiFetchOptions
 ]
 
@@ -40,9 +40,11 @@ export type TApiFetchOptions = {
     encoding?: 'json' | 'multipart'
 }
 
-export type TPostData = {[key: string]: PrimitiveValue}
+export type TPostData = TPostDataWithFile
 
-export type TPostDataWithFile = {[key: string]: PrimitiveValue | FileToUpload}
+export type TPostDataWithFile = { [key: string]: PrimitiveValue | FileToUpload }
+
+export type TPostDataWithoutFile = { [key: string]: PrimitiveValue }
 
 // https://stackoverflow.com/questions/44851268/typescript-how-to-extract-the-generic-parameter-from-a-type
 type TypeWithGeneric<T> = TFetcher<T>
