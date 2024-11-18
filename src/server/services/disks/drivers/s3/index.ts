@@ -244,7 +244,6 @@ export default class S3Driver<
                 Bucket: bucket,
                 Key: filename,
                 Body: content,
-                ACL: 'public-read'
             }, (err, data) => {
 
                 if (err) return reject(err);
@@ -287,6 +286,36 @@ export default class S3Driver<
                     reject(err);
             });
         })
+    }
+
+    public async deleteDir( bucketName: TBucketName, directoryPath: string ) {
+        const bucket = this.config.buckets[bucketName];
+        debug && console.log(`delete ${bucket}/${directoryPath}`);
+        try {
+            // Liste des objets dans le répertoire
+            const listedObjects = await this.s3.listObjectsV2({
+                Bucket: bucket,
+                Prefix: directoryPath
+            }).promise();
+
+            if (!listedObjects.Contents?.length) return;
+
+            // Supprimer les objets
+            await this.s3.deleteObjects({
+                Bucket: bucket,
+                Delete: {
+                    Objects: listedObjects.Contents.map(({ Key }) => ({ Key }))
+                }
+            }).promise();
+
+            // Récursivement, traiter d'autres pages d'objets si elles existent
+            //if (listedObjects.IsTruncated) await deleteDirectory();
+
+            console.log(`Le répertoire ${directoryPath} a été supprimé.`);
+            
+        } catch (error) {
+            console.error("Erreur lors de la suppression :", error);
+        }
     }
 
 }

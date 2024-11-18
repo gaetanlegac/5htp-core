@@ -92,6 +92,8 @@ export default abstract class FsDriver<
 
     public abstract delete( bucketName: TBucketName, filename: string ): Promise<boolean>;
 
+    public abstract deleteDir( bucketName: TBucketName, dirname: string ): Promise<boolean>;
+
     public abstract unmount(): Promise<void>;
 
 }
