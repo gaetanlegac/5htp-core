@@ -48,6 +48,7 @@ type AppIdentityConfig = {
 
     },
 
+    locale: string
     language: string
     maincolor: string, 
     iconsPack?: string,

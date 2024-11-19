@@ -72,62 +72,51 @@ export default class DocumentRenderer<TRouter extends Router> {
                     <meta content="IE=edge" httpEquiv="X-UA-Compatible" />
                     <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1" />
 
-                    {/* Basique*/}
-                    <meta content={this.app.identity.web.title} name="apple-mobile-web-app-title" />
+                    {/* Mobile */}
+                    <meta name="application-name" content={this.app.identity.web.title} />
+                    <meta name="apple-mobile-web-app-title" content={this.app.identity.web.title} />
+                    <meta name="apple-mobile-web-app-title" content={this.app.identity.web.title} />
+                    <meta content={this.app.identity.author.name} name="author" />
+                    <meta name="theme-color" content={this.app.identity.maincolor} />
+                    <meta name="msapplication-TileColor" content={this.app.identity.maincolor} />
+                    <meta name="apple-mobile-web-app-capable" content="yes" />
+                    <meta name="mobile-web-app-capable" content="yes" />
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+
+                    {/* https://stackoverflow.com/questions/48956465/favicon-standard-2019-svg-ico-png-and-dimensions */}
+                    {/*<link rel="manifest" href={RES['manifest.json']} />*/}
+                    <link rel="shortcut icon" href="/public/app/favicon.ico" />
+                    <link rel="icon" type="image/png" sizes="16x16" href="/public/app/favicon-16x16.png" />
+                    <link rel="icon" type="image/png" sizes="32x32" href="/public/app/favicon-32x32.png" />
+                    <link rel="apple-touch-icon" sizes="180x180" href="/public/app/apple-touch-icon-180x180.png" />
+                    <meta name="msapplication-config" content="/public/app/browserconfig.xml" />
+
+                    {/* Page */}
                     <title>{page.title}</title>
                     <meta content={page.description} name="description" />
                     <link rel="canonical" href={canonicalUrl} />
 
-                    {this.metas( page )}
+                    {/* SEO, social medias, OG tags, ...  */}
+                    {page.head.map(({ $, ...attrs }) => (
+                        React.createElement($, attrs)
+                    ))}
 
                     {this.styles( page )}
 
                     {await this.scripts( response, page )}
 
                     {/* Rich Snippets: https://schema.org/docs/full.html + https://jsonld.com/ */}
-                    {/* <script type="application/ld+json" dangerouslySetInnerHTML={{
-                        __html: JSON.stringify( schemaGenerator(page, route) )
-                    }}/> */}
+                    <script type="application/ld+json" dangerouslySetInnerHTML={{
+                        __html: JSON.stringify({
+                            '@context': 'http://schema.org',
+                            '@graph': page.jsonld
+                        })
+                    }}/>
 
                 </head>
                 <body {...attrsBody} dangerouslySetInnerHTML={{ __html: html }}></body>
             </html>
         )
-    }
-
-    private metas( page: Page ) {
-        return <>
-            {/* Réseaux sociaux */}
-            {/*page.metas.metasAdditionnelles && Object.entries(page.metas.metasAdditionnelles).map(
-                ([ cle, val ]: [ string, string ]) => (
-                    <meta name={cle} content={val} />
-                )
-                )*/}
-
-            {/* Mobile */}
-            <meta name="theme-color" content={this.app.identity.maincolor} />
-            <meta name="msapplication-TileColor" content={this.app.identity.maincolor} />
-            <meta name="apple-mobile-web-app-capable" content="yes" />
-            <meta name="apple-mobile-web-app-title" content={this.app.identity.web.title} />
-            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
-
-            {/* Identité */}
-            <meta name="mobile-web-app-capable" content="yes" />
-            <meta name="application-name" content={this.app.identity.web.title} />
-            <meta name="type" content="website" />
-
-            {/* https://stackoverflow.com/questions/48956465/favicon-standard-2019-svg-ico-png-and-dimensions */}
-            {/*<link rel="manifest" href={RES['manifest.json']} />*/}
-            <link rel="shortcut icon" href="/public/app/favicon.ico" />
-            <link rel="icon" type="image/png" sizes="16x16" href="/public/app/favicon-16x16.png" />
-            <link rel="icon" type="image/png" sizes="32x32" href="/public/app/favicon-32x32.png" />
-            <link rel="apple-touch-icon" sizes="180x180" href="/public/app/apple-touch-icon-180x180.png" />
-            <meta name="msapplication-config" content="/public/app/browserconfig.xml" />
-
-            {page.metas?.map(({ $, ...attrs }) => (
-                React.createElement($, attrs)
-            ))}
-        </>
     }
 
     private styles( page: Page ) {

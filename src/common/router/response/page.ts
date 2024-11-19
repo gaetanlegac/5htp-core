@@ -65,6 +65,7 @@ export default abstract class PageResponse<TRouter extends ClientOrServerRouter 
     public description?: string;
     public bodyClass: Set<string> = new Set<string>();
     public bodyId?: string;
+    public url: string;
 
     // Resources
     public scripts: TPageResource[] = [];
@@ -81,6 +82,8 @@ export default abstract class PageResponse<TRouter extends ClientOrServerRouter 
     ) {
 
         this.chunkId = context.route.options["id"];
+
+        this.url = context.request.url;
 
         this.fetchers = this.createFetchers(route.options.data);
        

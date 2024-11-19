@@ -4,8 +4,8 @@
 
 // Npm
 import React from 'react';
-import renderToString from "preact-render-to-string";
-const safeStringify = require('fast-safe-stringify'); // remplace les références circulairs par un [Circular]
+import renderToString from "preact-render-to-string"; 
+import type { Thing } from 'schema-dts';
 
 // Core
 import { default as Router, TRouterContext } from "@server/services/router";
@@ -35,7 +35,9 @@ type TMetasList = ({ $: string } & { [key: string]: string })[]
 
 export default class Page<TRouter extends Router = Router> extends PageResponse<TRouter> {
 
-    public metas: TMetasList = [];
+    public head: TMetasList = [];
+    public metas: {[name: string]: string} = {};
+    public jsonld: Thing[] = [];
 
     public constructor(
         public route: TRoute | TErrorRoute,
@@ -74,6 +76,10 @@ export default class Page<TRouter extends Router = Router> extends PageResponse<
 
         if (html === undefined)
             throw new Error(`Page HTML is empty (undefined)`);
+
+        // Metas
+        this.buildMetas();
+        this.buildJsonLd();
 
         // Un chunk peut regrouper plusieurs fihciers css / js
         // L'id du chunk est injecté depuis le plugin babel
@@ -119,52 +125,72 @@ export default class Page<TRouter extends Router = Router> extends PageResponse<
         }
     }
 
-    private getSocialMetas() {
-        /*if (page.metas.imageUrl)
-            page.metas.imageUrl = app.web.url + page.metas.imageUrl;
+    private buildMetas() {
 
-        if (!page.metas.metasAdditionnelles)
-            page.metas.metasAdditionnelles = {};
+        const metas = {
 
-        page.metas.metasAdditionnelles = {
-            'og:locale': 'fr_FR',
-            'og:site_name': app.identity.web.title,
-            'og:title': page.title,
-            'og:description': page.description,
-            'og:url': fullUrl,
+            'og:type': 'website',
+            'og:locale': this.app.identity.locale,
+            'og:site_name': this.app.identity.web.title,
+            'og:url': this.context.request.req.url,
 
-            ...(page.metas.imageUrl ? {
-                'og:image': page.metas.imageUrl,
-                ...(page.metas.imageX ? {
-                    'og:image:width': page.metas.imageX.toString()
-                } : {}),
-                ...(page.metas.imageY ? {
-                    'og:image:height': page.metas.imageY.toString()
-                } : {})
-            } : {}),
+            'og:title': this.title,
+            'og:description': this.description,
 
+            'twitter:url': this.context.request.req.url,
             'twitter:card': 'summary_large_image',
-            'twitter:title': page.title,
-            'twitter:description': page.description,
-            'twitter:url': fullUrl,
-            'twitter:text:title': page.title,
+            'twitter:title': this.title,
+            'twitter:text:title': this.title,
+            'twitter:description': this.description,
 
-            ...(app.identity.social?.twitter? ? {
-                'twitter:site': `@${app.identity.social?.twitter?}`,
-                'twitter:creator': `@${app.identity.social?.twitter?}`
-            } : {}),
+            ...this.metas
+        };
 
-            ...(page.metas.imageUrl ? {
-                'twitter:image': page.metas.imageUrl,
-                ...(page.metas.imageX ? {
-                    'twitter:image:width': page.metas.imageX.toString()
-                } : {}),
-                ...(page.metas.imageY ? {
-                    'twitter:image:height': page.metas.imageY.toString()
-                } : {})
-            } : {}),
+        for (const key in metas) {
+            const value = metas[key];
+            if (value === "") continue;
+            this.head.push({ $: 'meta', property: key, content: value });
+        }
+    }
 
-            ...page.metas.metasAdditionnelles
-        };*/
+    private buildJsonLd() {
+        this.jsonld.push({
+            '@type': 'Organization',
+            '@id': this.router.url('/#organization'),
+            name: this.app.identity.author.name,
+            url: this.app.identity.author.url,
+            logo: {
+                '@type': 'ImageObject',
+                '@id': this.router.url('/#logo'),
+                url: this.router.url('/public/app/android-chrome-512x512.png'),
+                width: "512px",
+                height: "512px",
+                caption: this.app.identity.author.name
+            },
+            sameAs: []
+        }, {
+            '@type': 'WebSite',
+            '@id': this.router.url('/#website'),
+            url: this.router.url('/'),
+            name: this.app.identity.name,
+            description: this.app.identity.description,
+            "publisher": {
+                "@id": this.router.url('/#organization'),
+            },
+            inLanguage: this.app.identity.locale,
+            potentialAction: [], 
+        }, {
+            '@type': "WebPage",
+            '@id': this.url,
+            url: this.url,
+
+            "isPartOf": {
+                "@id": this.router.url('/#website'),
+            },
+
+            name: this.title,
+            description: this.description,
+            inLanguage: this.app.identity.locale,
+        });
     }
 }
