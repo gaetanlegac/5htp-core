@@ -36,7 +36,10 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 
 // Core
-import useContext from '@/client/context';
+import useContext, { ClientContext } from '@/client/context';
+
+// Custom Nodes
+import AnchoredHeadingNode from '@client/components/inputv3/Rte/nodes/HeadingNode';
 
 import { EmbedConfigs } from '../AutoEmbedPlugin';
 import { INSERT_COLLAPSIBLE_COMMAND } from '../CollapsiblePlugin';
@@ -50,7 +53,7 @@ class ComponentPickerOption extends MenuOption {
     // What shows up in the editor
     title: string;
     // Icon for display
-    icon?: JSX.Element;
+    icon?: React.JSX.Element;
     // For extra searching.
     keywords: Array<string>;
     // TBD
@@ -61,7 +64,7 @@ class ComponentPickerOption extends MenuOption {
     constructor(
         title: string,
         options: {
-            icon?: JSX.Element;
+            icon?: React.JSX.Element;
             keywords?: Array<string>;
             keyboardShortcut?: string;
             onSelect: (queryString: string) => void;
@@ -141,7 +144,7 @@ function getDynamicOptions(editor: LexicalEditor, queryString: string) {
     return options;
 }
 
-function getBaseOptions(editor: LexicalEditor, { modal }: TContext) {
+function getBaseOptions(editor: LexicalEditor, { modal }: ClientContext) {
     return [
         new ComponentPickerOption('Paragraph', {
             icon: <i className="icon paragraph" />,
@@ -163,7 +166,7 @@ function getBaseOptions(editor: LexicalEditor, { modal }: TContext) {
                         editor.update(() => {
                             const selection = $getSelection();
                             if ($isRangeSelection(selection)) {
-                                $setBlocksType(selection, () => $createHeadingNode(`h${n}`));
+                                $setBlocksType(selection, () => new AnchoredHeadingNode(`h${n}`));
                             }
                         }),
                 }),
@@ -281,7 +284,7 @@ function getBaseOptions(editor: LexicalEditor, { modal }: TContext) {
     ];
 }
 
-export default function ComponentPickerMenuPlugin(): JSX.Element {
+export default function ComponentPickerMenuPlugin(): React.JSX.Element {
     
     const [editor] = useLexicalComposerContext();
     const { modal, context } = useContext();

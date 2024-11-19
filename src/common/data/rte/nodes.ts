@@ -35,8 +35,16 @@ import { StickyNode } from '@client/components/inputv3/Rte/nodes/StickyNode';
 import { TweetNode } from '@client/components/inputv3/Rte/nodes/TweetNode';
 import { YouTubeNode } from '@client/components/inputv3/Rte/nodes/YouTubeNode';
 
+import HeadingWithAnchorNode from '@client/components/inputv3/Rte/nodes/HeadingNode';
+
 const PlaygroundNodes: Array<Klass<LexicalNode>> = [
-    HeadingNode,
+    /*HeadingNode, */HeadingWithAnchorNode,
+    {
+        replace: HeadingNode,
+        with: (node) => {
+            return new HeadingWithAnchorNode( node.getTag(), node.__key );
+        }
+    },
     ListNode,
     ListItemNode,
     QuoteNode,

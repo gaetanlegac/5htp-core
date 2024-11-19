@@ -16,7 +16,6 @@ import ElementFormatDropdown from './ElementFormat';
 import BlockFormatDropDown, { blockTypeNames, rootTypeToRootName } from './BlockFormat';
 
 import {
-    $createCodeNode,
     $isCodeNode,
     CODE_LANGUAGE_FRIENDLY_NAME_MAP,
     CODE_LANGUAGE_MAP,
@@ -25,9 +24,6 @@ import {
 import { $isLinkNode, TOGGLE_LINK_COMMAND } from '@lexical/link';
 import {
     $isListNode,
-    INSERT_CHECK_LIST_COMMAND,
-    INSERT_ORDERED_LIST_COMMAND,
-    INSERT_UNORDERED_LIST_COMMAND,
     ListNode,
 } from '@lexical/list';
 import { INSERT_EMBED_COMMAND } from '@lexical/react/LexicalAutoEmbedPlugin';
@@ -35,17 +31,13 @@ import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext
 import { $isDecoratorBlockNode } from '@lexical/react/LexicalDecoratorBlockNode';
 import { INSERT_HORIZONTAL_RULE_COMMAND } from '@lexical/react/LexicalHorizontalRuleNode';
 import {
-    $createHeadingNode,
-    $createQuoteNode,
     $isHeadingNode,
     $isQuoteNode,
-    HeadingTagType,
 } from '@lexical/rich-text';
 import {
     $getSelectionStyleValueForProperty,
     $isParentElementRTL,
     $patchStyleText,
-    $setBlocksType,
 } from '@lexical/selection';
 import { $isTableNode, $isTableSelection } from '@lexical/table';
 import {
@@ -126,7 +118,7 @@ function dropDownActiveClass(active: boolean) {
 
 
 
-function Divider(): JSX.Element {
+function Divider(): React.JSX.Element {
     return <div className="divider" />;
 }
 
@@ -134,7 +126,7 @@ export default function ToolbarPlugin({
     setIsLinkEditMode,
 }: {
     setIsLinkEditMode: Dispatch<boolean>;
-}): JSX.Element {
+}): React.JSX.Element {
 
     const { modal } = useContext();
 
@@ -603,7 +595,6 @@ export default function ToolbarPlugin({
                     <DropDown popover={{ tag: 'li' }} icon="font" size="s"
                         disabled={!isEditable}
                         title="Formatting options for additional text styles"
-                        buttonIconClassName="icon dropdown-more"
                     >
 
                         <Button icon="strikethrough" size="s"
