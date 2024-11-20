@@ -39,12 +39,10 @@ export type TRouterContext<
         page: ClientPage<TRouter>,
         data: TObjetDonnees
     }
-    &
     // Expose client application services (api, socket, ...)
     //TRouter["app"] 
-    TApplication
-    &
-    ReturnType<TRouter["config"]["context"]>
+    & TApplication
+    & ReturnType<TRouter["config"]["context"]>
 )
 
 /*----------------------------------

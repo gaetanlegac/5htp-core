@@ -72,7 +72,9 @@ export type TClientOrServerContext = (
         // So here, we put the
         //{[clientContextKey in keyof ClientRouterContext/*Omit<ClientRouterContext, TClientOnlyContextKeys>*/]: undefined} 
         //& 
-        ServerRouterContext
+
+        // Page is always available in client context
+        With<ServerRouterContext, 'page'>
     )
 )
 
