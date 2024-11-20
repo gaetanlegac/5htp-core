@@ -16,7 +16,7 @@ import type { TBasicSSrData } from '@server/services/router/response';
 
 import BaseRouter, {
     defaultOptions, TRoute, TErrorRoute, 
-    TClientOrServerContext, TRouteModule,
+    TClientOrServerContextForPage, TRouteModule,
     matchRoute, buildUrl, TDomainsList
 } from '@common/router'
 import { getLayout } from '@common/router/layouts';
@@ -282,7 +282,7 @@ export default class ClientRouter<
                 ...defaultOptions,
                 ...options
             },
-            controller: (context: TClientOrServerContext) => new ClientPage(route, renderer, context, layout)
+            controller: (context: TClientOrServerContextForPage) => new ClientPage(route, renderer, context, layout)
         };
 
         this.routes.push(route);
@@ -301,7 +301,7 @@ export default class ClientRouter<
 
         const route: TErrorRoute = {
             code,
-            controller: (context: TClientOrServerContext) => new ClientPage(route, renderer, context, layout),
+            controller: (context: TClientOrServerContextForPage) => new ClientPage(route, renderer, context, layout),
             options
         };
 

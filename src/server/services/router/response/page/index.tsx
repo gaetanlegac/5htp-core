@@ -8,7 +8,7 @@ import renderToString from "preact-render-to-string";
 
 // Core
 import { default as Router, TRouterContext } from "@server/services/router";
-import type { Layout, TRoute, TErrorRoute } from '@common/router';
+import type { Layout, TRoute, TErrorRoute, TClientOrServerContext } from '@common/router';
 import PageResponse, { TFrontRenderer } from "@common/router/response/page";
 
 // Composants UI
@@ -30,7 +30,7 @@ const seoLimits = {
 - FONCTION
 ----------------------------------*/
 
-export default class Page<TRouter extends Router = Router> extends PageResponse<TRouter> {
+export default class ServerPage<TRouter extends Router = Router> extends PageResponse<TRouter> {
 
     public constructor(
         public route: TRoute | TErrorRoute,

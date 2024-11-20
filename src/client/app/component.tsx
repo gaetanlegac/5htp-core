@@ -12,7 +12,7 @@ import DialogManager from '@client/components/Dialog/Manager'
 
 // Core components
 import RouterComponent from '@client/services/router/components/router';
-import type { TClientOrServerContext } from '@common/router';
+import type { TClientOrServerContextForPage } from '@common/router';
 
 // Resources
 import '@client/assets/css/core.less';
@@ -21,7 +21,7 @@ import '@client/assets/css/core.less';
 - COMPOSANT
 ----------------------------------*/
 export default function App ({ context }: { 
-    context: TClientOrServerContext,
+    context: TClientOrServerContextForPage,
 }) {
 
     const curLayout = context.page?.layout;

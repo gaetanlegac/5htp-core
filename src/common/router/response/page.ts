@@ -7,7 +7,7 @@ import type { VNode } from 'preact';
 import type { Thing } from 'schema-dts';
 
 // Core libs
-import { ClientOrServerRouter, TClientOrServerContext, TRoute, TErrorRoute } from '@common/router';
+import { ClientOrServerRouter, TClientOrServerContextForPage, TRoute, TErrorRoute } from '@common/router';
 import { TFetcherList, TDataReturnedByFetchers } from '@common/router/request/api';
 
 /*----------------------------------
@@ -16,7 +16,7 @@ import { TFetcherList, TDataReturnedByFetchers } from '@common/router/request/ap
 
 // The function that fetch data from the api before to pass them as context to the renderer
 export type TDataProvider<TProvidedData extends TFetcherList = TFetcherList> = (
-    context: TClientOrServerContext & {
+    context: TClientOrServerContextForPage & {
         // URL query parameters
         // TODO: typings
         data: {[key: string]: string | number}
@@ -30,12 +30,12 @@ export type TFrontRenderer<
     TRouter = ClientOrServerRouter,
 > = ( 
     context: (
-        TClientOrServerContext 
+        TClientOrServerContextForPage 
         &
         TAdditionnalData
         &
         {
-            context: TClientOrServerContext,
+            context: TClientOrServerContextForPage,
             data: {[key: string]: PrimitiveValue}
         }
     )
@@ -52,7 +52,11 @@ export type TPageResource = {
     preload?: boolean
     })
 
-type TMetasList = ({ $: string } & { [key: string]: string })[]
+type TMetasDict = {
+    [key: string]: string | Date | undefined | null
+}
+
+type TMetasList = ({ $: string } & TMetasDict)[]
 
 const debug = false;
 
@@ -71,7 +75,7 @@ export default abstract class PageResponse<TRouter extends ClientOrServerRouter 
 
     // Resources
     public head: TMetasList = [];
-    public metas: { [name: string]: string } = {};
+    public metas: TMetasDict = {};
     public jsonld: Thing[] = [];
     public scripts: TPageResource[] = [];
     public style: TPageResource[] = [];
@@ -83,7 +87,7 @@ export default abstract class PageResponse<TRouter extends ClientOrServerRouter 
     public constructor(
         public route: TRoute | TErrorRoute,
         public renderer: TFrontRenderer,
-        public context: TClientOrServerContext
+        public context: TClientOrServerContextForPage
     ) {
 
         this.chunkId = context.route.options["id"];
