@@ -42,7 +42,7 @@ const PlaygroundNodes: Array<Klass<LexicalNode>> = [
     {
         replace: HeadingNode,
         with: (node) => {
-            return new HeadingWithAnchorNode( node.getTag(), node.__key );
+            return new HeadingWithAnchorNode( node.getTag() );
         }
     },
     ListNode,
