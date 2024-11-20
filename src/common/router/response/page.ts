@@ -4,11 +4,11 @@
 
 // Npm
 import type { VNode } from 'preact';
+import type { Thing } from 'schema-dts';
 
 // Core libs
 import { ClientOrServerRouter, TClientOrServerContext, TRoute, TErrorRoute } from '@common/router';
 import { TFetcherList, TDataReturnedByFetchers } from '@common/router/request/api';
-import { history } from '@client/services/router/request/history';
 
 /*----------------------------------
 - TYPES
@@ -50,7 +50,9 @@ export type TPageResource = {
 } | {
     url: string,
     preload?: boolean
-})
+    })
+
+type TMetasList = ({ $: string } & { [key: string]: string })[]
 
 const debug = false;
 
@@ -68,6 +70,9 @@ export default abstract class PageResponse<TRouter extends ClientOrServerRouter 
     public url: string;
 
     // Resources
+    public head: TMetasList = [];
+    public metas: { [name: string]: string } = {};
+    public jsonld: Thing[] = [];
     public scripts: TPageResource[] = [];
     public style: TPageResource[] = [];
 

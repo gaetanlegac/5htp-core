@@ -5,7 +5,6 @@
 // Npm
 import React from 'react';
 import renderToString from "preact-render-to-string"; 
-import type { Thing } from 'schema-dts';
 
 // Core
 import { default as Router, TRouterContext } from "@server/services/router";
@@ -27,17 +26,11 @@ const seoLimits = {
     description: 255
 }
 
-type TMetasList = ({ $: string } & { [key: string]: string })[]
-
 /*----------------------------------
 - FONCTION
 ----------------------------------*/
 
 export default class Page<TRouter extends Router = Router> extends PageResponse<TRouter> {
-
-    public head: TMetasList = [];
-    public metas: {[name: string]: string} = {};
-    public jsonld: Thing[] = [];
 
     public constructor(
         public route: TRoute | TErrorRoute,

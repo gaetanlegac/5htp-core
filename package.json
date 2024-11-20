@@ -1,7 +1,7 @@
 {
 	"name": "5htp-core",
 	"description": "Convenient TypeScript framework designed for Performance and Productivity.",
-	"version": "0.4.9-7",
+	"version": "0.4.9-8",
 	"author": "Gaetan Le Gac (https://github.com/gaetanlegac)",
 	"repository": "git://github.com/gaetanlegac/5htp-core.git",
 	"license": "MIT",
@@ -13,7 +13,6 @@
 		"framework"
 	],
 	"dependencies": {
-		"@excalidraw/excalidraw": "^0.17.6",
 		"@lexical/file": "^0.19.0",
 		"@lexical/headless": "^0.18.0",
 		"@lexical/html": "^0.18.0",
