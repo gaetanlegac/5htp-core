@@ -125,16 +125,17 @@ export default class Page<TRouter extends Router = Router> extends PageResponse<
             'og:type': 'website',
             'og:locale': this.app.identity.locale,
             'og:site_name': this.app.identity.web.title,
-            'og:url': this.context.request.req.url,
+            'og:url': this.url,
 
             'og:title': this.title,
             'og:description': this.description,
 
-            'twitter:url': this.context.request.req.url,
+            'twitter:url': this.url,
             'twitter:card': 'summary_large_image',
             'twitter:title': this.title,
-            'twitter:text:title': this.title,
             'twitter:description': this.description,
+
+            ...(this.app.identity.web.metas || {}),
 
             ...this.metas
         };
@@ -155,10 +156,10 @@ export default class Page<TRouter extends Router = Router> extends PageResponse<
             logo: {
                 '@type': 'ImageObject',
                 '@id': this.router.url('/#logo'),
-                url: this.router.url('/public/app/android-chrome-512x512.png'),
-                width: "512px",
-                height: "512px",
-                caption: this.app.identity.author.name
+                url: this.router.url('/public/brand/1024.png'),
+                width: "1024px",
+                height: "1024px",
+                caption: this.app.identity.name
             },
             sameAs: []
         }, {
@@ -171,7 +172,9 @@ export default class Page<TRouter extends Router = Router> extends PageResponse<
                 "@id": this.router.url('/#organization'),
             },
             inLanguage: this.app.identity.locale,
-            potentialAction: [], 
+            potentialAction: [],
+
+            ...(this.app.identity.web.jsonld || {}),
         }, {
             '@type': "WebPage",
             '@id': this.url,

@@ -58,7 +58,9 @@ type AppIdentityConfig = {
         titleSuffix: string,
         fullTitle: string,
         description: string,
-        version: string
+        version: string,
+        metas?: {[name: string]: string},
+        jsonld?: {[name: string]: string},
     }                         
 }
 
