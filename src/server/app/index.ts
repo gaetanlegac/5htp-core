@@ -84,7 +84,7 @@ export class Application<
         super(self, {}, {}, self);
         
         // Handle unhandled crash
-        this.on('error', e => this.container.handleBug(e, "An error occured in the application"));
+        this.on('error', (e, request) => this.container.handleBug(e, "An error occured in the application", request));
         
         process.on('unhandledRejection', (error: any, promise: any) => {
             console.log("unhandledRejection");

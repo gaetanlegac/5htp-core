@@ -1,6 +1,10 @@
 import React from 'react';
 import type { ComponentChild } from 'preact';
 
+import type { TJsonLog } from '@server/app/container/console';
+import type ServerRequest from '@server/services/router/request';
+import type { TBasicUser } from '@server/services/auth';
+
 /*----------------------------------
 - TYPES
 ----------------------------------*/
@@ -25,19 +29,31 @@ type TDetailsErreur = {
 ----------------------------------*/
 
 export type ServerBug = {
+
     // Context
     hash: string,
     date: Date, // Timestamp
     channelType?: string, 
     channelId?: string,
 
-    user: string | null | undefined,
-    ip: string | null | undefined,
+    // User
+    user?: TBasicUser | null,
+    ip?: string | null,
+
+    // Request
+    request?: {
+        method: ServerRequest["method"],
+        url: ServerRequest["url"],
+        data: ServerRequest["data"],
+        validatedData: ServerRequest["validatedData"],
+        headers: ServerRequest["headers"],
+        cookies: ServerRequest["cookies"],
+    },
     
     // Error
     error: Error,
     stacktrace: string,
-    logs: string,
+    logs: TJsonLog[],
 }
 
 /*----------------------------------

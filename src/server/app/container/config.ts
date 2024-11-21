@@ -11,6 +11,9 @@
 import fs from 'fs-extra';
 import yaml from 'yaml';
 
+// Types
+import type { Config as TConsoleConfig } from './console';
+
 /*----------------------------------
 - TYPES
 ----------------------------------*/
@@ -31,6 +34,7 @@ export type TEnvConfig = {
     name: 'local' | 'server',
     profile: 'dev' | 'prod',
     version: string,
+    console: TConsoleConfig
 }
 
 type AppIdentityConfig = {

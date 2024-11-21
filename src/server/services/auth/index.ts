@@ -65,6 +65,7 @@ export type TServices = {
 export type TBasicUser = {
     type: string,
     name: string,
+    email: string,
     roles: string[]
 }
 

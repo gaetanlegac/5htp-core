@@ -53,6 +53,9 @@ export default class RequestValidator extends ServerSchemaValidator implements R
             validators: this
         }, []);
 
+        // For logging
+        this.request.validatedData = values;
+
         return values;
     }
 

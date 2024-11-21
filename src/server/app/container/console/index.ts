@@ -11,18 +11,15 @@ import forTerminal from 'youch-terminal';
 // Npm
 import { v4 as uuid } from 'uuid';
 import { Logger, IMeta, ILogObj, ISettings } from 'tslog';
-import { format as formatSql } from 'sql-formatter';
 import highlight from 'cli-highlight';
+import Ansi2Html from 'ansi-to-html';
 
 // Core libs
 import type ApplicationContainer from '..';
 import context from '@server/context';
-import type { ServerBug } from '@common/errors';
+import type { ServerBug, Anomaly, CoreError } from '@common/errors';
 import type ServerRequest from '@server/services/router/request';
 import { SqlError } from '@server/services/database/debug';
-
-// Specific
-import logToHTML from './html';
 
 /*----------------------------------
 - SERVICE CONFIG
@@ -32,13 +29,9 @@ type TLogProfile = 'silly' | 'info' | 'warn' | 'error'
 
 export type Config = {
     debug?: boolean,
+    enable: boolean,
     bufferLimit: number,
-    dev: {
-        level: TLogProfile,
-    },
-    prod: {
-        level: TLogProfile
-    }
+    level: TLogProfile,
 }
 
 export type Hooks = {
@@ -113,7 +106,34 @@ const logLevels = {
     'info': 3, 
     'warn': 4, 
     'error': 5
-} as const
+} as const;
+
+
+var ansi2Html = new Ansi2Html({
+    newline: true,
+    // Material theme for Tilix
+    // https://github.com/gnunn1/tilix/blob/master/data/schemes/material.json
+    fg: '#fff',
+    bg: '#000',
+    colors: [
+        "#252525",
+        "#FF5252",
+        "#C3D82C",
+        "#FFC135",
+        "#42A5F5",
+        "#D81B60",
+        "#00ACC1",
+        "#F5F5F5",
+        "#708284",
+        "#FF5252",
+        "#C3D82C",
+        "#FFC135",
+        "#42A5F5",
+        "#D81B60",
+        "#00ACC1",
+        "#F5F5F5"
+    ]
+});
 
 /*----------------------------------
 - LOGGER
@@ -150,9 +170,6 @@ export default class Console {
 
         const Env = container.Environment;
 
-        const envConfig = this.config[ Env.profile === 'prod' ? 'prod' : 'dev' ];
-        const minLogLevel = logLevels[ envConfig.level ];
-
         this.logger = new Logger({
             // Use to improve performance in production
             hideLogPositionForProduction: Env.profile === 'prod',
@@ -168,7 +185,7 @@ export default class Console {
                         meta.path.filePathWithLine = this.shortenFilePath( meta.path.filePathWithLine );
                     }
 
-                    return this.logger._prettyFormatLogObjMeta( meta );
+                    return this.logger["_prettyFormatLogObjMeta"]( meta );
                 },
                 transportFormatted: (
                     logMetaMarkup: string, 
@@ -183,12 +200,25 @@ export default class Console {
             }
         }); 
 
-        if (console["_wrapped"] !== undefined)
+        if (!this.config.enable || console["_wrapped"] !== undefined)
             return;
 
-        for (const logLevel in logLevels) {
-            const levelNumber = logLevels[ logLevel ];
-            console[ logLevel ] = (...args: any[]) => {
+        this.enableLogging(origLog);
+    }
+
+    // Avoid to use lifecycle functions
+    protected async start() {}
+    public async ready() {}
+    public async shutdown() {}
+
+    private enableLogging( origLog: typeof console.log ) {
+
+        const minLogLevel = logLevels[this.config.level];
+
+        let logLevel: TLogLevel;
+        for (logLevel in logLevels) {
+            const levelNumber = logLevels[logLevel];
+            console[logLevel] = (...args: any[]) => {
 
                 // Dev mode = no care about performance = rich logging
                 if (levelNumber >= minLogLevel)
@@ -206,16 +236,11 @@ export default class Console {
                 });
             }
         }
-        
+
         console["_wrapped"] = true;
 
         setInterval(() => this.clean(), 10000);
     }
-
-    // Avoid to use lifecycle functions
-    protected async start() {}
-    public async ready() {}
-    public async shutdown() {}
 
     /*----------------------------------
     - LOGS FORMATTING
@@ -263,7 +288,7 @@ export default class Console {
             this.logs = this.logs.slice(bufferOverflow);
     }
 
-    public async createBugReport( error: Error, request?: ServerRequest ) {
+    public async createBugReport( error: Error | CoreError | Anomaly, request?: ServerRequest ) {
 
         // Print error
         this.logger.error(LogPrefix, `Sending bug report for the following error:`, error);
@@ -304,7 +329,7 @@ export default class Console {
             console.error(`Error caused by this query:`, printedQuery);
         }
 
-        if (error.dataForDebugging !== undefined)
+        if (('dataForDebugging' in error) && error.dataForDebugging !== undefined)
             console.error(LogPrefix, `More data about the error:`, error.dataForDebugging);
 
         // Prevent spamming the mailbox if infinite loop 
@@ -322,24 +347,38 @@ export default class Console {
 
         // On envoi l'email avant l'insertion dans bla bdd
         // Car cette denrière a plus de chances de provoquer une erreur
-        const logsHtml = this.printHtml(
-            this.logs.filter( e => e.channel.channelId === channelId).slice(-100), 
-            true
-        );
+        const logs = this.logs.filter(e => e.channel.channelId === channelId).slice(-100);
 
         const bugReport: ServerBug = {
+
             // Context
             hash: hash,
             date: now,
             channelType, 
             channelId,
-            // User
-            user: request?.user?.email,
-            ip: request?.ip,
+
+            ...(request ? {
+
+                // User
+                user: request.user,
+                ip: request.ip,
+
+                // Request
+                request: {
+                    method: request.method,
+                    url: request.url,
+                    data: request.data,
+                    validatedData: request.validatedData,
+                    headers: request.headers,
+                    cookies: request.cookies,
+                }
+
+            } : {}),
+
             // Error
             error,
             stacktrace: error.stack || error.message,
-            logs: logsHtml
+            logs
         }
 
         await application.reportBug( bugReport );
@@ -353,10 +392,94 @@ export default class Console {
     }
 
     /*----------------------------------
-    - READ
+    - PRINT
     ----------------------------------*/
 
-    public async getLogs( channelType: ChannelInfos["channelType"], channelId?: string ) {
+    public bugToHtml( report: ServerBug ) {
+        return `
+<b>Channel</b>: ${report.channelType} (${report.channelId})<br />
+<b>User</b>: ${report.user ? (report.user.name + ' (' + report.user.email + ')') : 'Unknown'}<br />
+<b>IP</b>: ${report.ip}<br />
+<b>Error</b>: ${report.error.message}<br />
+${this.printHtml(report.stacktrace)}<br />
+${report.request ? `
+    <hr />
+    <b>Request</b>: ${report.request.method} ${report.request.url}<br />
+    <b>Headers</b>: ${this.jsonToHTML(report.request.headers)}<br />
+    <b>Cookies</b>: ${this.jsonToHTML(report.request.cookies)}<br />
+    <b>Raw Data</b>: ${this.jsonToHTML(report.request.data)}<br />
+    <b>Validated Data</b>: ${this.jsonToHTML(report.request.validatedData)}
+` : ''}
+<hr/>
+Logs: ${this.config.enable ? `<br/>` + this.logsToHTML(report.logs) : 'Logs collection is disabled'}<br />
+        `
+    }
+ 
+    public logsToHTML( logs: TJsonLog[] ): string {
+
+        let ansi = logs.map( logEntry => this.logToAnsi( logEntry )).join('<br />');
+
+        // Convert ANSI to HTML
+        const html = ansi2Html.toHtml(ansi)
+
+        return this.printHtml( html );
+    }
+
+    private logToAnsi( log: TJsonLog ) {
+
+        // Print metas as ANSI
+        const logMetaMarkup = this.logger["_prettyFormatLogObjMeta"]({
+            date: log.time,
+            logLevelId: this.getLogLevelId(log.level),
+            logLevelName: log.level,
+            // We consider that having the path is useless in this case
+            path: undefined,
+        });
+
+        // Print args as ANSI
+        const logArgsAndErrorsMarkup = this.logger.runtime.prettyFormatLogObj(log.args, this.logger.settings);
+        const logErrors = logArgsAndErrorsMarkup.errors;
+        const logArgs = logArgsAndErrorsMarkup.args;
+        const logErrorsStr = (logErrors.length > 0 && logArgs.length > 0 ? "\n" : "") + logErrors.join("\n");
+        this.logger.settings.prettyInspectOptions.colors = this.logger.settings.stylePrettyLogs;
+        let ansi = logMetaMarkup + formatWithOptions(this.logger.settings.prettyInspectOptions, ...logArgs) + logErrorsStr;
+
+        return ansi;
+    }
+
+    public jsonToHTML( json: unknown ): string {
+
+        const coloredJson = highlight(
+            JSON.stringify(json, null, 4),
+            { language: 'json', ignoreIllegals: true }
+        );
+
+        const html = ansi2Html.toHtml(coloredJson)
+
+        return this.printHtml( html );
+    }
+
+    public printHtml( html: string ): string {
+
+        // Preserve spaces
+        html = html
+            .replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;')
+            .replace(/ /g, '&nbsp;')
+            .replace(/\n/g, '<br />');
+
+        // Create console wrapper
+        const consoleCss = `background: #000; padding: 20px; font-family: 'Fira Mono', 'monospace', 'Monaco'; font-size: 12px; line-height: 20px;color: #aaa;`
+        html = '<div style="' + consoleCss + '">' + html + '</div>';
+
+        return html;
+    }
+
+    public printSql = (requete: string) => highlight(
+        requete,//formatSql(requete, { indent: ' '.repeat(4) }),
+        { language: 'sql', ignoreIllegals: true }
+    )
+
+    /*public async getLogs( channelType: ChannelInfos["channelType"], channelId?: string ) {
 
         const filters: Partial<TDbQueryLog> = { channelType };
         if (channelId !== undefined)
@@ -386,23 +509,6 @@ export default class Console {
         }
         
         return this.printHtml( entries );
-    }
- 
-    public printHtml( logs: TJsonLog[], full: boolean = false ): string {
-
-        let html = logs.map( logEntry => logToHTML( logEntry, this )).join('<br />');
-
-        if (full) {
-            const consoleCss = `background: #000; padding: 20px; font-family: 'Fira Mono', 'monospace', 'Monaco'; font-size: 12px; line-height: 20px;color: #aaa;`
-            html = '<div style="' + consoleCss + '">' + html + '</div>';
-        }
-
-        return html;
-    }
-
-    public printSql = (requete: string) => highlight(
-        requete,//formatSql(requete, { indent: ' '.repeat(4) }),
-        { language: 'sql', ignoreIllegals: true }
-    )
+    }*/
 
 }

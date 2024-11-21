@@ -49,6 +49,7 @@ export default class ServerRequest<
     public domain: string;
     public headers: HttpHeaders = {};
     public cookies: TObjetDonnees = {};
+    public validatedData?: TObjetDonnees; // Results from the last schema.validate
 
     // reponse
     public response?: ServerResponse<TRouter>;

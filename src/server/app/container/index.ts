@@ -13,6 +13,7 @@ import type { StartedServicesIndex } from '../service';
 import Services, { ServicesContainer } from '../service/container';
 import ConfigParser, { TEnvConfig } from './config';
 import Console from './console';
+import type ServerRequest from '@server/services/router/request';
 
 /*----------------------------------
 - CLASS
@@ -38,16 +39,7 @@ export class ApplicationContainer<
         const configParser = new ConfigParser( this.path.root );
         this.Environment = configParser.env();
         this.Identity = configParser.identity();
-        this.Console = new Console(this, {
-            debug: false,
-            bufferLimit: 10000,
-            dev: {
-                level: 'log'
-            },
-            prod: {
-                level: 'log'
-            }
-        });
+        this.Console = new Console(this, this.Environment.console);
     }
 
     // Context
@@ -85,11 +77,11 @@ export class ApplicationContainer<
         }
     }
 
-    public async handleBug( rejection: Error, message: string ) {
+    public async handleBug( rejection: Error, message: string, request?: ServerRequest ) {
         if (this.Console) {
             try {
 
-                this.Console.createBugReport(rejection);
+                this.Console.createBugReport(rejection, request);
 
             } catch (consoleError) {
                 console.error(
