@@ -461,6 +461,9 @@ Logs: ${this.config.enable ? `<br/>` + this.logsToHTML(report.logs) : 'Logs coll
 
     public printHtml( html: string ): string {
 
+        if (!html)
+            return 'No data';
+
         // Preserve spaces
         html = html
             .replace(/\t/g, '&nbsp;&nbsp;&nbsp;&nbsp;')
