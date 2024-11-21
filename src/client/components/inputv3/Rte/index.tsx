@@ -66,10 +66,10 @@ export default (props: Props & InputBaseProps<string>) => {
             if (RichEditorUtils.active && RichEditorUtils.active?.title !== title)
                 RichEditorUtils.active.close();
 
-            // Set active editor
+            // Set active Editor
             RichEditorUtils.active = {
                 title,
-                close: () => setIsPreview(true)
+                close: () => preview ? setIsPreview(true) : null
             }
 
             // Load editor component if not alreayd done

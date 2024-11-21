@@ -205,7 +205,7 @@ export default ({ value, setValue, props }: {
 
                     {isMaxLength && <MaxLengthPlugin maxLength={30} />}
                     <DragDropPaste />
-                    <AutoFocusPlugin />
+                    {props.preview && <AutoFocusPlugin />}
                     <ClearEditorPlugin />
                     <ComponentPickerPlugin />
                     <EmojiPickerPlugin />
