@@ -75,16 +75,24 @@ export class RteUtils {
         json: string | LexicalState,
     }> {
 
+        // Transform content
+        const assets: TContentAssets = {
+            attachements: [],
+            skeleton: []
+        }
+
         // Parse content if string
         let json: LexicalState;
-        if (typeof content === 'string') {
+        if (typeof content === 'string' && content.trim().startsWith('{')) {
             try {
                 json = JSON.parse(content) as LexicalState;
             } catch (error) { 
                 throw new Anomaly("Invalid JSON format for the given JSON RTE content.");
             }
-        } else
+        } else if (content && typeof content === 'object' && content.root)
             json = content;
+        else
+            return { html: '', json: content, ...assets };
 
         // Parse prev version if string
         if (typeof options?.attachements?.prevVersion === 'string') {
@@ -93,12 +101,6 @@ export class RteUtils {
             } catch (error) {
                 throw new Anomaly("Invalid JSON format for the given JSON RTE prev version.");
             }
-        }
-
-        // Transform content
-        const assets: TContentAssets = {
-            attachements: [],
-            skeleton: []
         }
 
         const root = await this.processContent(json.root, async (node) => {
