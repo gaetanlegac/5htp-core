@@ -449,6 +449,9 @@ Logs: ${this.config.enable ? `<br/>` + this.logsToHTML(report.logs) : 'Logs coll
 
     public jsonToHTML( json: unknown ): string {
 
+        if (!json)
+            return 'No data';
+
         const coloredJson = highlight(
             JSON.stringify(json, null, 4),
             { language: 'json', ignoreIllegals: true }
