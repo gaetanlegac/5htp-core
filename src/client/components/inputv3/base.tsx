@@ -69,7 +69,7 @@ export function useInput<TValue>(
         if (state.changed === false)
             return;
 
-        //console.log(`[input] Commit value:`, state.value, externalValue);
+        console.log(`[input] Commit value:`, state.value, externalValue);
         if (onChange !== undefined)
             onChange(state.value);
     }
@@ -78,7 +78,7 @@ export function useInput<TValue>(
     React.useEffect(() => {
 
         if (externalValue !== undefined && externalValue !== state.value) {
-            //console.log("External value change", externalValue);
+            console.log("External value change", externalValue);
             setState({ value: externalValue, valueSource: 'external', changed: true })
         }
         

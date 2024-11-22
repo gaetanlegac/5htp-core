@@ -56,7 +56,7 @@ function PollOptionComponent({
         cb: (pollNode: PollNode) => void,
         onSelect?: () => void,
     ) => void;
-}): JSX.Element {
+}): React.JSX.Element {
 
     const { clientID } = useCollaborationContext();
     const checkboxRef = useRef(null);
@@ -93,23 +93,19 @@ function PollOptionComponent({
                 {votes > 0 && (votes === 1 ? '1 vote' : `${votes} votes`)}
             </span>
             <Input
+                wrapper={false}
                 value={text}
-                onChange={(e) => {
-                    const target = e.target;
-                    const value = target.value;
-                    const selectionStart = target.selectionStart;
-                    const selectionEnd = target.selectionEnd;
+                onChange={(value) => {
                     withPollNode(
                         (node) => {
                             node.setOptionText(option, value);
                         },
                         () => {
-                            target.selectionStart = selectionStart;
-                            target.selectionEnd = selectionEnd;
+                            
                         },
                     );
                 }}
-                placeholder={`Option ${index + 1}`}
+                title={`Option ${index + 1}`}
                 className="col-1"
             />
             <Button
@@ -133,7 +129,7 @@ export default function PollComponent({
     nodeKey: NodeKey;
     options: Options;
     question: string;
-}): JSX.Element {
+}): React.JSX.Element {
 
     const [editor] = useLexicalComposerContext();
     const totalVotes = useMemo(() => getTotalVotes(options), [options]);
