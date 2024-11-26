@@ -75,11 +75,5 @@ export default ({
             )}
             
         </div>
-        
-        {errors?.length && (
-            <div class="bubble bg error bottom">
-                {errors.join('. ')}
-            </div>
-        )}
     </>
 }

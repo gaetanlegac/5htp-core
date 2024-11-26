@@ -35,6 +35,7 @@ export type Props = {
 
     state?: [string, React.StateUpdater<string>],
     active?: boolean,
+    selected?: boolean,
     disabled?: boolean,
     loading?: boolean,
     autoFocus?: boolean,
@@ -92,6 +93,7 @@ export default ({
 
     // Interactions
     active,
+    selected,
     state: stateUpdater,
     disabled,
     loading,
@@ -106,7 +108,8 @@ export default ({
 }: Props) => {
 
     const ctx = useContext();
-    let [isActive, setIsSelected] = React.useState(false);
+    let [isSelected, setIsSelected] = React.useState(false);
+    let [isActive, setIsActive] = React.useState(false);
     const [isLoading, setLoading] = React.useState(false);
 
     if (isLoading || loading) {
@@ -118,29 +121,28 @@ export default ({
     if (stateUpdater && id !== undefined) {
         const [active, setActive] = stateUpdater;
         if (id === active)
-            isActive = true;
+            isSelected = true;
         props.onClick = () => setActive(id);
     }
 
     // Shape classes
-    className = className === undefined ? 'btn' : 'btn ' + className;
+    const classNames: string[] = ['btn'];
+    if (className)
+        classNames.push(className);
 
     if (shape !== undefined) {
         if (shape === 'tile')
-            className += ' col';
+            classNames.push('col');
         else
-            className += ' ' + shape;
+            classNames.push(shape);
     }
 
     if (size !== undefined)
-        className += ' ' + size;
-
-    if (type !== undefined)
-        className += type === 'link' ? type : (' bg ' + type);
+        classNames.push(size);
 
     if (icon) {
         if (children === undefined)
-            className += ' icon';
+            classNames.push('icon');
     }
 
     // state classes
@@ -148,11 +150,17 @@ export default ({
     props.onMouseDown = () => setMouseDown(true);
     props.onMouseUp = () => setMouseDown(false);
     props.onMouseLeave = () => setMouseDown(false);
-    if (isMouseDown)
-        className += ' pressed';
 
+    // Theming & state
+    if (isMouseDown)
+        classNames.push('pressed');
+    else if (selected || isSelected === true)
+        classNames.push('bg accent');
+    else if (type !== undefined)
+        classNames.push(type === 'link' ? type : (' bg ' + type));
+    
     if (active || isActive === true)
-        className += ' active';
+        classNames.push('active');
 
     // Icon
     if (prefix === undefined && icon !== undefined)
@@ -180,12 +188,12 @@ export default ({
 
                     // Init
                     if (checkIfCurrentUrl(ctx.request.path))
-                        setIsSelected(true);
+                        setIsActive(true);
 
                     // On location change
                     return history?.listen(({ location }) => {
 
-                        setIsSelected( checkIfCurrentUrl(location.pathname) );
+                        setIsActive( checkIfCurrentUrl(location.pathname) );
     
                     })
 
@@ -207,7 +215,7 @@ export default ({
     }
 
     let render: VNode = (
-        <Tag {...props} id={id} class={className} disabled={disabled} ref={refElem} onClick={(e: MouseEvent) => {
+        <Tag {...props} id={id} class={classNames.join(' ')} disabled={disabled} ref={refElem} onClick={(e: MouseEvent) => {
 
             // annulation si:
             // - Pas clic gauche

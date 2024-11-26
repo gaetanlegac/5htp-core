@@ -20,7 +20,7 @@ import type { Props } from '.';
 /*----------------------------------
 - COMPONENT
 ----------------------------------*/
-export default ({ choice, currentList, onChange, multiple, includeCurrent, format = 'badge' }: {
+export default ({ choice, currentList, onChange, multiple, required, includeCurrent, format = 'badge' }: {
     choice: Choice,
     currentList: Choice[],
     includeCurrent?: boolean,
@@ -30,37 +30,36 @@ export default ({ choice, currentList, onChange, multiple, includeCurrent, forma
     const isCurrent = currentList.some(c => c.value === choice.value);
     if (isCurrent && !includeCurrent) return null;
 
-    const showRemoveButton = multiple;
+    const canUnselect = !required || currentList.length > 1;
+
+    const onClick = () => {
+
+        if (isCurrent && !canUnselect)
+            return;
+
+        onChange( current => multiple 
+            ? (isCurrent 
+                ? currentList.filter(item => item.value !== choice.value) 
+                : [...(current || []), choice]
+            )
+            : isCurrent ? undefined : choice
+        );
+    }
 
     return format === 'list' ? (
         <li>
-            <Button active={isCurrent} onClick={() => onChange( current => multiple 
-                ? (isCurrent 
-                    ? currentList.filter(item => item.value !== choice.value) 
-                    : [...(current || []), choice]
-                )
-                : isCurrent ? undefined : choice
-            )}>
+            <Button selected={isCurrent} onClick={onClick}>
                 {choice.label} 
             </Button>
         </li>
     ) : (
         <li>
-            <Button type="secondary" active={isCurrent} onClick={() => onChange(current => multiple
-                ? (isCurrent
-                    ? currentList.filter(item => item.value !== choice.value)
-                    : [...(current || []), choice]
-                )
-                : isCurrent ? undefined : choice
-            )}>
+            <Button type="secondary" selected={isCurrent} onClick={onClick}>
+
                 {choice.label}
 
-                {showRemoveButton && (
-                    <span class="badge xs clickable" onClick={(e) => {
-                        e.stopPropagation();
-                        onChange( current => current.filter( c => c.value !== choice.value))
-                        return false;
-                    }}>
+                {(isCurrent && canUnselect) && (
+                    <span class="badge xs clickable">
                         x
                     </span>
                 )}

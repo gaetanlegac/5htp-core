@@ -96,7 +96,7 @@ export function useInput<TValue>(
 /*----------------------------------
 - COMPONENT
 ----------------------------------*/
-export const InputWrapper = ({ children, wrapper = true, title, hint, required, className = '' }: InputBaseProps<unknown> & {
+export const InputWrapper = ({ children, wrapper = true, title, hint, required, errors, className = '' }: InputBaseProps<unknown> & {
     children: ComponentChild
 }) => {
 
@@ -123,6 +123,12 @@ export const InputWrapper = ({ children, wrapper = true, title, hint, required, 
             {hint && <p class="hint">{hint}</p>}
 
             {children}
+
+            {errors?.length && (
+                <div class="bubble bg error bottom">
+                    {errors.join('. ')}
+                </div>
+            )}
             
         </div>
     )

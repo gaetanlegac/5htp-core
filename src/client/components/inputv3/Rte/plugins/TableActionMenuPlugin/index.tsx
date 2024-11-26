@@ -735,7 +735,7 @@ function TableCellActionMenuContainer({
                             setIsMenuOpen(!isMenuOpen);
                         }}
                         ref={menuRootRef}>
-                        <i className="chevron-down" />
+                        <i className="angle-down" />
                     </button>
                     
                     {isMenuOpen && (

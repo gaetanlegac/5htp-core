@@ -135,12 +135,6 @@ export default (props: Props & InputBaseProps<string>) => {
                         }
                     }}
                 /> */}
-
-                {errors?.length && (
-                    <div class="bubble bg error bottom">
-                        {errors.join('. ')}
-                    </div>
-                )}
             </div>
         </InputWrapper>
     )

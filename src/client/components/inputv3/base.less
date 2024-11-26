@@ -27,33 +27,8 @@
     }
 }
 
-.input {
-    &.text,
-    &.select {
-
-        background: var(--cBg);
-        border-radius: @radius;
-
-        > i {
-            color: var(--cTxtDesc);
-        }
-    }
-
-    // Error bubble
-    position: relative;
-}
-
 .input.select {
-
-    padding: 0;
-
-    .input.text {
-        border: none;
-        box-shadow: none;
-        padding: 0;
-        height: auto;
-        width: 150px;
-    }
+    
 }
 
 .input.text {
@@ -68,9 +43,23 @@
     // Since they are not supposed to be on the same row (mobile first design)
     height: @hInput;
     align-items: center;
+    
+    background: var(--cBg);
+    border-radius: @radius;
+    transition: background .1s linear;
 
-    --cBg2: #eee;
-    //box-shadow: 1px 3px 0 fade(#000,4%), 0 1px 2px 0 fade(#000,2%);
+    > i {
+        color: var(--cTxtDesc);
+    }
+
+    &:hover {
+        background: var(--cBgActive);
+    }
+
+    &.focus {
+        background: #fff;
+        box-shadow: 1px 3px 0 fade(#000,4%), 0 1px 2px 0 fade(#000,2%);
+    }
 
     @gapAround: @spacing;
     > .btn:first-child { margin-left: 0 - @gapAround / 2; }

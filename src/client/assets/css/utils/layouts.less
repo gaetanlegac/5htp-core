@@ -140,8 +140,11 @@
         }
     }
 
+    // Put this one at first because high possibilities we need to override
+    &.al-middle, 
+    &.al-center { justify-content: center; }
+
     &, &.al-top { justify-content: flex-start; }
-    &.al-middle, &.al-center { justify-content: center; }
     &.al-bottom { justify-content: flex-end; }
 
     &.al-left { align-items: flex-start; }

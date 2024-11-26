@@ -53,7 +53,7 @@ export default (props: Props) => {
             </div>
         )} state={popoverState} {...(popover || {})}>
 
-            <Button {...buttonProps} iconR={<i src="chevron-down" class="s" />} 
+            <Button {...buttonProps} iconR={<i src="angle-down" class="s" />} 
                 refElem={refButton} children={label} />
                 
         </Popover>

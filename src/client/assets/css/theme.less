@@ -19,9 +19,7 @@
         // Default theming for the children components
         @{componentsSelector} {
             // Don't apply the default theme to already themed components
-            &:not(.bg) {
-                .apply-theme-style( @componentsTheme, false, false );
-            }
+            .apply-theme-style( @componentsTheme, false, false );
         }
     }
 }
@@ -35,8 +33,15 @@
     @bgActive: if( (@theme[alpha]) or (alpha(@bg) < 1),
         fadeout( @bg, 90%),
         if( @isLight, 
-            @bg - #040404, 
+            @bg - #0A0A0A, 
             @bg + #111, 
+        )
+    );
+    @bgPressed: if( (@theme[alpha]) or (alpha(@bg) < 1),
+        fadeout( @bg, 80%),
+        if( @isLight, 
+            @bg - #1A1A1A, 
+            @bg + #222, 
         )
     );
     @fg: @theme[foreground];
@@ -44,6 +49,7 @@
     // Background
     --cBg: @bg; 
     --cBgActive: @bgActive;
+    --cBgPressed: @bgPressed;
     & when (@apply = true) {
         background: var(--cBg);
     }
@@ -51,6 +57,7 @@
     // Accent
     & when (@theme[accent1]) {
         --cTxtAccent: @theme[accent1];
+        --cBgSelected: @@theme[accent1];
     }
     & when (@theme[accent2]) {
         --cTxtAccent2: @theme[accent2];

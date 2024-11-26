@@ -244,7 +244,7 @@ export default function DropDown({
                 {buttonLabel && (
                     <span className="text dropdown-button-text">{buttonLabel}</span>
                 )}
-                <i className="chevron-down" />
+                <i className="angle-down" />
             </button>
 
             {showDropDown &&

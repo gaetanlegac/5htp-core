@@ -11,8 +11,8 @@
 
     // Layout
     position: relative;
-    gap: @spacing;
-    min-width: 0/*fit-content*/; // Fit content, even when flexbox parent width < content width
+    gap: @spacing / 2;
+    min-width: @sizeComponent; // Wdth should be < height
  
     // Dimensions
     font-size: 1em;
@@ -29,8 +29,7 @@
 
     // Colors
     // NOTE: transparent by default (menu items, etc..)
-    background: transparent;
-    color: var(--cTxtAccent);  
+    background: var(--cBg);
         
     // Hover
     //transition: all .5s linear;
@@ -38,6 +37,7 @@
     li:hover > & {
 
         color: var(--cTxtImportant);
+        background: var(--cBgActive);
         //transition: all .1s linear;
         
         > i {
@@ -77,9 +77,14 @@
         }
     }
 
+    &.selected {
+        background: var(--cBgSelected);
+        color: #fff;
+    }
+
     // Click
     &.pressed {
-        transform: scale(0.9);
+        background: var(--cBgPressed) !important;
     }
 
     &,
@@ -147,6 +152,11 @@
             color: inherit;
         }
 
+    }
+
+    &:not(.bg) {
+
+        color: var(--cTxtAccent);
     }
 
     /*----------------------------------
@@ -231,20 +241,12 @@
     // Give less imortance to buttons which are in lists
     color: var(--cTxtBase);  
     box-shadow: none;
-    //width: 100%;
+    padding: 0 1em; // Row display = more condensed
 
     &.active,
     &:hover {
         background: var(--cBgActive);
         color: var(--cTxtImportant);
-    }
-
-    > .label {
-        // All the list items label must be aligned
-        justify-content: flex-start;
-        // Since they're all horizontally aligned,
-        // Label = max width, so icon right are also aligned to right
-        flex: 1;
     }
 
     &.icon {
@@ -269,6 +271,20 @@
 
         &:not([disabled]):hover > .label {
             visibility: visible;
+        }
+    }
+}
+
+.col {
+    &.menu > .btn, 
+    &.menu > li > .btn {
+
+        > .label {
+            // All the list items label must be aligned
+            justify-content: flex-start;
+            // Since they're all horizontally aligned,
+            // Label = max width, so icon right are also aligned to right
+            flex: 1;
         }
     }
 }
