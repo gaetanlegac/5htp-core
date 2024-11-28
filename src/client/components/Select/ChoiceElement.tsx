@@ -46,15 +46,25 @@ export default ({ choice, currentList, onChange, multiple, required, includeCurr
         );
     }
 
+    const btnProps = {
+        selected: isCurrent,
+        onClick,
+        icon: choice.color ? (
+            <span class="pastille" style={{ background: '#' + choice.color }} />
+        ) : choice.icon ? (
+            <i src={choice.icon} />
+        ) : undefined
+    }
+
     return format === 'list' ? (
         <li>
-            <Button selected={isCurrent} onClick={onClick}>
+            <Button {...btnProps}>
                 {choice.label} 
             </Button>
         </li>
     ) : (
         <li>
-            <Button type="secondary" selected={isCurrent} onClick={onClick}>
+            <Button type="secondary" {...btnProps}>
 
                 {choice.label}
 

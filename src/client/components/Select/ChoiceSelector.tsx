@@ -16,7 +16,12 @@ import type { TDialogControls } from '@client/components/dropdown';
 - TYPES
 ----------------------------------*/
 
-export type Choice = { label: ComponentChild, value: string }
+export type Choice = { 
+    label: ComponentChild, 
+    value: string,
+    color?: string,
+    icon?: string,
+}
 
 type ChoicesFunc = (search: string) => Promise<Choice[]>
 
