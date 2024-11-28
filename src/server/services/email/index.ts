@@ -149,6 +149,8 @@ export default class Email extends Service<Config, Hooks, Application, Services>
             ([ emails, options ] = args as TCompleteEmailSendArgs);
             if (!Array.isArray( emails ))
                 emails = [emails];
+            else if (emails.length === 0)
+                return console.warn(LogPrefix, `No email to send.`);
         }
 
         options = options || {}
