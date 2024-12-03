@@ -1,138 +1,129 @@
-export type TSide = "left"|"top"|"right"|"bottom";
+export type TSide = "left" | "top" | "right" | "bottom";
 
 const debug = false;
 
-export type TPosition = ReturnType<typeof corrigerPosition>
+export type TPosition = ReturnType<typeof corrigerPosition>;
 
 export default function corrigerPosition(
-    conteneur: HTMLElement,
-    popover: HTMLElement,
-    absolu: boolean | undefined,
-    cote: TSide = "bottom",
-    frame?: HTMLElement
+    container: HTMLElement, // button
+    popover: HTMLElement, // popover
+    preferredSide: TSide = "bottom",
+    frame?: HTMLElement // body
 ) {
-    // RAPPEL: L'élement sera positionnée relativement à son conteneur
-    //      Tous les calculs ici donnent donc des valeurs relatives au conteneur
+    // Dimensions and bounding rectangles
+    const popoverDims = { width: popover.offsetWidth, height: popover.offsetHeight };
+    const containerRect = container.getBoundingClientRect();
 
-    const margeX = 5;
-    const margeY = 5;
-
-    const dimsPop = {
-        width: popover.offsetWidth,
-        height: popover.offsetHeight
-    }
-
-    debug && console.log(`[popover] Conteneur =`, conteneur, `Popover =`, popover, `Coté =`, cote);
-
-    if (dimsPop.width === undefined || dimsPop.height === undefined)
-        console.error("Unable to get the dimensions of the popover element. Did you pass a react element as content of popover ?");
-
-    /*----------------------------------
-    - POSITIONNEMENT INITIAL
-    ----------------------------------*/
-    let posInit = {
-        top: 0,
-        left: 0
-    };
-
-    // Position & dimensions des élements
-    const posCont = conteneur.getBoundingClientRect();
-
-    // Placement
-    debug && console.log(`[popover] Placement = ${cote}`, posCont.height, margeY);
-    switch (cote) {
-        case 'top':
-            posInit.top = -dimsPop.height - margeY;
-            break;
-        case 'bottom':
-            posInit.top = posCont.height + margeY;
-            break;
-        case 'left':
-            posInit.left = -dimsPop.width - margeX;
-            break;
-        case 'right':
-            posInit.left = posCont.width + margeX;
-            break;
-    }
-
-    // Centrage Horizontal
-    if (cote === 'top' || cote === 'bottom') {
-        debug && console.log(`[popover] Centrage horizontal`);
-        posInit.left = posCont.width / 2 - dimsPop.width / 2;
-    }
-    // Centrage Vertical
-    if (cote === 'left' || cote === 'right') {
-        debug && console.log(`[popover] Centrage vertical`);
-        posInit.top = posCont.height / 2 - dimsPop.height / 2;
-    }
-    
-    /*----------------------------------
-    - CORRECTION
-    ----------------------------------*/
-    let frontieres;
-    if (frame) { // Via conteneur spécifique
-        const posFrame = frame.getBoundingClientRect();
-        frontieres = {
-            top: Math.max(posFrame.top , 0) + margeY,
-            left: Math.max(posFrame.left, 0) + margeX,
-            right: Math.min(posFrame.right, window.innerWidth) - margeX,
-            bottom: Math.min(posFrame.bottom, window.innerHeight) - margeY
-        }
-    } else // Via fenêtre
-        frontieres = {
-            top: margeY,
-            left: margeX,
-            right: window.innerWidth - margeX,
-            bottom: window.innerHeight - margeY
+    // Find the frame if not provided
+    if (!frame) {
+        // Find the closest relative-positioned parent
+        frame = container.parentElement;
+        while (frame && !["relative", "sticky"].includes(getComputedStyle(frame).position)) {
+            frame = frame.parentElement;
         }
 
-    // Position finale de la popover
-    let posFinale: {
-        top: string,
-        left: string,
-        bottom: string,
-        right: string
-    } = {
-        top: 'auto',
-        left: 'auto',
-        right: 'auto',
-        bottom: 'auto'
+        if (!frame) frame = document.body;
+    }
+
+    if (debug) console.log("frame", frame);
+
+    const frameRect = frame.getBoundingClientRect();
+    const frameOffsetTop = frame.scrollTop;
+    const frameOffsetLeft = frame.scrollLeft;
+
+    // Calculate available space in each direction relative to the frame
+    const space = {
+        top: containerRect.top - frameRect.top,
+        bottom: frameRect.bottom - containerRect.bottom,
+        left: containerRect.left - frameRect.left,
+        right: frameRect.right - containerRect.right,
     };
 
-    debug && console.log(`[popover] Position initiale =`, posInit, `Frontières =`, frame, '=', frontieres);
+    // Helper function to check if there's enough space
+    const canFit = (side: TSide) => {
+        switch (side) {
+            case "top":
+                return space.top >= popoverDims.height;
+            case "bottom":
+                return space.bottom >= popoverDims.height;
+            case "left":
+                return space.left >= popoverDims.width;
+            case "right":
+                return space.right >= popoverDims.width;
+        }
+    };
 
-    // Extrémité Haut
-    if (posCont.top + posInit.top < frontieres.top) {
-        posFinale.top = (frontieres.top - posCont.top) + 'px';
-        debug && console.log(`[popover] Top: Extremité haut`, posFinale.top);
-    // Extrémité Bas
-    } else if (posCont.top + posInit.top + dimsPop.height >= frontieres.bottom) {
-        posFinale.top = 'auto';
-        posFinale.bottom = (posCont.bottom - frontieres.bottom) + 'px';
-        debug && console.log(`[popover] Top: Extremité bas`, posFinale.bottom);
-    } else {
-        posFinale.top = posInit.top + 'px';
-        debug && console.log(`[popover] Top: Conservation`, posFinale.top);
+    // Try preferred side first, then fallback
+    let side: TSide = preferredSide;
+    if (!canFit(preferredSide)) {
+        if (canFit("top")) side = "top";
+        else if (canFit("bottom")) side = "bottom";
+        else if (canFit("left")) side = "left";
+        else if (canFit("right")) side = "right";
     }
 
-    // Extrémité Gauche
-    if (posCont.left + posInit.left < frontieres.left) {
-        posFinale.left = (frontieres.left - posCont.left) + 'px';
-        debug && console.log(`[popover] Left: Extremité gauche`, posFinale.left);
-    // Extrémité Droite
-    } else if (posCont.left + posInit.left + dimsPop.width >= frontieres.right) {
-        posFinale.left = 'auto';
-        posFinale.right = (posCont.right - frontieres.right) + 'px';
-        debug && console.log(`[popover] Left: Extremité droite`, posFinale.right);
-    } else {
-        posFinale.left = posInit.left + 'px';
-        debug && console.log(`[popover] Left: Conservation`, posFinale.left);
+    // Calculate position based on side
+    const position = { top: 0, left: 0 };
+    if (side === "top") {
+        position.top =
+            containerRect.top -
+            frameRect.top -
+            popoverDims.height +
+            frameOffsetTop;
+        position.left =
+            containerRect.left -
+            frameRect.left +
+            (containerRect.width - popoverDims.width) / 2 +
+            frameOffsetLeft;
+    } else if (side === "bottom") {
+        position.top =
+            containerRect.bottom -
+            frameRect.top +
+            frameOffsetTop;
+        position.left =
+            containerRect.left -
+            frameRect.left +
+            (containerRect.width - popoverDims.width) / 2 +
+            frameOffsetLeft;
+    } else if (side === "left") {
+        position.top =
+            containerRect.top -
+            frameRect.top +
+            (containerRect.height - popoverDims.height) / 2 +
+            frameOffsetTop;
+        position.left =
+            containerRect.left -
+            frameRect.left -
+            popoverDims.width +
+            frameOffsetLeft;
+    } else if (side === "right") {
+        position.top =
+            containerRect.top -
+            frameRect.top +
+            (containerRect.height - popoverDims.height) / 2 +
+            frameOffsetTop;
+        position.left =
+            containerRect.right -
+            frameRect.left +
+            frameOffsetLeft;
     }
 
-    debug && console.log({ posInit, dimsPop, frontieres }, { posFinale });
+    // Adjust for overflow
+    position.top = Math.max(
+        frameOffsetTop,
+        Math.min(frameRect.height - popoverDims.height + frameOffsetTop, position.top)
+    );
+    position.left = Math.max(
+        frameOffsetLeft,
+        Math.min(frameRect.width - popoverDims.width + frameOffsetLeft, position.left)
+    );
 
+    // Return result
     return {
-        css: posFinale,
-        cote: cote
+        side,
+        css: {
+            top: `${position.top}px`,
+            left: `${position.left}px`,
+        },
     };
 }

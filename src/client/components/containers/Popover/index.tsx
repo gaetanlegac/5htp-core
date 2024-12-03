@@ -47,7 +47,7 @@ export default (props: Props) => {
 
         content, state, width, disable,
 
-        frame, side,
+        frame, side = 'bottom',
 
         children, tag,
 
@@ -72,7 +72,6 @@ export default (props: Props) => {
                 getPosition(
                     refCont.current, 
                     refContent.current, 
-                    false, 
                     side, 
                     /*frame || document.getElementById('page') || */undefined
                 )
@@ -137,7 +136,7 @@ export default (props: Props) => {
     return (
         <Tag
             style={{
-                position: 'relative',
+                //position: 'relative',
                 ...(shown ? {
                     zIndex: 11
                 } : {})

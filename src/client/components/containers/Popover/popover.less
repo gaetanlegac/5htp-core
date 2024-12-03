@@ -4,6 +4,7 @@
 // contPopover doit envelopper le bouton sans aucun espace
 .contPopover {
     display: inline-block;
+    position: static !important; // Allow popvers to go outside of the container which cna be potentially scrollable
 
     > .btn {
         width: 100%;
@@ -32,16 +33,10 @@
 
     overflow: auto;
 
-    &.pos_bottom { transform: translateY(-1.65rem); }
-    &.pos_top { transform: translateY(1.65rem); }
-    &.pos_left { transform: translateX(1.65rem); }
-    &.pos_right { transform: translateX(-1.65rem); }
-
     top: 100%;
     max-height: 40rem;
 
     min-width: 15rem;
-    width: 100%;
     max-width: 90vw;
 
     & {
