@@ -15,6 +15,11 @@ i {
     text-align: center;
     font-style: normal;
 
+    // Avoid the flexbox to crush the icon
+    .row > & {
+        flex: 0 0 1em;
+    }
+
     &.spin {
         animation-name: spin;
         animation-iteration-count: infinite;
