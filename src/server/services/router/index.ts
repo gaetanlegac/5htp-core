@@ -414,22 +414,6 @@ declare type Routes = {
         // Hook
         await this.runHook('request', request);
 
-        // TODO: move to tracking
-        /*const now = new Date;
-
-        // Identify Guest & create log entry
-        const username = request.user?.name;
-        let clientId: string = request.cookies.clientId;
-        const newClient = !(typeof clientId === 'string' && clientId.length <= 39)
-        if (newClient) {
-            clientId = uuid();
-            res.cookie('clientId', clientId, { expires: new Date(253402300000000) }); // Never expires
-        }
-
-        const keepLogs = request.ip !== '86.76.176.80';
-        if (!keepLogs)  
-            requestId = 'admin';*/
-
         // Create request context so we can access request context across all the request-triggered libs
         context.run({ channelType: 'request', channelId: requestId }, async () => {
 
@@ -454,34 +438,7 @@ declare type Routes = {
             res.header(response.headers);
             // Data
             res.send(response.data);
-
-            // TODO: move to tracking
-            /*if (newClient)
-                console.client({
-                    id: clientId,
-                    ip: request.ip,
-                    user: username,
-                    device: request.deviceString(),
-                    meet: now,
-                    activity: now,
-                });
-
-            console.request({
-
-                id: requestId,
-                date: now,
-
-                method: request.method,
-                url: request.path,
-                data: request.data,
-
-                ip: request.ip,
-                user: request.user?.name,
-                clientId,
-
-                statusCode: response.statusCode,
-                time: Date.now() - now.valueOf()
-            });*/
+            
         });
     }
 

@@ -162,16 +162,12 @@ export default class HttpServer {
 
             // Décodage des données post
             express.json({
-
-                // NOTE: Encore nécessaire ? Les webhooks stripe & bitgo n'étant plus utilisés
-                // Because Stripe needs the raw body, we compute it but only when hitting the Stripe callback URL.
-                /*verify: function (req: Request, res: Response, buf: Buffer) {
-                    if (req.originalUrl.startsWith('/api/paiement/impact/stripe'))
-                        //req.rawBody = buf.toString();
-                },*/
-
                 // TODO: prendre en considération les upload de fichiers
-                limit: '2mb'
+                limit: '2mb',
+                verify: (req, res, buf, encoding) => {
+                    // Store the raw request body so we can access it later
+                    req.rawBody = buf;
+                }
             }),
 
             // Permet de receptionner les données multipart (req.body + req.files)
