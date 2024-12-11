@@ -53,18 +53,12 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        justify-content: flex-end;
+        justify-content: center;
         gap: @spacing;
         z-index: @modal-zindex;
 
         background: fade(#000, 20%);
         border-radius: @radius;
-
-        // Desktop = vertically center the modal
-        @media (min-width: 900px) {
-            justify-content: center;
-            //padding: @spacing;
-        }
 
         // Pour les animations (ex: conffetis
         > canvas {
@@ -79,7 +73,9 @@
 
             position: relative;
             min-width: 300px;
-            max-height: 90vh;
+            max-height: 99vh;
+            max-width: 99vw;
+            width: 400px; // Default width
             box-shadow: none;
             overflow-y: auto;
 
