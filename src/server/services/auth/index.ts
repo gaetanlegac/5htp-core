@@ -43,15 +43,6 @@ export type TConfig = {
         key: string,
         expiration: string,
     },
-    google?: {
-        web: {
-            clientId: string,
-            secret: string,
-        },
-        android: {
-            clientId: string
-        }
-    }
 }
 
 export type THooks = {
