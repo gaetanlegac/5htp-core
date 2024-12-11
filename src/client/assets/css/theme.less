@@ -51,7 +51,8 @@
     --cBgActive: @bgActive;
     --cBgPressed: @bgPressed;
     & when (@apply = true) {
-        background: var(--cBg);
+        // Don't overflow the other background image props with background:
+        background-color: var(--cBg);
     }
 
     // Accent
