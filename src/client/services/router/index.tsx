@@ -124,7 +124,7 @@ export type TRoutesLoaders = {
 
 export type THookCallback<TRouter extends ClientRouter> = (request: ClientRequest<TRouter>) => void;
 
-type THookName = 'page.change' | 'page.changed'
+type THookName = 'page.change' | 'page.changed' | 'page.rendered'
 
 type Config<TAdditionnalContext extends {} = {}> = {
     preload: string[], // List of globs
@@ -428,6 +428,7 @@ export default class ClientRouter<
 
             console.log(`Render complete`);
 
+            this.runHook('page.rendered', request);
         });
     }
 
