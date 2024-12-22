@@ -1,8 +1,6 @@
 @import (reference) '@/client/assets/vars.less';
 
 // Utils
-@import './utils/sizing.less';
-@import './utils/spacing.less';
 @import (reference) "./theme.less";
 
 // Apply the theme class
@@ -119,5 +117,9 @@ body {
 
 // Import components style (always after variables declaration)
 @import "@client/assets/css/components.less";
+
+// Make utilisy classes priority compared to components
+@import './utils/sizing.less';
+@import './utils/spacing.less';
 
 @import '@/client/assets/theme.less';

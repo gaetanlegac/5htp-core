@@ -47,52 +47,52 @@
 
     // Fixes
     .w-@{taille1} { 
-        width: @taille1 * @sizingUnit; 
+        width: @taille1 * @sizingUnit !important; 
     }
     .h-@{taille1} { 
-        height: @taille1 * @sizingUnit; 
+        height: @taille1 * @sizingUnit !important; 
     }
 
     .row > .w-@{taille1},
     .col > .h-@{taille1} {
-        flex: 0 0 @taille1 * @sizingUnit;
+        flex: 0 0 @taille1 * @sizingUnit !important;
     }
 
     // Min - max
     .w-@{taille1}-a {
-        min-width: @taille1 * @sizingUnit;
+        min-width: @taille1 * @sizingUnit !important;
     }
 
     .w-a-@{taille1} {
-        max-width: @taille1 * @sizingUnit;
-        width: 100%; // We take the maximum space wecan
+        max-width: @taille1 * @sizingUnit !important;
+        width: 100% !important; // We take the maximum space wecan
     }
 
     .h-@{taille1}-a {
-        min-height: @taille1 * @sizingUnit;
+        min-height: @taille1 * @sizingUnit !important;
     }
 
     .h-a-@{taille1} {
-        max-height: @taille1 * @sizingUnit;
-        height: 100%; // We take the maximum space wecan
+        max-height: @taille1 * @sizingUnit !important;
+        height: 100% !important; // We take the maximum space wecan
     }
 
     // Ranges
     .taillesMax(@tailleMax2, @taille2: 0) when (@taille2 <= @tailleMax2) {
 
         .w-@{taille1}-@{taille2} {
-            min-width: @taille1 * @sizingUnit;
-            max-width: @taille2 * @sizingUnit;
-            width: 100%; // We take the maximum space wecan
+            min-width: @taille1 * @sizingUnit !important;
+            max-width: @taille2 * @sizingUnit !important;
+            width: 100% !important; // We take the maximum space wecan
 
             .row > & {
                 flex: 1;
             }
         }
         .h-@{taille1}-@{taille2} {
-            min-height: @taille1 * @sizingUnit;
-            max-height: @taille2 * @sizingUnit;
-            height: 100%; // We take the maximum space wecan
+            min-height: @taille1 * @sizingUnit !important;
+            max-height: @taille2 * @sizingUnit !important;
+            height: 100% !important; // We take the maximum space wecan
 
             .col > & {
                 flex: 1;
