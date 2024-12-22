@@ -1,45 +1,50 @@
 export type TSide = "left" | "top" | "right" | "bottom";
 
-const debug = false;
+// Margin from container
+const containerMargin = 8;
+
+// Margin from the screen/edges
+const screenMargin = 10;
 
 export type TPosition = ReturnType<typeof corrigerPosition>;
 
 export default function corrigerPosition(
     container: HTMLElement, // button
-    popover: HTMLElement, // popover
+    popover: HTMLElement,   // popover
     preferredSide: TSide = "bottom",
-    frame?: HTMLElement // body
+    frame?: HTMLElement | null // body or closest positioned ancestor
 ) {
-    // Dimensions and bounding rectangles
-    const popoverDims = { width: popover.offsetWidth, height: popover.offsetHeight };
+    // Dimensions
+    const popoverDims = {
+        width: popover.offsetWidth,
+        height: popover.offsetHeight,
+    };
     const containerRect = container.getBoundingClientRect();
 
-    // Find the frame if not provided
+    // Find frame if not provided
     if (!frame) {
-        // Find the closest relative-positioned parent
+        // Find the closest relative-positioned or sticky-positioned parent
         frame = container.parentElement;
         while (frame && !["relative", "sticky"].includes(getComputedStyle(frame).position)) {
             frame = frame.parentElement;
         }
-
         if (!frame) frame = document.body;
     }
 
-    if (debug) console.log("frame", frame);
-
     const frameRect = frame.getBoundingClientRect();
+    const frameContRect = document.body.getBoundingClientRect();
     const frameOffsetTop = frame.scrollTop;
     const frameOffsetLeft = frame.scrollLeft;
 
-    // Calculate available space in each direction relative to the frame
+    // Calculate available space (relative to the document body) around the container
     const space = {
-        top: containerRect.top - frameRect.top,
-        bottom: frameRect.bottom - containerRect.bottom,
-        left: containerRect.left - frameRect.left,
-        right: frameRect.right - containerRect.right,
+        top: containerRect.top - frameContRect.top,
+        bottom: frameContRect.bottom - containerRect.bottom,
+        left: containerRect.left - frameContRect.left,
+        right: frameContRect.right - containerRect.right,
     };
 
-    // Helper function to check if there's enough space
+    // Helper to check if the popover can fit on a given side without clipping
     const canFit = (side: TSide) => {
         switch (side) {
             case "top":
@@ -53,7 +58,7 @@ export default function corrigerPosition(
         }
     };
 
-    // Try preferred side first, then fallback
+    // Start with the preferred side; if it doesn't fit, pick the first side that fits
     let side: TSide = preferredSide;
     if (!canFit(preferredSide)) {
         if (canFit("top")) side = "top";
@@ -62,14 +67,17 @@ export default function corrigerPosition(
         else if (canFit("right")) side = "right";
     }
 
-    // Calculate position based on side
+    // Calculate initial position (without screen-margin clamping)
     const position = { top: 0, left: 0 };
+
     if (side === "top") {
         position.top =
             containerRect.top -
             frameRect.top -
             popoverDims.height +
-            frameOffsetTop;
+            frameOffsetTop -
+            containerMargin; // gap above container
+
         position.left =
             containerRect.left -
             frameRect.left +
@@ -79,7 +87,9 @@ export default function corrigerPosition(
         position.top =
             containerRect.bottom -
             frameRect.top +
-            frameOffsetTop;
+            frameOffsetTop +
+            containerMargin; // gap below container
+
         position.left =
             containerRect.left -
             frameRect.left +
@@ -91,34 +101,44 @@ export default function corrigerPosition(
             frameRect.top +
             (containerRect.height - popoverDims.height) / 2 +
             frameOffsetTop;
+
         position.left =
             containerRect.left -
             frameRect.left -
             popoverDims.width +
-            frameOffsetLeft;
+            frameOffsetLeft -
+            containerMargin; // gap to the left of container
     } else if (side === "right") {
         position.top =
             containerRect.top -
             frameRect.top +
             (containerRect.height - popoverDims.height) / 2 +
             frameOffsetTop;
+
         position.left =
             containerRect.right -
             frameRect.left +
-            frameOffsetLeft;
+            frameOffsetLeft +
+            containerMargin; // gap to the right of container
     }
 
-    // Adjust for overflow
+    // Clamp the final position to ensure a screenMargin from edges
     position.top = Math.max(
-        frameOffsetTop,
-        Math.min(frameRect.height - popoverDims.height + frameOffsetTop, position.top)
+        frameOffsetTop + screenMargin,
+        Math.min(
+            frameContRect.height - popoverDims.height + frameOffsetTop - screenMargin,
+            position.top
+        )
     );
     position.left = Math.max(
-        frameOffsetLeft,
-        Math.min(frameRect.width - popoverDims.width + frameOffsetLeft, position.left)
+        frameOffsetLeft + screenMargin,
+        Math.min(
+            frameContRect.width - popoverDims.width + frameOffsetLeft - screenMargin,
+            position.left
+        )
     );
 
-    // Return result
+    // Return the final side and position
     return {
         side,
         css: {
