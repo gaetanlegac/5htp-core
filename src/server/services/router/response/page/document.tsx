@@ -58,7 +58,7 @@ export default class DocumentRenderer<TRouter extends Router> {
     public async page( html: string, page: Page, response: ServerResponse<TRouter> ) {
 
         // TODO: can be customized via page / route config
-        const canonicalUrl = response.request.req.url;
+        const canonicalUrl = response.request.url;
 
         let attrsBody = {
             className: [...page.bodyClass].join(' '),
