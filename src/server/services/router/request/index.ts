@@ -135,6 +135,17 @@ export default class ServerRequest<
         return locale ? locale.toUpperCase() : 'EN'
     }
 
+    public cookie( key: string, consume: boolean = false ) {
+
+        const value = this.req.cookies[ key ];
+
+        if (consume)
+            this.res.clearCookie(key);
+
+        return value;
+
+    }
+
     /*----------------------------------
    - TESTS
    ----------------------------------*/

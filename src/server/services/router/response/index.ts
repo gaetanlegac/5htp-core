@@ -81,6 +81,7 @@ export default class ServerResponse<
     public statusCode: number = 200;
     public headers: {[cle: string]: string} = {}
     public cookie: express.Response["cookie"];
+    public clearCookie: express.Response["clearCookie"];
 
     // If data was provided by at lead one controller
     public wasProvided = false;
@@ -90,6 +91,7 @@ export default class ServerResponse<
         super(request);
 
         this.cookie = this.request.res.cookie.bind(this.request.res);
+        this.clearCookie = this.request.res.clearCookie.bind(this.request.res);
 
         this.router = request.router;
         this.app = this.router.app;
