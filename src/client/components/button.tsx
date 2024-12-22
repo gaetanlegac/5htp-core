@@ -23,7 +23,6 @@ export type Props = {
     iconR?: ComponentChild,
 
     prefix?: ComponentChild,
-    children?: ComponentChild | ComponentChild[],
     suffix?: ComponentChild,
     
     tag?: "a" | "button",
@@ -31,7 +30,6 @@ export type Props = {
     shape?: 'default' | 'icon' | 'tile' | 'pill',
     size?: TComponentSize,
     class?: string,
-    title?: string,
 
     state?: [string, React.StateUpdater<string>],
     active?: boolean,
@@ -45,7 +43,14 @@ export type Props = {
     submenu?: ComponentChild,
     nav?: boolean | 'exact'
 
-} & (TButtonProps | TLinkProps)
+// SEO: if icon only, should provinde a hint (aria-label)
+} & ({ 
+    hint: string,
+    children?: ComponentChild | ComponentChild[],
+} | { 
+    children: ComponentChild | ComponentChild[],
+    hint?: string,
+}) & (TButtonProps | TLinkProps)
 
 export type TButtonProps = {
     
@@ -84,6 +89,7 @@ export default ({
     iconR, suffix,
     submenu,
     nav,
+    hint,
 
     // Style
     class: className,
@@ -123,6 +129,12 @@ export default ({
         if (id === active)
             isSelected = true;
         props.onClick = () => setActive(id);
+    }
+
+    // Hint
+    if (hint !== undefined) {
+        props['aria-label'] = hint;
+        props.title = hint;
     }
 
     // Shape classes
