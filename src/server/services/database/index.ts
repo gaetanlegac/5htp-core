@@ -143,7 +143,7 @@ export default class SQL extends Service<Config, Hooks, Application, Services> {
         query.then = (cb: (data: any) => void) => query().then(cb);
 
         query.first = <TRowData extends TObjetDonnees = {}>(opts: TSelectQueryOptions = {}) => this.first<TRowData>(string, opts);
-        query.firstOrFail = (message?: string, opts: TQueryOptions = {}) => this.firstOrFail<TRowData>(string, message, opts);
+        query.firstOrFail = (message: string, opts: TQueryOptions = {}) => this.firstOrFail<TRowData>(string, message, opts);
 
         query.value = <TValue extends any = number>(opts: TQueryOptions = {}) => this.selectVal<TValue>(string, opts);
         
@@ -283,7 +283,7 @@ export default class SQL extends Service<Config, Hooks, Application, Services> {
             return resultatRequetes[0] || null;
         });
 
-    public firstOrFail = <TRowData extends TObjetDonnees = {}>(query: string, message?: string, opts: TSelectQueryOptions = {}): Promise<TRowData> =>
+    public firstOrFail = <TRowData extends TObjetDonnees = {}>(query: string, message: string, opts: TSelectQueryOptions = {}): Promise<TRowData> =>
         this.select(query, opts).then((resultatRequetes: any) => {
 
             if (resultatRequetes.length === 0)
