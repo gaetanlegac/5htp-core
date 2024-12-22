@@ -179,9 +179,7 @@ export const createDialog = (app: Application, isToast: boolean): DialogActions 
             
             if (!isToast)
                 render = (
-                    <div class="modal" onClick={e => 
-                        e.target.classList.contains('modal') && close(false)
-                    }>
+                    <div class="modal">
                         {render}
                     </div>
                 )
