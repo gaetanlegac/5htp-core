@@ -173,7 +173,13 @@ export default (props: Props & InputBaseProps<string> & TInputElementProps) => {
     ----------------------------------*/
     return (
         <InputWrapper {...props}>
-            <div class={className} onClick={() => refInput.current?.focus()}>
+            <div class={className} onClick={(e) => {
+
+                const shouldFocus = props.onClick ? props.onClick() !== false : true;
+                if (shouldFocus)
+                    refInput.current?.focus()
+
+            }}>
 
                 {prefix}
 
