@@ -185,7 +185,7 @@ export default ({ value, setValue, props }: {
                 <div className="editor-inner">
                     <RichTextPlugin
                         contentEditable={
-                            <div className="editor pdh-2" ref={onRef}>
+                            <div className="editor" ref={onRef}>
                                 <ContentEditable
                                     className="editor-input reading col"
                                     aria-placeholder={"Type text here ..."}

@@ -2,31 +2,7 @@
 
     .preview {
         position: relative;
-
-        &:before {
-
-            content: 'Click here to edit';
-
-            display: flex;
-            justify-content: center;
-            align-items: center;
-
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-
-            background: fade(#FFF, 50%);
-            pointer-events: none;
-            z-index: 1;
-            opacity: 0;
-            transition: all 0.3s linear;
-        }
-
-        &:hover:before {
-           opacity: 1;
-        }
+        cursor: text;
     }
 
     .other h2 {

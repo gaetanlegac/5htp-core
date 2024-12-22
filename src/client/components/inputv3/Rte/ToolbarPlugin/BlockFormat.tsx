@@ -206,7 +206,7 @@ export default function BlockFormatDropDown({
 
     return (
         <DropDown disabled={disabled} icon={currentBlockType ? currentBlockType.icon : 'question'} size="s"
-            label={currentBlockType ? currentBlockType.label : 'Unknown Block Type'}
+            //label={currentBlockType ? currentBlockType.label : 'Unknown Block Type'}
             popover={{ tag: 'li' }}
         >
             {blockTypes.map((block) => (
