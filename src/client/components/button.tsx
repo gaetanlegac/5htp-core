@@ -171,35 +171,36 @@ export default ({
     // Render
     if ('link' in props || Tag === "a") {
 
-        props.href = props.link;
-        
-        // External = open in new tab by default
-        if (props.href && (props.href[0] !== '/' || props.href.startsWith('//')))
-            props.target = '_blank';
+        // Link (only if enabled)
+        if (!disabled) {
 
-        if (props.target === undefined) {
+            props.href = props.link;
+            
+            // External = open in new tab by default
+            if (props.href && (props.href[0] !== '/' || props.href.startsWith('//')))
+                props.target = '_blank';
+        }
 
-            if (nav) {
+        // Nav
+        if (nav && props.target === undefined) {
 
-                const checkIfCurrentUrl = (url: string) => 
-                    isCurrentUrl(url, props.link, nav === 'exact');
+            const checkIfCurrentUrl = (url: string) => 
+                isCurrentUrl(url, props.link, nav === 'exact');
 
-                React.useEffect(() => {
+            React.useEffect(() => {
 
-                    // Init
-                    if (checkIfCurrentUrl(ctx.request.path))
-                        setIsActive(true);
+                // Init
+                if (checkIfCurrentUrl(ctx.request.path))
+                    setIsActive(true);
 
-                    // On location change
-                    return history?.listen(({ location }) => {
+                // On location change
+                return history?.listen(({ location }) => {
 
-                        setIsActive( checkIfCurrentUrl(location.pathname) );
-    
-                    })
+                    setIsActive( checkIfCurrentUrl(location.pathname) );
 
-                }, []);
-            }
+                })
 
+            }, []);
         }
 
         Tag = 'a';
