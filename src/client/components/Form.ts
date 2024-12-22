@@ -8,7 +8,7 @@ import React from 'react';
 // Core
 import { InputErrorSchema } from '@common/errors';
 import type { Schema } from '@common/validation';
-import type { TValidationResult } from '@common/validation/schema';
+import type { TValidationResult, TValidateOptions } from '@common/validation/schema';
 import useContext from '@/client/context';
 
 // Exports
@@ -36,19 +36,22 @@ export type Form<TFormData extends {} = {}> = {
     fields: FieldsAttrs<TFormData>,
     data: TFormData,
     options: TFormOptions<TFormData>,
+    backup?: Partial<TFormData>,
 
     // Actions
-    validate: (data: Partial<TFormData>) => TValidationResult<{}>,
-    set: (data: Partial<TFormData>) => void,
+    setBackup: (backup: Partial<TFormData>) => void,
+    validate: (data: Partial<TFormData>, validateAll?: boolean) => TValidationResult<{}>,
+    set: (data: Partial<TFormData>, merge?: boolean) => void,
     submit: (additionnalData?: Partial<TFormData>) => Promise<any>,
     
 } & FormState
 
-type FormState = {
+type FormState<TFormData extends {} = {}> = {
     isLoading: boolean,
     hasChanged: boolean,
     errorsCount: number,
     errors: { [fieldName: string]: string[] },
+    backup?: Partial<TFormData>,
 }
 
 /*----------------------------------
@@ -57,7 +60,7 @@ type FormState = {
 export default function useForm<TFormData extends {}>(
     schema: Schema<TFormData>,
     options: TFormOptions<TFormData> = {}
-): [ Form, FieldsAttrs<TFormData> ] {
+): [ Form<TFormData>, FieldsAttrs<TFormData> ] {
 
     const context = useContext();
 
@@ -65,11 +68,12 @@ export default function useForm<TFormData extends {}>(
     - INIT
     ----------------------------------*/
 
-    const [state, setState] = React.useState<FormState>({
-        hasChanged: options.data !== undefined,
+    const [state, setState] = React.useState<FormState<TFormData>>({
+        hasChanged: false,//options.data !== undefined,
         isLoading: false,
         errorsCount: 0,
-        errors: {}
+        errors: {},
+        backup: undefined
     });
 
     const initialData: Partial<TFormData> = options.data || {};
@@ -78,43 +82,54 @@ export default function useForm<TFormData extends {}>(
     const fields = React.useRef<FieldsAttrs<TFormData> | null>(null);
     const [data, setData] = React.useState< Partial<TFormData> >(initialData);
 
-    // Validate data when it changes
+    // When typed data changes
     React.useEffect(() => {
 
         // Validate
-        validate(data, false);
+        validate(data, { ignoreMissing: true });
 
         // Autosave
-        if (options.autoSave !== undefined) {
-
-            if (state.hasChanged)
-                saveLocally(data, options.autoSave.id);
-            else {
-                const autosaved = localStorage.getItem('form.' + options.autoSave.id);
-                if (autosaved !== null) {
-                    try {
-                        console.log('[form] Parse autosaved from json:', autosaved);
-                        setData( JSON.parse(autosaved) );
-                    } catch (error) {
-                        console.error('[form] Failed to decode autosaved data from json:', autosaved);
-                    }
-                }
-            }
+        if (options.autoSave !== undefined && state.hasChanged) {
+            saveLocally(data, options.autoSave.id);
         }
 
     }, [data]);
 
+    // On start
+    React.useEffect(() => {
+
+        // Restore backup
+        if (options.autoSave !== undefined && !state.hasChanged) {
+
+            const autosaved = localStorage.getItem('form.' + options.autoSave.id);
+            if (autosaved !== null) {
+                try {
+                    console.log('[form] Parse autosaved from json:', autosaved);
+                    setState(c => ({
+                        ...c,
+                        backup: JSON.parse(autosaved)
+                    }));
+                } catch (error) {
+                    console.error('[form] Failed to decode autosaved data from json:', autosaved);
+                }
+            }
+        }
+
+    }, []);
+
     /*----------------------------------
     - ACTIONS
     ----------------------------------*/
-    const validate = (allData: Partial<TFormData> = data, validateAll: boolean = true) => {
+    const validate = (allData: Partial<TFormData> = data, opts: TValidateOptions<TFormData> = {}) => {
 
         const validated = schema.validateWithDetails(allData, allData, {}, {
             // Ignore the fields where the vlaue has not been changed
             //  if the validation was triggered via onChange
-            ignoreMissing: !validateAll,
+            ignoreMissing: false,
             // The list of fields we should only validate
-            only: options.autoValidateOnly
+            only: options.autoValidateOnly,
+            // Custom options
+            ...opts
         });
 
         // Update errors
@@ -128,7 +143,7 @@ export default function useForm<TFormData extends {}>(
         return validated;
     }
 
-    const submit = async (additionnalData: Partial<TFormData> = {}) => {
+    const submit = (additionnalData: Partial<TFormData> = {}) => {
 
         const allData = { ...data, ...additionnalData }
 
@@ -138,22 +153,28 @@ export default function useForm<TFormData extends {}>(
             throw new InputErrorSchema(validated.erreurs);
         }
 
+        const afterSubmit = (responseData?: any) => {
+
+            // Reset autosaved data
+            if (options.autoSave)
+                localStorage.removeItem('form.' + options.autoSave.id);
+    
+            // Update state
+            setState( current => ({
+                ...current,
+                hasChanged: false
+            }));
+
+            return responseData;
+        }
+
         // Callback
-        let submitResult: any;
         if (options.submit)
-            submitResult = await options.submit(allData as TFormData);
-
-        // Reset autosaved data
-        if (options.autoSave)
-            localStorage.removeItem('form.' + options.autoSave.id);
-
-        // Update state
-        setState( current => ({
-            ...current,
-            hasChanged: false
-        }));
-
-        return submitResult;
+            return options.submit(allData as TFormData).then(afterSubmit);
+        else {
+            afterSubmit();
+            return undefined;
+        }
     }
 
     const rebuildFieldsAttrs = (newState: Partial<FormState> = {}) => {
@@ -218,19 +239,35 @@ export default function useForm<TFormData extends {}>(
     - EXPOSE
     ----------------------------------*/
 
-    const form = {
+    const form: Form<TFormData> = {
+
         fields: fields.current,
         data,
-        set: data => {
-            setState(current => ({
+        set: (data, merge = true) => {
+
+            setState( current => ({
                 ...current,
                 hasChanged: true
             }));
-            setData(data);
+
+            setData( merge 
+                ? c => ({ ...c, ...data }) 
+                : data
+            );
         },
+
         validate,
         submit,
         options,
+
+        setBackup: (backup: Partial<TFormData>) => {
+            
+            setState(c => ({ ...c, backup }));
+
+            if (options.autoSave)
+                localStorage.setItem('form.' + options.autoSave.id, JSON.stringify(backup));
+        },
+
         ...state
     }
 
