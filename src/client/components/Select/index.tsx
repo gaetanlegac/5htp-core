@@ -249,7 +249,7 @@ export default (props: Props) => {
 
                     {Search}  
 
-                    <ul class="row al-left wrap sp-05 scrollable mgt-1" style={{
+                    <ul class="row al-left wrap sp-05 scrollable" style={{
                         maxHeight: '30vh',
                     }}>
                         {selectedItems.map( choice => (
