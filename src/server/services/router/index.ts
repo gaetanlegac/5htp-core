@@ -438,7 +438,7 @@ declare type Routes = {
             res.header(response.headers);
             // Data
             res.send(response.data);
-            
+
         });
     }
 
@@ -558,9 +558,14 @@ declare type Routes = {
             if (this.app.env.profile === 'prod')
                 e.message = "We encountered an internal error, and our team has just been notified. Sorry for the inconvenience.";
 
-        // Pour déboguer les erreurs HTTP
-        } else if (code !== 404 && this.app.env.profile === "dev")
-            console.warn(e);
+        } else {
+
+            // For debugging HTTP errors
+            if (this.app.env.profile === "dev")
+                console.warn(e);
+
+            await this.app.runHook('error.' + code, e, request);
+        }
 
         // Return error based on the request format
         if (request.accepts("html")) {
