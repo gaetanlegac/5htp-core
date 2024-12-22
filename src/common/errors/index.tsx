@@ -162,6 +162,12 @@ export class NotFound extends CoreError {
     public static msgDefaut = "The resource you asked for was not found.";
 }
 
+export class RateLimit extends CoreError {
+    public http = 429;
+    public title = "You're going too fast";
+    public static msgDefaut = "Please slow down a bit and retry again later.";
+}
+
 export class Anomaly extends CoreError {
 
     public http = 500;
@@ -228,6 +234,8 @@ export const fromJson = ({ code, message, ...details }: TJsonError) => {
         case 403: return new Forbidden( message, details );
 
         case 404: return new NotFound( message, details );
+
+        case 429: return new RateLimit( message, details );
 
         default: return new Anomaly( message, details );
     }
