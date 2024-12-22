@@ -120,7 +120,11 @@ export default class ServerPage<TRouter extends Router = Router> extends PageRes
 
     private buildMetas() {
 
+        const shouldIndex = this.context.response.statusCode < 300;
+
         const metas = {
+
+            robots: shouldIndex ? 'index' : 'noindex',
 
             'og:type': 'website',
             'og:locale': this.app.identity.locale,
