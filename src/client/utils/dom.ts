@@ -71,7 +71,7 @@ export const focusContent = ( container: HTMLElement ) => {
 
     const toFocus = container.querySelector<HTMLInputElement | HTMLTextAreaElement | HTMLButtonElement>(
         'input, textarea, button.btn.primary, footer > button.btn'
-    )// || container;  // Is it useful ? Creating unwanted scroll issue on showing popover
+    ) || container;  // Is it useful ? Creating unwanted scroll issue on showing popover
 
     toFocus?.focus();
 }

@@ -77,14 +77,20 @@ export default (props: Props) => {
                 )
             );
 
-            // Autofocus elements
-            focusContent( refContent.current );
-
             // Close when the user clicks elsewere tha the popover
             return blurable([ refCont.current, () => show(false) ])
         }
 
     }, [shown]);
+
+    React.useEffect(() => {
+        if (position !== undefined) {
+
+            // Autofocus elements once the final position has been set
+            focusContent( refContent.current );
+
+        }
+    }, [position]);
 
     /*----------------------------------
     - ATTRIBUTES
