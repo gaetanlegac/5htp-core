@@ -41,7 +41,7 @@ export type TInputState<TValue> = {
 - HOOKS
 ----------------------------------*/
 export function useInput<TValue>(
-    { value: externalValue, onChange, className, ...otherProps }: InputBaseProps<TValue>, 
+    { value: externalValue, onChange, className, hint, ...otherProps }: InputBaseProps<TValue>, 
     defaultValue: TValue,
     autoCommit: boolean = false
 ): [
