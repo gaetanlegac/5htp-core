@@ -78,6 +78,7 @@ export type TRouteOptions = {
     // Resolving
     domain?: string,
     accept?: string,
+    raw?: boolean, // true to return raw data
     auth?: TUserRole | boolean,
 
     // Rendering

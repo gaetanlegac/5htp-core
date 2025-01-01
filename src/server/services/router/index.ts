@@ -491,10 +491,12 @@ declare type Routes = {
                 // Run on resolution hooks. Ex: authentication check
                 await this.runHook('resolved', route);
 
+                const timeEndResolving = Date.now();
+
                 // Create response
                 await response.runController(route);
                 if (response.wasProvided) {
-                    this.printTakenTime(logId, timeStart);
+                    this.printTakenTime(logId, timeStart, timeEndResolving);
                     return response;
                 }
             }
@@ -517,12 +519,13 @@ declare type Routes = {
         }
     }
 
-    private printTakenTime = (logId: string, timeStart: number) => {
+    private printTakenTime = (logId: string, timeStart: number, timeEndResolving?: number) => {
 
         if (this.app.env.name === 'server') return;
-        
-        const timeTaken = Math.round( (Date.now() - timeStart) );
-        console.log(logId + ' ' + timeTaken + 'ms');
+
+        console.log(logId + ' ' + Math.round(Date.now() - timeStart) + 'ms' + 
+            (timeEndResolving === undefined ? '' : ' | Routing: ' + Math.round(timeEndResolving - timeStart))
+        );
     }
 
     private async resolveApiBatch( fetchers: TFetcherList, request: ServerRequest<this> ) {

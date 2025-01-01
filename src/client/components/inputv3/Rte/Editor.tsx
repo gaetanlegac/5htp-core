@@ -84,10 +84,6 @@ export const EMPTY_STATE = '{"root":{"children":[{"children":[],"direction":null
 - TYPES
 ----------------------------------*/
 
-export type Props = {
-    preview?: boolean,
-}
-
 const ValueControlPlugin = ({ props, value }) => {
 
     const [editor] = useLexicalComposerContext();
@@ -111,6 +107,69 @@ export default ({ value, setValue, props }: {
     setValue: (value: string) => void,
     props: TRteProps
 }) => {
+    
+    let {
+        // Decoration
+        title,
+        // Actions
+        preview = true
+    } = props;
+
+    /*----------------------------------
+    - PREVIEW
+    ----------------------------------*/
+
+    const [isPreview, setIsPreview] = React.useState(preview);
+    const [html, setHTML] = React.useState(null);
+
+    React.useEffect(() => {
+        if (isPreview) {
+            renderPreview(value).then(setHTML);
+        }
+    }, [value, isPreview]);
+
+    // When isPreview changes, close the active editor
+    React.useEffect(() => {
+        if (!isPreview) {
+
+            // Close active editor
+            if (RichEditorUtils.active && RichEditorUtils.active?.title !== title)
+                RichEditorUtils.active.close();
+
+            // Set active Editor
+            RichEditorUtils.active = {
+                title,
+                close: () => preview ? setIsPreview(true) : null
+            }
+
+        }
+    }, [isPreview]);
+
+    const renderPreview = async (value: {} | undefined) => {
+
+        if (!value)
+            return '';
+
+        if (typeof document === 'undefined')
+            throw new Error("HTML preview disabled in server side.");
+
+        const html = await RichEditorUtils.jsonToHtml(value);
+
+        return html;
+    }
+
+    if (isPreview)
+        return (
+            html === null ? (
+                <div class="col al-center h-2">
+                    <i src="spin" />
+                </div>
+            ) : (
+                <div class="preview reading h-1-4 scrollable col clickable" 
+                    onClick={() => setIsPreview(false)}
+                    dangerouslySetInnerHTML={{ __html: html }} />
+            )
+        )
 
     /*----------------------------------
     - INIT
