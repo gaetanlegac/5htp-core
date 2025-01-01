@@ -82,6 +82,7 @@ export default class ServerResponse<
     public headers: {[cle: string]: string} = {}
     public cookie: express.Response["cookie"];
     public clearCookie: express.Response["clearCookie"];
+    public canonicalUrl: URL;
 
     // If data was provided by at lead one controller
     public wasProvided = false;
@@ -95,11 +96,17 @@ export default class ServerResponse<
 
         this.router = request.router;
         this.app = this.router.app;
+
+        this.canonicalUrl = new URL(request.url);
+        this.canonicalUrl.search = '';
     }
 
     public async runController( route: TAnyRoute, additionnalData: {} = {} ) {
 
         this.route = route;
+
+        // Update canonical url
+        this.updateCanonicalUrl(route);
 
         // Create response context for controllers
         const context = await this.createContext(route);
@@ -138,6 +145,18 @@ export default class ServerResponse<
         // Cache
         if (route.options.static)
             this.router.cache[ chunkId ] = this.data;
+    }
+
+    private updateCanonicalUrl( route: TAnyRoute ) {
+
+        if (!route.options.canonicalParams)
+            return;
+
+        for (const key of route.options.canonicalParams) {
+            const paramValue = this.request.data[ key ];
+            if (paramValue !== undefined)
+                this.canonicalUrl.searchParams.set(key, paramValue);
+        }
     }
 
     /*----------------------------------

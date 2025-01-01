@@ -57,9 +57,6 @@ export default class DocumentRenderer<TRouter extends Router> {
 
     public async page( html: string, page: Page, response: ServerResponse<TRouter> ) {
 
-        // TODO: can be customized via page / route config
-        const canonicalUrl = response.request.url;
-
         let attrsBody = {
             className: [...page.bodyClass].join(' '),
         };
@@ -94,7 +91,7 @@ export default class DocumentRenderer<TRouter extends Router> {
                     {/* Page */}
                     <title>{page.title}</title>
                     <meta content={page.description} name="description" />
-                    <link rel="canonical" href={canonicalUrl} />
+                    <link rel="canonical" href={response.canonicalUrl} />
 
                     {/* SEO, social medias, OG tags, ...  */}
                     {page.head.map(({ $, ...attrs }) => (

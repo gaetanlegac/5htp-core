@@ -80,6 +80,7 @@ export type TRouteOptions = {
     accept?: string,
     raw?: boolean, // true to return raw data
     auth?: TUserRole | boolean,
+    canonicalParams?: string[],
 
     // Rendering
     static?: boolean,
