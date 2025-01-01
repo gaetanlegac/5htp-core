@@ -17,9 +17,13 @@ type TJsonError = {
     message: string,
     // Form fields
     errors?: TListeErreursSaisie
-} & TDetailsErreur
+} & TErrorDetails
 
-type TDetailsErreur = {
+type TErrorDetails = {
+    // Allow to identify the error catched (ex: displaying custop content, running custom actions, ...)
+    id?: string,
+    data?: {},
+    // For debugging
     stack?: string,
     origin?: string,
 }
@@ -66,13 +70,13 @@ export abstract class CoreError extends Error {
     public abstract http: number;
     public title: string = "Uh Oh ...";
     public message: string;
-    public details: TDetailsErreur = {};
+    public details: TErrorDetails = {};
 
     // Note: On ne le redéfini pas ici, car déjà présent dans Error
     //      La redéfinition reset la valeur du stacktrace
     //public stack?: string;
 
-    public constructor(message?: string, details?: TDetailsErreur) {
+    public constructor(message?: string, details?: TErrorDetails) {
 
         super(message);
 
@@ -120,7 +124,7 @@ export class InputErrorSchema extends CoreError {
         return chaines.join('; ');
     }
 
-    public constructor( public errors: TListeErreursSaisie, details?: TDetailsErreur) {
+    public constructor( public errors: TListeErreursSaisie, details?: TErrorDetails) {
 
         super( InputErrorSchema.listeToString(errors), details );
 
@@ -199,7 +203,7 @@ export class NetworkError extends Error {
 export const viaHttpCode = (
     code: number, 
     message: string, 
-    details?: TDetailsErreur
+    details?: TErrorDetails
 ): CoreError => {
     return fromJson({
         code,
