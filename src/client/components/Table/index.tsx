@@ -20,14 +20,20 @@ import Checkbox from '../inputv3/Checkbox';
 export type TDonneeInconnue = { id: any } &  {[cle: string]: any};
 
 export type Props<TRow> = {
-    
-    data: TRow[],
-    columns: (row: TRow, rows: TRow[], index: number) => TColumn[];
-    stickyHeader?: boolean,
 
-    setData?: (rows: TRow[]) => void,
-    empty?: ComponentChild | false,
+    // Appearence
+    stickyHeader?: boolean,
     className?: string,
+
+    // Data
+    data: TRow[],
+    setData?: (rows: TRow[]) => void,
+    columns: (row: TRow, rows: TRow[], index: number) => TColumn[];
+    empty?: ComponentChild | false,
+
+    // Interactions
+    sort?: TSortOptions,
+    onSort?: (columnId: string | null, order: TSortOptions["order"]) => void,
 
     selection?: [TRow[], React.SetStateAction<TRow[]>],
     maxSelection?: number,
@@ -38,13 +44,19 @@ export type TColumn = JSX.HTMLAttributes<HTMLElement> & {
     cell: ComponentChild,
     raw?: number | string | boolean,
     stick?: boolean,
+    sort?: TSortOptions
+}
+
+type TSortOptions = {
+    id: string,
+    order: 'desc' | 'asc'
 }
 
 /*----------------------------------
 - COMPOSANTS
 ----------------------------------*/
 export default function Liste<TRow extends TDonneeInconnue>({
-    stickyHeader,
+    stickyHeader, onSort, sort: sorted,
     data: rows, setData, empty,
     selection: selectionState, maxSelection,
     columns, ...props
@@ -99,6 +111,7 @@ export default function Liste<TRow extends TDonneeInconnue>({
 
             {columns(row, rows, iDonnee).map(({ 
                 label, cell, class: className, raw, 
+                sort,
                 stick, width, ...cellProps 
             }) => {
 
@@ -123,9 +136,30 @@ export default function Liste<TRow extends TDonneeInconnue>({
                     }
                 }
 
+                const isCurrentlySorted = sort && sorted && sorted.id === sort.id;
+                const isSortable = sort && onSort;
+                if (isSortable) {
+                    classe += ' clickable';
+                    cellProps.onClick = () => {
+                        if (isCurrentlySorted)
+                            onSort(null, sort.order);
+                        else
+                            onSort(sort.id, sort.order);
+                    }
+                }
+
                 if (iDonnee === 0) renduColonnes.push(
                     <th class={classe} {...cellProps}>
-                        {label}
+                        <div class="row sp-btw">
+                            
+                            {isSortable ? (
+                                <a>{label}</a>
+                            ) : label}
+
+                            {isCurrentlySorted && (
+                                <i src={sort.order === "asc" ? "caret-up" : "caret-down"} />
+                            )}
+                        </div>
                     </th>
                 );
 
