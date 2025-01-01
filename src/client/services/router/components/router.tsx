@@ -147,12 +147,12 @@ export default ({ service: clientRouter, loaderComponent }: TProps) => {
             if (newLayout && curLayout && newLayout.path !== curLayout.path) {
 
                 // TEMPORARY FIX: reload everything when we change layout
-                //  Because layout can have a different theme
+                //  Because layout can have a different CSS theme
                 //  But when we call setLayout, the style of the previous layout are still oaded and applied
                 //  Find a way to unload the  previous layout / page resources before to load the new one
                 console.log(LogPrefix, `Changing layout. Before:`, curLayout, 'New layout:', newLayout);
                 window.location.replace( request ? request.url : window.location.href );
-                return { ...page }
+                return page; // Don't spread since it's an instance
 
                 context.app.setLayout(newLayout);
             }
@@ -191,6 +191,7 @@ export default ({ service: clientRouter, loaderComponent }: TProps) => {
         // Reset scroll
         window.scrollTo(0, 0);
         // Should be called AFTER rendering the page (so after the state change)
+        console.log("CHANGE PAGE", currentPage);
         currentPage?.updateClient();
         // Scroll to the selected content via url hash
         restoreScroll(currentPage);
