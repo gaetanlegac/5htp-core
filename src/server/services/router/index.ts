@@ -459,12 +459,15 @@ declare type Routes = {
 
     public async resolve(request: ServerRequest<this>): Promise<ServerResponse<this>> {
 
-        console.info(LogPrefix, request.ip, request.method, request.domain, request.path);
+        const logId = LogPrefix + ' ' + (request.isVirtual ? ' ---- ' : '') + request.ip + ' ' + request.method + ' ' + request.domain + ' ' + request.path;
+        console.info(logId);
+        const timeStart = Date.now();
 
         if (this.status === 'starting') {
             console.log(LogPrefix, `Waiting for servert to be resdy before resolving request`);
             await this.started;
         }
+
         try {
 
             const response = new ServerResponse<this>(request);
@@ -490,9 +493,10 @@ declare type Routes = {
 
                 // Create response
                 await response.runController(route);
-                if (response.wasProvided)
-                    // On continue l'itération des routes, sauf si des données ont été fournie dans la réponse (.json(), .html(), ...)
+                if (response.wasProvided) {
+                    this.printTakenTime(logId, timeStart);
                     return response;
+                }
             }
 
             throw new NotFound();
@@ -508,8 +512,14 @@ declare type Routes = {
                     error.details.origin = errOrigin;
             }
 
+            this.printTakenTime(logId, timeStart);
             throw error;
         }
+    }
+
+    private printTakenTime = (logId: string, timeStart: number) => {
+        const timeTaken = Math.round( (Date.now() - timeStart) );
+        console.log(logId + ' ' + timeTaken + 'ms');
     }
 
     private async resolveApiBatch( fetchers: TFetcherList, request: ServerRequest<this> ) {
