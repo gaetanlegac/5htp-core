@@ -518,6 +518,9 @@ declare type Routes = {
     }
 
     private printTakenTime = (logId: string, timeStart: number) => {
+
+        if (this.app.env.name === 'server') return;
+        
         const timeTaken = Math.round( (Date.now() - timeStart) );
         console.log(logId + ' ' + timeTaken + 'ms');
     }
