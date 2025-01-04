@@ -12,6 +12,7 @@
 // Node
 // Npm
 import type express from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { v4 as uuid } from 'uuid';
 import type { GlobImportedWithMetas } from 'babel-plugin-glob-import';
 
@@ -265,7 +266,31 @@ export default class ServerRouter<
     public post = (...args: TApiRegisterArgs<this>) => this.registerApi('POST', ...args);
     public put = (...args: TApiRegisterArgs<this>) => this.registerApi('PUT', ...args);
     public patch = (...args: TApiRegisterArgs<this>) => this.registerApi('PATCH', ...args);
-    public delete = (...args: TApiRegisterArgs<this>) => this.registerApi('DELETE', ...args)
+    public delete = (...args: TApiRegisterArgs<this>) => this.registerApi('DELETE', ...args);
+
+    public express( 
+        middleware: (
+            req: Request,
+            res: Response,
+            next: NextFunction,
+            requestContext: TRouterContext
+        ) => void
+    ) {
+        return (context: TRouterContext) => new Promise((resolve) => {
+            
+            context.request.res.on('finish', function() {
+                //console.log('the response has been sent', request.res.statusCode);
+                resolve(true);
+            });
+    
+            middleware(
+                context.request.req, 
+                context.request.res, 
+                () => { resolve(true); }, 
+                context
+            )
+        })
+    }
 
     protected registerApi(method: TRouteHttpMethod, ...args: TApiRegisterArgs<this>): this {
 
@@ -432,12 +457,16 @@ declare type Routes = {
                 response = await this.handleError(e, request);
             }
 
-            // Status
-            res.status(response.statusCode);
-            // Headers
-            res.header(response.headers);
-            // Data
-            res.send(response.data);
+            if (!res.headersSent) {
+                // Status
+                res.status(response.statusCode);
+                // Headers
+                res.header(response.headers);
+                // Data
+                res.send(response.data);
+            } else if (response.data !== 'true') {
+                throw new Error("Can't return data from the controller since response has already been sent via express.");
+            }
 
         });
     }
@@ -490,7 +519,6 @@ declare type Routes = {
 
                 // Run on resolution hooks. Ex: authentication check
                 await this.runHook('resolved', route);
-
                 const timeEndResolving = Date.now();
 
                 // Create response
