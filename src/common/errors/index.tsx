@@ -11,7 +11,7 @@ import type { TBasicUser } from '@server/services/auth';
 
 export type TListeErreursSaisie<TClesDonnees extends string = string> = {[champ in TClesDonnees]: string[]}
 
-type TJsonError = {
+export type TJsonError = {
     code: number,
     origin?: string,
     message: string,
