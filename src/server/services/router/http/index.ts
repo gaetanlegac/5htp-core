@@ -49,7 +49,8 @@ export type Config = {
         images?: string[],
         scripts: string[],
     },
-    cors?: CorsOptions
+    cors?: CorsOptions,
+    helmet?: Parameters<typeof helmet>[0]
 }
 
 export type Hooks = {
@@ -100,7 +101,7 @@ export default class HttpServer {
         // Config
         routes.set('trust proxy', 1); // Indique qu'on est sous le proxy apache
         // Diverses protections (dont le disable x-powered-by)
-        routes.use(helmet());
+        routes.use( helmet(this.config.helmet) );
 
         /*----------------------------------
         - FICHIERS STATIQUES
