@@ -7,6 +7,7 @@ import React from 'react';
 import { VNode, RefObject,ComponentChild } from 'preact';
 
 // Core
+import { shouldOpenNewTab } from '@client/services/router/components/Link';
 import { history } from '@client/services/router/request/history';
 import useContext from '@/client/context';
 
@@ -19,7 +20,7 @@ export type Props = {
     id?: string,
     refElem?: RefObject<HTMLElement>,
 
-    icon?: TIcons | ComponentChild,
+    icon?: ComponentChild,
     iconR?: ComponentChild,
 
     prefix?: ComponentChild,
@@ -52,14 +53,9 @@ export type Props = {
     hint?: string,
 }) & (TButtonProps | TLinkProps)
 
-export type TButtonProps = {
-    
-}
+export type TButtonProps = React.JSX.HTMLAttributes<HTMLButtonElement>
 
-export type TLinkProps = {
-    link: string, // Link
-    target?: string,
-}
+export type TLinkProps = React.JSX.HTMLAttributes<HTMLAnchorElement>
 
 /*----------------------------------
 - HELPERS
@@ -189,7 +185,7 @@ export default ({
             props.href = props.link;
             
             // External = open in new tab by default
-            if (props.href && (props.href[0] !== '/' || props.href.startsWith('//')))
+            if (shouldOpenNewTab( props.href, props.target ))
                 props.target = '_blank';
         }
 

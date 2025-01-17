@@ -7,6 +7,14 @@ import React from 'react';
 import type { ComponentChild } from 'preact';
 import { history } from '../request/history';
 
+export const shouldOpenNewTab = (url: string, target?: string) => url && (
+    target !== undefined
+    ||
+    !['/', '#'].includes(url[0])
+    || 
+    url.startsWith('//')
+)
+
 /*----------------------------------
 - COMPONENT
 ----------------------------------*/
@@ -18,11 +26,7 @@ export const Link = ({ to, ...props }: {
     className?: string
 } & React.HTMLProps<HTMLAnchorElement>) => {
 
-    const openNewTab = to && (
-        !['/', '#'].includes(to[0])
-        || 
-        to.startsWith('//')
-    );
+    const openNewTab = shouldOpenNewTab(to, props.target);
 
     // External = open in new tab by default
     if (openNewTab)
