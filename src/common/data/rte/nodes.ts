@@ -36,6 +36,7 @@ import { TweetNode } from '@client/components/inputv3/Rte/nodes/TweetNode';
 import { YouTubeNode } from '@client/components/inputv3/Rte/nodes/YouTubeNode';
 
 import HeadingWithAnchorNode from '@client/components/inputv3/Rte/nodes/HeadingNode';
+import ReferenceLinkNode from '@client/components/inputv3/Rte/nodes/ReferenceLinkNode';
 
 const PlaygroundNodes: Array<Klass<LexicalNode>> = [
     /*HeadingNode, */HeadingWithAnchorNode,
@@ -74,6 +75,9 @@ const PlaygroundNodes: Array<Klass<LexicalNode>> = [
     PageBreakNode,
     LayoutContainerNode,
     LayoutItemNode,
+
+    // Custom
+    ReferenceLinkNode
 ];
 
 export default PlaygroundNodes;
