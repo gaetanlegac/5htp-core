@@ -42,6 +42,15 @@ type LexicalNode = {
 }
 
 type TRenderOptions = {
+
+    transform?: RteUtils["transformNode"],
+
+    render?: (
+        node: LexicalNode, 
+        parent: LexicalNode | null, 
+        options: TRenderOptions
+    ) => Promise<LexicalNode>,
+
     attachements?: {
         disk: Driver,
         directory: string,
@@ -103,8 +112,8 @@ export class RteUtils {
             }
         }
 
-        const root = await this.processContent(json.root, async (node) => {
-            return await this.transformNode(node, assets, options);
+        const root = await this.processContent(json.root, null, async (node, parent) => {
+            return await this.transformNode(node, parent, assets, options);
         });
 
         json = { ...json, root };
@@ -113,29 +122,30 @@ export class RteUtils {
         const attachementOptions = options?.attachements;
         if (attachementOptions && attachementOptions.prevVersion !== undefined) {
 
-            await this.processContent(root, async (node) => {
+            await this.processContent(root, null, async (node) => {
                 return await this.deleteUnusedFile(node, assets, attachementOptions);
             });
         }
 
         // Convert json to HTML
-        const html = await this.jsonToHtml( json );
+        const html = await this.jsonToHtml( json, options );
 
         return { html, json: content, ...assets };
     }
 
     private async processContent( 
         node: LexicalNode, 
-        callback: (node: LexicalNode) => Promise<LexicalNode>
+        parent: LexicalNode | null,
+        callback: (node: LexicalNode, parent: LexicalNode | null) => Promise<LexicalNode>
     ) {
 
-        node = await callback(node);
+        node = await callback(node, parent);
 
         // Recursion
         if (node.children) {
             for (let i = 0; i < node.children.length; i++) {
 
-                node.children[ i ] = await this.processContent( node.children[ i ], callback );
+                node.children[ i ] = await this.processContent( node.children[ i ], node, callback );
 
             }
         }
@@ -143,22 +153,33 @@ export class RteUtils {
         return node;
     }
 
-    private async transformNode(node: LexicalNode, assets: TContentAssets, options: TRenderOptions) {
+    private async transformNode(
+        node: LexicalNode, 
+        parent: LexicalNode | null, 
+        assets: TContentAssets, 
+        options: TRenderOptions
+    ): Promise<LexicalNode> {
 
-        // Attachment: Upload attachments and replace blobs by URLs
+        // Images and files
         if (node.type === 'image' || node.type === 'file') {
 
+            // Upload images and files and replace blobs by URLs
             await this.processAttachement(
                 node as With<LexicalNode, 'src'>,
                 assets,
                 options,
             );
 
+        // Headings
         } else if (node.type === 'anchored-heading') {
 
+            // Create skeleton
             await this.processHeading(node, assets);
 
         }
+
+        if (options.transform)
+            node = await options.transform(node, parent, assets, options);
 
         return node;
     }
@@ -261,7 +282,17 @@ export class RteUtils {
         return node;
     }
 
-    public async jsonToHtml( json: LexicalState ) {
+    public async jsonToHtml( json: LexicalState, options: TRenderOptions = {} ) {
+
+        // Transform before rendering
+        const renderTransform = options.render;
+        if (renderTransform)
+            json = {
+                ...json,
+                root: await this.processContent(json.root, null, async (node, parent) => {
+                    return await renderTransform(node, parent, options);
+                })
+            }
 
         // Server side: simulate DOM environment
         const dom = new JSDOM(`<!DOCTYPE html><body></body>`);
