@@ -124,6 +124,7 @@ export class ImageNode extends DecoratorNode<React.JSX.Element> {
 
         const img = document.createElement('img');
         figure.appendChild(img);
+        img.setAttribute('loading', "lazy");
         img.setAttribute('src', this.__src);
         img.setAttribute('alt', this.__altText);
         img.setAttribute('width', this.__width.toString());
