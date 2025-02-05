@@ -6,7 +6,7 @@ import React from 'react';
 import { ComponentChild } from 'preact';
 
 // Composants généraux
-import Bouton from '@client/components/button';
+import Button, { Props as BtnProps } from '@client/components/button';
 
 // Core libs
 import { InputWrapper } from '../base';
@@ -67,6 +67,7 @@ export type Props = {
     emptyText?: ComponentChild,
     className?: string,
     previewUrl?: string,
+    button?: boolean | BtnProps,
 
     // Actions
     onChange: (file: FileToUpload | undefined) => void
@@ -85,11 +86,12 @@ export default (props: Props) => {
     let {
         // Input
         value: file,
-        className,
+        className: customClassName,
 
         // Display
         emptyText = 'Click here to select a File',
         previewUrl: previewUrlInit,
+        button,
 
         // Actions
         onChange
@@ -97,7 +99,13 @@ export default (props: Props) => {
 
     const [previewUrl, setPreviewUrl] = React.useState<string | undefined>(previewUrlInit);
 
-    className = 'input upload ' + (className === undefined ? '' : ' ' + className);
+    let className = 'input upload';
+
+    if (!button)
+        className += ' box';
+
+    if (customClassName !== undefined)
+        className += ' ' + customClassName;
 
     /*----------------------------------
     - ACTIONS
@@ -131,32 +139,48 @@ export default (props: Props) => {
 
             <div class={className}>
 
-                {file && <>
-                    <div class="preview">
+                {button ? <> 
 
-                        {previewUrl ? (
-                            <img src={previewUrl} />
-                        ) : typeof file === 'string' ? <>
+                    <Button type="secondary" 
+                        {...button === true ? {} : button}
+                    >
+                        {emptyText}
+                    </Button>
+                
+                </> : <>
+
+                    {file && <>
+                        <div class="preview">
+
+                            {previewUrl ? (
+                                <img src={previewUrl} />
+                            ) : typeof file === 'string' ? <>
+                                <strong>A file has been selected</strong>
+                            </> : file ? <>
+                                <strong>{file.name}</strong>
+                            </> : null}
+                        </div>
+
+                        <div class="row actions sp-05">
+
+                            {typeof file === 'string' && <>
+                                <Button type="secondary" icon="eye" shape="pill" size="s" link={file} />
+                            </>}
+                            
+                            <Button class='bg error' icon="trash" shape="pill" size="s"  
+                                async onClick={() => onChange(undefined)} />
+                        </div>
+                    </>}
+
+                    <div class="indication col al-center">
+                        {typeof file === 'string' ? <>
                             <strong>A file has been selected</strong>
                         </> : file ? <>
                             <strong>{file.name}</strong>
-                        </> : null}
+                        </> : emptyText}
                     </div>
-
-                    <div class="row actions sp-05">
-
-                        {typeof file === 'string' && <>
-                            <Bouton type="secondary" icon="eye" shape="pill" size="s" link={file} />
-                        </>}
-                        
-                        <Bouton class='bg error' icon="trash" shape="pill" size="s"  
-                            async onClick={() => onChange(undefined)} />
-                    </div>
+                
                 </>}
-
-                <div class="indication col al-center">
-                    {emptyText}
-                </div>
 
                 <input type="file" onChange={selectFile} />
             </div>
