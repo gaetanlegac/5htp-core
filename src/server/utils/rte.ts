@@ -29,7 +29,7 @@ type LexicalState = {
     root: LexicalNode
 }
 
-type LexicalNode = {
+export type LexicalNode = {
     version: number,
     type: string,
     children?: LexicalNode[],
