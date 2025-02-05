@@ -417,6 +417,7 @@ export class SchemaValidators {
             try {
                 val = JSON.parse(val);
             } catch (error) {
+                console.error("Failed to parse rich text json:", error, val);
                 throw new InputError("Invalid rich text format.");
             }
 
