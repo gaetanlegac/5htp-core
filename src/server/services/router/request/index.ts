@@ -24,7 +24,21 @@ import ServerResponse from '../response';
 - TYPES
 ----------------------------------*/
 
-const localeFilter = (input: any) => typeof input === 'string' && ISO6391.validate(input) ? input : undefined;
+const localeFilter = (input: any) => {
+
+    // Data type
+    if (typeof input !== 'string')
+        return;
+
+    // Extract ISO code
+    let lang = input.trim().split(/[-_]/)[0].toLowerCase();
+    
+    // Check size
+    if (!ISO6391.validate(lang))
+        return;
+
+    return lang.toUpperCase();
+}
 
 export type UploadedFile = With<FileToUpload, 'md5'|'ext'>
 
@@ -131,6 +145,9 @@ export default class ServerRequest<
             // Default
             'EN'
         )
+
+        console.log("locale", this.req.acceptsLanguages(), locale);
+        
 
         return locale ? locale.toUpperCase() : 'EN'
     }
