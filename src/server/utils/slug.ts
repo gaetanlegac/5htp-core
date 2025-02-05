@@ -37,29 +37,41 @@ export class Slug {
 
         // Check if already existing
         if (SQL !== undefined) {
-
-            const escapedSlug = escapeStringRegexp(slug);
-
-            const duplicates = await SQL.selectVal<number>(`
-                SELECT 
-                    IF( ${column} LIKE ${SQL.esc(slug)},
-                        1,
-                        CAST(SUBSTRING_INDEX(slug, '-', -1) AS UNSIGNED)
-                    ) AS duplicates
-                FROM ${table} 
-                WHERE 
-                    ${column} LIKE ${SQL.esc(slug)}
-                    OR
-                    ${column} REGEXP '^${escapedSlug}-[0-9]+$'
-                ORDER BY duplicates DESC
-                LIMIT 1
-            `);
-
-            if (duplicates && duplicates > 0)
-                slug += `-${duplicates + 1}`;
+            slug = await this.Correct(slug, SQL, table, column);
         }
 
         return slug;
+    }
+
+    public async Correct( 
+        slug: string, 
+        SQL: SQL, 
+        table: string, 
+        column: string 
+    ) {
+        
+        const escapedSlug = escapeStringRegexp(slug);
+
+        const duplicates = await SQL.selectVal<number>(`
+            SELECT 
+                IF( ${column} LIKE ${SQL.esc(slug)},
+                    1,
+                    CAST(SUBSTRING_INDEX(slug, '-', -1) AS UNSIGNED)
+                ) AS duplicates
+            FROM ${table} 
+            WHERE 
+                ${column} LIKE ${SQL.esc(slug)}
+                OR
+                ${column} REGEXP '^${escapedSlug}-[0-9]+$'
+            ORDER BY duplicates DESC
+            LIMIT 1
+        `);
+
+        if (duplicates && duplicates > 0)
+            slug += `-${duplicates + 1}`;
+
+        return slug;
+
     }
 
 }
