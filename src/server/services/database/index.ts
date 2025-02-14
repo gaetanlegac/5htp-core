@@ -255,8 +255,9 @@ export default class SQL extends Service<Config, Hooks, Application, Services> {
         }).join(' ').trim();
     }
 
-    public equalities = (data: TObjetDonnees, keys = Object.keys(data)) => 
-        keys.map(k => '' + k + ' = ' + this.esc( data[k] ))
+    public equalities = (data: TObjetDonnees, forStorage: boolean = false) => {
+        return Object.keys(data).map(k => '' + k + ' = ' + this.esc( data[k], forStorage ))
+    }
 
     /*----------------------------------
     - OPERATIONS: LOW LEVELf
@@ -380,7 +381,7 @@ export default class SQL extends Service<Config, Hooks, Application, Services> {
         }
 
         // Create equalities
-        const egalitesData = this.equalities(data).join(', ')
+        const egalitesData = this.equalities(data, true).join(', ')
         const egalitesWhere = this.equalities(where).join(' AND ')
 
         // Build query
