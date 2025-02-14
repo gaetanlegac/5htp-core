@@ -170,11 +170,11 @@ export default function Liste<TRow extends TDonneeInconnue>({
 
                     render = (
                         <div class="row sp-05">
-                            {cell.map((item, i) => (
+                            {cell.map((item, i) => typeof item === 'string' ? (
                                 <span class={"badge bg light" + ((i % 7) + 1)}>
                                     {item}
                                 </span>
-                            ))}
+                            ) : item)}
                         </div>
                     )
 
