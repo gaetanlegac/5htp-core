@@ -146,9 +146,6 @@ export default class ServerRequest<
             'EN'
         )
 
-        console.log("locale", this.req.acceptsLanguages(), locale);
-        
-
         return locale ? locale.toUpperCase() : 'EN'
     }
 
