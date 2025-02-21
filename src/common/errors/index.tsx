@@ -154,6 +154,27 @@ export class AuthRequired extends CoreError {
     public static msgDefaut = "Please Login to Continue.";
 }
 
+export class UpgradeRequired extends CoreError {
+    public http = 402;
+    public title = "Upgrade Required";
+    public static msgDefaut = "Please Upgrade to Continue.";
+
+    public constructor( 
+        message: string, 
+        public feature: string,
+        details?: TErrorDetails
+    ) {
+        super(message, details);
+    }
+
+    public json(): TJsonError & { feature: string } {
+        return {
+            ...super.json(),
+            feature: this.feature,
+        }
+    }
+}
+
 export class Forbidden extends CoreError {
     public http = 403;
     public title = "Access Denied";
@@ -234,6 +255,8 @@ export const fromJson = ({ code, message, ...details }: TJsonError) => {
                 return new InputError( message, details );
 
         case 401: return new AuthRequired( message, details );
+
+        case 402: return new UpgradeRequired( message, details.feature, details );
 
         case 403: return new Forbidden( message, details );
 
