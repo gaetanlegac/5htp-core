@@ -583,11 +583,8 @@ declare type Routes = {
     private async handleError( e: CoreError, request: ServerRequest<ServerRouter> ) {
 
         const code = 'http' in e ? e.http : 500;
-        const route = this.errors[code];
-        if (route === undefined)
-            throw new Error(`No route for error code ${code}`);
 
-        const response = new ServerResponse(request).status(code).setRoute(route);
+        const response = new ServerResponse(request).status(code)
 
         // Rapport / debug
         if (code === 500) {
@@ -605,18 +602,24 @@ declare type Routes = {
         } else {
 
             // For debugging HTTP errors
-            if (this.app.env.profile === "dev")
-                console.warn(e);
+            /*if (this.app.env.profile === "dev")
+                console.warn(e);*/
 
             await this.app.runHook('error.' + code, e, request);
         }
 
         // Return error based on the request format
         if (request.accepts("html")) {
+
+            const route = this.errors[code];
+            if (route === undefined)
+                throw new Error(`No route for error code ${code}`);
+
             const jsonError = errorToJson(e);
-            await response.runController(route, { 
+            await response.setRoute(route).runController(route, { 
                 error: jsonError
             });
+
         } else if (request.accepts("json")) {
             const jsonError = errorToJson(e);
             await response.json(jsonError);
