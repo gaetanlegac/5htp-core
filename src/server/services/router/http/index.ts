@@ -164,7 +164,7 @@ export default class HttpServer {
             // Décodage des données post
             express.json({
                 // TODO: prendre en considération les upload de fichiers
-                limit: '2mb',
+                limit: bytes(this.config.upload.maxSize),
                 verify: (req, res, buf, encoding) => {
                     // Store the raw request body so we can access it later
                     req.rawBody = buf;
