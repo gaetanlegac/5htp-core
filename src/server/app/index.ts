@@ -2,6 +2,9 @@
 - DEPENDANCES
 ----------------------------------*/
 
+// Npm
+import type express from 'express';
+
 // Core
 import AppContainer from './container';
 import ApplicationService, { StartedServicesIndex } from './service';
@@ -42,7 +45,7 @@ export const Service = ServicesContainer;
 /*----------------------------------
 - FUNCTIONS
 ----------------------------------*/
-export class Application<
+export abstract class Application<
     TServicesContainer extends ServicesContainerClass = ServicesContainerClass
 > extends ApplicationService<Config, Hooks, /* TODO: this ? */Application, {}> {
 
@@ -190,6 +193,9 @@ export class Application<
     /*----------------------------------
     - ERROR HANDLING
     ----------------------------------*/
+
+    public abstract handleRequest( req: express.Request, res: express.Response );
+
     // Default error handler
     public async reportBug( bug: ServerBug ) {
 

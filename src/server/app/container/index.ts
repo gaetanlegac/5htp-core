@@ -58,7 +58,7 @@ export class ApplicationContainer<
         },
     }
 
-    public start( ApplicationClass: typeof Application ) {
+    public start( ApplicationClass: typeof Application ): Application {
 
         // Instanciate Application
         try {
@@ -75,6 +75,8 @@ export class ApplicationContainer<
             this.handleBug(error, "Failed to start the Application");
             process.exit(1);
         }
+
+        return this.application;
     }
 
     public async handleBug( rejection: Error, message: string, request?: ServerRequest ) {

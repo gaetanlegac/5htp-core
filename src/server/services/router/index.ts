@@ -85,12 +85,13 @@ export type Config<
 > = {
 
     debug: boolean,
+    serverless?: boolean,
 
     disk?: string, // Disk driver ID
 
     domains: TDomainsList,
 
-    http: HttpServiceConfig
+    http: HttpServiceConfig,
 
     context: (
         request: ServerRequest<ServerRouter>, 

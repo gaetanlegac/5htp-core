@@ -206,21 +206,12 @@ export default class HttpServer {
         /*----------------------------------
         - BOOT SERVICES
         ----------------------------------*/
-
-        /*
-        // Précompilation des templates email
-        await compilerEmails();
-
-        // Chargement de la liste des pays et langues
-        await GeoTracking.ChargerCache();
-
-        await QueryParser.prebuildCache();*/
-        // Si le HMR est activé, app sera englobée dans une autre instance express
-        // Impossible donc de créer un serveur http ici, on le fera dans start.js
-        console.info("Lancement du serveur web");
-        this.http.listen(this.config.port, () => {
-            console.info(`Web server ready on ${this.publicUrl}`);
-        });
+        if (!this.router.config.serverless) {
+            console.info("Lancement du serveur web");
+            this.http.listen(this.config.port, () => {
+                console.info(`Web server ready on ${this.publicUrl}`);
+            });
+        }
 
     }
 
