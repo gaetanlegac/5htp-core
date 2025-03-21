@@ -3,7 +3,7 @@
 ----------------------------------*/
 
 // Npm
-import sharp from 'sharp';
+import type { default as sharp, Sharp } from 'sharp';
 import fs from 'fs-extra';
 import got, { Method, Options } from 'got';
 
@@ -43,6 +43,7 @@ export type Services = {
 ----------------------------------*/
 
 export type TImageConfig = {
+    sharp: typeof sharp,
     width: number,
     height: number,
     fit: keyof sharp.FitEnum,
@@ -172,7 +173,7 @@ export default class FetchService extends Service<Config, Hooks, Application, Se
 
     public async image( 
         imageFileUrl: string, 
-        { width, height, fit, quality }: TImageConfig, 
+        imageMod: TImageConfig, 
         saveToBucket: string,
         saveToPath?: string,
         disk?: string
@@ -183,7 +184,7 @@ export default class FetchService extends Service<Config, Hooks, Application, Se
             throw new Error(`Please provide a Disks service in order to download files.`);
 
         // Download
-        let imageBuffer: Buffer;
+        let imageBuffer: Buffer | null;
         try {
             imageBuffer = await this.toBuffer( imageFileUrl );
         } catch (error) {
@@ -191,21 +192,27 @@ export default class FetchService extends Service<Config, Hooks, Application, Se
             return null;
         }
 
-        // Resize
-        const processing = sharp( imageBuffer )
-            // Max dimensions (save space)
-            .resize(width, height, { fit }) 
+        if (imageMod) {
 
-        // Convert to webp and finalize
-        const processedBuffer = await processing.webp({ quality }).toBuffer().catch(e => {
-            console.error(LogPrefix, `Error while processing image at ${imageFileUrl}:`, e);
-            return null;
-        })
+            const { sharp, width, height, fit, quality } = imageMod;
+
+            // Resize
+            const processing = sharp( imageBuffer )
+                // Max dimensions (save space)
+                .resize(width, height, { fit }) 
+    
+            // Convert to webp and finalize
+            imageBuffer = await processing.webp({ quality }).toBuffer().catch(e => {
+                console.error(LogPrefix, `Error while processing image at ${imageFileUrl}:`, e);
+                return null;
+            })
+
+        }
 
         // Save file
-        if (saveToPath !== undefined && processedBuffer !== null) {
+        if (saveToPath !== undefined && imageBuffer !== null) {
             console.log(LogPrefix, `Saving ${imageFileUrl} logo to ${saveToPath}`);
-            await this.disk.outputFile(saveToBucket, saveToPath, processedBuffer);
+            await this.disk.outputFile(saveToBucket, saveToPath, imageBuffer);
         }
 
         // We return the original, because Vibrant.js doesn't support webp
