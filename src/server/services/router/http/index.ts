@@ -206,12 +206,10 @@ export default class HttpServer {
         /*----------------------------------
         - BOOT SERVICES
         ----------------------------------*/
-        if (!this.router.config.serverless) {
-            console.info("Lancement du serveur web");
-            this.http.listen(this.config.port, () => {
-                console.info(`Web server ready on ${this.publicUrl}`);
-            });
-        }
+        console.info("Lancement du serveur web");
+        this.http.listen(this.config.port, () => {
+            console.info(`Web server ready on ${this.publicUrl}`);
+        });
 
     }
 

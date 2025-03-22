@@ -85,7 +85,6 @@ export type Config<
 > = {
 
     debug: boolean,
-    serverless?: boolean,
 
     disk?: string, // Disk driver ID
 
