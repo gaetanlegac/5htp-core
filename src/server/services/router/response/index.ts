@@ -124,8 +124,6 @@ export default class ServerResponse<
 
         // Run controller
         const content = await this.route.controller( context );
-
-        // Handle content type
         if (content === undefined)
             return;
 
@@ -225,6 +223,11 @@ export default class ServerResponse<
     - DATA RESPONSE
     ----------------------------------*/
 
+    public type( mimetype: string ) {
+        this.headers['Content-Type'] = mimetype;
+        return this;
+    }
+
     public async render( page: Page, context: TRouterContext, additionnalData: {} ) {
 
         // Set page in context for the client side
@@ -272,19 +275,17 @@ export default class ServerResponse<
         this.headers['Content-Type'] = 'text/xml';
         this.data = xml;
         return this.end();
-
     }
 
-    public text(text: string) {
+    public text(text: string, mimetype: string = 'text/plain') {
 
-        this.headers['Content-Type'] = 'text/plain';
+        this.headers['Content-Type'] = mimetype;
         this.data = text;
         return this.end();
-
     }
 
     // TODO: https://github.com/adonisjs/http-server/blob/develop/src/Response/index.ts#L430
-    public async file( filename: string ) {
+    public async file( filename: string, mimetype?: string ) {
 
         // Securité
         if (filename.includes('..'))
@@ -310,8 +311,16 @@ export default class ServerResponse<
         }
 
         // envoi filename
-        const file = await disk.readFile('data', filename, {});
+        const file = await disk.readFile('data', filename, {
+            encoding: 'buffer'
+        });
         this.data = file;
+        
+
+        // Mimetype
+        if (mimetype !== undefined)
+            this.headers['Content-Type'] = mimetype;
+
         return this.end();
     }
 
