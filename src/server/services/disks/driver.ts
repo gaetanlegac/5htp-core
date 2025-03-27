@@ -71,7 +71,7 @@ export default abstract class FsDriver<
         bucketName: TBucketName, 
         filename: string, 
         options: TReadFileOptions
-    ): Promise<string>;
+    ): Promise<Buffer>;
 
     public abstract createReadStream( bucketName: TBucketName, filename: string );
 

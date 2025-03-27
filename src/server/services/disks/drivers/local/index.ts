@@ -76,7 +76,9 @@ export default class LocalFS<
         bucketName: TBucketName, 
         filename: string
     ) {
-        throw new Error("Method not available for local files.");
+        const bucketDir = this.config.buckets[bucketName];
+        const fullPath = path.join( this.rootDir, bucketDir, filename || '.' );
+        return fullPath;
     }
 
     public async readDir( bucketName: TBucketName, dirname?: string ) {
@@ -135,7 +137,7 @@ export default class LocalFS<
         const fullPath = path.join( this.rootDir, bucketDir, filename );
 
         this.config.debug && console.log(`readFile ${fullPath}`);
-        return fs.readFileSync( fullPath ).toString();
+        return fs.readFileSync( fullPath );
     }
 
     public createReadStream( bucketName: TBucketName, filename: string ) {

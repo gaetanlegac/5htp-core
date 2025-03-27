@@ -6,6 +6,7 @@
 import React from 'react';
 import renderToString from "preact-render-to-string";
 const safeStringify = require('fast-safe-stringify'); // remplace les références circulairs par un [Circular]
+import { ColorSchemeScript, mantineHtmlProps } from '@mantine/core';
 
 // Core
 import type { default as Router, Response as ServerResponse } from "@server/services/router";
@@ -31,7 +32,7 @@ export default class DocumentRenderer<TRouter extends Router> {
     public staticDocument() {
         const routesForClient = JSON.stringify( this.router.ssrRoutes );
         return '<!doctype html>' + renderToString(
-            <html lang="en">
+            <html lang="en" {...mantineHtmlProps}>
                 <head>
                     {/* Format */}
                     <meta charSet="utf-8" />
@@ -41,6 +42,7 @@ export default class DocumentRenderer<TRouter extends Router> {
                     <link rel="stylesheet" type="text/css" href="/public/icons.css" />
                     <link rel="preload" href="/public/client.css" as="style" />
                     <link rel="stylesheet" type="text/css" href="/public/client.css" />
+                    <ColorSchemeScript />
 
                     {/* JS */}
                     <script type="text/javascript" dangerouslySetInnerHTML={{

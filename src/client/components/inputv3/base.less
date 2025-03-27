@@ -44,10 +44,16 @@
     // Since they are not supposed to be on the same row (mobile first design)
     height: @hInput;
     align-items: center;
-    
+
     background: var(--cBg);
     border-radius: @radius;
     transition: background .1s linear;
+
+    &.transparent {
+        background: none !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
 
     > i {
         color: var(--cTxtDesc);

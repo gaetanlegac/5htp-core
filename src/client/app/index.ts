@@ -2,6 +2,7 @@
 - DEPENDANCES
 ----------------------------------*/
 
+// Npm
 import React from 'react';
 
 if (typeof window === 'undefined')
@@ -18,6 +19,10 @@ import { createDialog } from '@client/components/Dialog/Manager';
 import type { AnyService } from './service';
 
 export { default as Service } from './service';
+
+// Resources
+import '@client/assets/css/core.less';
+import '@mantine/core/styles.css';
 
 /*----------------------------------
 - TYPES

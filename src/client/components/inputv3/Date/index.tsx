@@ -4,7 +4,8 @@
 
 // Npm
 import React from 'react';
-import DateRangePicker, { DateTimePickerProps } from 'react-datetime-picker';
+import '@mantine/dates/styles.css';
+import { DateTimePicker, DateTimePickerProps } from '@mantine/dates';
 
 // Core
 
@@ -14,36 +15,13 @@ import DateRangePicker, { DateTimePickerProps } from 'react-datetime-picker';
 - TYPES
 ----------------------------------*/
 
-type TValue = [Date, Date]
-export type Props = DateTimePickerProps & {
-    //value: TValue,
-    //onChange: StateUpdater<TValue>,
-    placeholder?: string,
-    min?: string,
-    max?: string
-}
+export type Props = DateTimePickerProps;
 
 /*----------------------------------
 - COMPOSANT
 ----------------------------------*/
-import './DateTimePicker.css';
-import './Calendar.css';
-import './Clock.css';
-export default ({ value, Props, min, max, onChange, ...otherProps }) => {
-
-    const state = React.useState(false);
-
-    /*----------------------------------
-    - CONSTRUCTION CHAMP
-    ----------------------------------*/
-    
-    
-    /*----------------------------------
-    - RENDU DU CHAMP
-    ----------------------------------*/
+export default ({ ...props }: Props) => {
     return (
-        <div>
-            <DateRangePicker {...otherProps} onChange={onChange} value={value || [null, null]} />
-        </div>
+        <DateTimePicker {...props} />
     )
 }
