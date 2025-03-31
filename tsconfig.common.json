@@ -27,8 +27,8 @@
         "strictPropertyInitialization": true,
         "strictNullChecks": true,
         
-        "rootDir": "./src",
-        "baseUrl": "./src",
+        "rootDir": "./",
+        "baseUrl": "./",
         "paths": {
             
             "@client/*": ["./client/*"],
@@ -40,5 +40,5 @@
             "react/jsx-runtime": ["preact/jsx-runtime"]
         },
     },
-    "include": ["src", "types/global"]
+    "include": ["."]
 }

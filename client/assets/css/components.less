@@ -1,0 +1,28 @@
+// Text
+@import './text/text.less';
+@import './text/icons.less';
+@import './text/icons.less';
+@import './text/titres.less';
+
+// TODO: move all less files to component folder
+
+// Components
+@import './components/input.less';
+@import './components/button.less';
+@import './components/lists.less';
+@import './components/card.less';
+@import './components/logo.less';
+@import './components/table.less';
+@import './components/other.less';
+@import './components/mantine.less';
+
+// Les classes utilitaires override les classes de composant
+@import './utils/borders.less';
+@import './utils/layouts.less';
+@import './utils/medias.less';
+
+.input.text {
+    &.error {
+        border-color: @cError;
+    }
+}

@@ -12,7 +12,7 @@ import route from '@router';
 import { useState } from '@/client/context';
 
 // Core components
-import Button from '@client/components/button';
+import Button from '@client/components/Button';
 
 // App
 import Page from '@client/pages/_layout/app/Page';

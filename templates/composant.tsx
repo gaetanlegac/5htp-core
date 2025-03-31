@@ -11,7 +11,7 @@ import React from 'react';
 import useContext from '@/client/context';
 
 // Core components
-import Button from '@client/components/button';
+import Button from '@client/components/Button';
 
 // App
 

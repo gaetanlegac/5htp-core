@@ -1,0 +1,66 @@
+/*----------------------------------
+- SIZES
+----------------------------------*/
+
+@import (reference) '@/client/assets/vars.less';
+
+.mantine-Button-root {
+    --button-height-md: @sizeComponent;
+}
+
+.mantine-Input-wrapper {
+    --input-height-md: @sizeComponent;
+}
+
+.mantine-Select-root {
+    --select-height-md: @sizeComponent;
+}
+
+.mantine-MultiSelect-root {
+    --multi-select-height-md: @sizeComponent;
+}
+
+.mantine-NumberInput-root {
+    --number-input-height-md: @sizeComponent;
+}
+
+
+
+/*----------------------------------
+- INPUT
+----------------------------------*/
+
+.mantine-InputWrapper-root {
+    text-align: left;
+
+    &.minimal .mantine-Input-input {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        cursor: pointer;
+    }
+
+    &:hover .mantine-MultiSelect-input {
+        background: var(--cBgActive) !important;
+    }
+}
+
+.mantine-MultiSelect-input {
+    display: flex;
+    align-items: center;
+}
+
+.mantine-TextInput-input,
+.mantine-Input-input {
+
+    border: solid 1px var(--cLine) !important;
+
+    &:focus {
+        border-color: @c1 !important;
+        box-shadow: 0 0 0 4px fade(@c1, 20%) !important;
+    }
+}
+
+.mantine-MultiSelect-pill {
+    flex: none !important;
+}

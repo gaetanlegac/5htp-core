@@ -12,7 +12,7 @@ import useContext from '@/client/context';
 
 // Core components
 import Card, { Props as CardProps } from '@client/components/Dialog/card';
-import Button from '@client/components/button';
+import Button from '@client/components/Button';
 
 /*----------------------------------
 - COMPOSANT
