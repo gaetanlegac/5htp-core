@@ -16,7 +16,6 @@ import {
 import Input from '@client/components/Input';
 
 // Core
-import { Props as DropdownProps } from '@client/components/dropdown';
 import { useMantineInput, InputBaseProps } from '@client/components/utils';
 
 /*----------------------------------

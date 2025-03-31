@@ -14,7 +14,7 @@ import {
 
 // Core
 import Button from '@client/components/Button';
-import DropDown from '@client/components/dropdown';
+import DropDown from '@client/components/DropDown';
 
 /*----------------------------------
 - TYPES
