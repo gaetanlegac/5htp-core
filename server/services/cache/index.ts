@@ -96,16 +96,9 @@ export default class Cache extends Service<Config, Hooks, Application, Services>
     - LIFECYCLE
     ----------------------------------*/
 
-    protected async start() {
-
-        setInterval(() => this.cleanMem(), 10000);
-
-        // Restore persisted data
-        //await this.restore();
-    }
-
     public async ready() {
 
+        setInterval(() => this.cleanMem(), 10000);
     }
 
     public async shutdown() {

@@ -77,8 +77,6 @@ export default class StatsService extends Service<TStatsServiceConfig> {
 
     }
 
-    protected async start() {}
-
     public async fetchStats<TDonnees extends TObjDonneesStats>(
         
         table: string, columns: (string | [string, string])[], {

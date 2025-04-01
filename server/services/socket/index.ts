@@ -72,7 +72,7 @@ export default class WebSocketCommander<
     ----------------------------------*/
 
     public loading: Promise<void> | undefined = undefined;
-    protected async start() {
+    protected async ready() {
 
         this.users.on('disconnect', async (userId: string) => {
             this.disconnect(userId, 'Logout');
@@ -118,10 +118,6 @@ export default class WebSocketCommander<
             })
 
         console.info(`Socket commander bound to http server.`);
-    }
-
-    public async ready() {
-
     }
 
     public async shutdown() {

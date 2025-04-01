@@ -27,25 +27,5 @@ export type TBasicConfig = {
 export abstract class Transporter<TConfig extends TBasicConfig = TBasicConfig>
     extends Service<TConfig, {}, Application, {}> {
 
-    /*----------------------------------
-    - LIFECYCLE
-    ----------------------------------*/
-
-    protected async start() {
-        
-    }
-
-    protected async ready() {
-
-    }
-
-    protected async shutdown() {
-
-    }
-
-    /*----------------------------------
-    - ACTIONS
-    ----------------------------------*/
-
     public abstract send( emails: TCompleteEmail[] ): Promise<void>;
 }

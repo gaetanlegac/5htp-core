@@ -21,10 +21,6 @@ import ApiClientService, {
 ----------------------------------*/
 export default class ApiClientRequest extends RequestService implements ApiClientService {
 
-    protected async start() {
-
-    }
-
     /*----------------------------------
     - HIGH LEVEL
     ----------------------------------*/

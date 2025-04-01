@@ -53,26 +53,7 @@ export default class CommandsManager extends Service<Config, Hooks, Application,
     public priority = 2 as 2;
 
     public commandsIndex: CommandsList = {}
-
-    /*----------------------------------
-    - LIFECYCLE
-    ----------------------------------*/
-
-    protected async start() {
-        
-    }
-
-    protected async ready() {
-
-    }
-
-    protected async shutdown() {
-
-    }
-
-    /*----------------------------------
-    - DEFINITIONS
-    ----------------------------------*/
+    
     public command<TArgs extends any[]>( 
         ...args: (
             [name: string, description: string, childrens: Command[]]

@@ -37,19 +37,6 @@ export type Services = {
 export default class ModelsManager extends Service<Config, Hooks, Application, Services> {
 
     public client = new PrismaClient();
-
-    /*----------------------------------
-    - LIFECICLE
-    ----------------------------------*/
-
-    protected async start() {
-
-        
-    }
-  
-    public async ready() {
-  
-    }
   
     public async shutdown() {
         await this.client.$disconnect()

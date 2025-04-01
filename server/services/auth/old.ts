@@ -13,7 +13,7 @@ type AuthResponse = {
 export default class {
 
 
-    protected async start() {
+    protected async ready() {
 
         // Google auth client
         if (this.config.google) {

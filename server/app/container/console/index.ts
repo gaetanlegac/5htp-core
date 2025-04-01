@@ -206,11 +206,6 @@ export default class Console {
         this.enableLogging(origLog);
     }
 
-    // Avoid to use lifecycle functions
-    protected async start() {}
-    public async ready() {}
-    public async shutdown() {}
-
     private enableLogging( origLog: typeof console.log ) {
 
         const minLogLevel = logLevels[this.config.level];

@@ -45,7 +45,7 @@ export default class CronManager extends Service<Config, Hooks, Application, Ser
     - LIFECICLE
     ----------------------------------*/
 
-    protected async start() {
+    public async ready() {
 
         clearInterval(CronManager.timer);
         CronManager.timer = setInterval(() => {
@@ -54,13 +54,6 @@ export default class CronManager extends Service<Config, Hooks, Application, Ser
                 CronManager.taches[id].run();
 
         }, 10000);
-    }
-  
-    public async ready() {
-  
-    }
-  
-    public async shutdown() {
   
     }
 

@@ -37,9 +37,15 @@ export default class AuthenticationRouterService<
     - LIFECYCLE
     ----------------------------------*/
 
-    public users = this.services.users;
+    public users;
 
-    protected async start() {
+    public constructor(...args) {
+        super(...args);
+
+        this.users = this.services.users;
+    }
+
+    protected async ready() {
 
         // Decode current user
         this.parent.on('request', async (request: TRequest) => {
@@ -57,10 +63,6 @@ export default class AuthenticationRouterService<
                 // TODO: How to pas the router type to router config ? Circular rfeerence ?
                 this.services.users.check(request, route.options.auth);
         })
-    }
-
-    protected async ready() {
-
     }
 
     protected async shutdown() {
