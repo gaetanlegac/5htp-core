@@ -51,7 +51,7 @@ type TServiceUseOptions = {
 
 const LogPrefix = '[service]';
 
-export function Route(options: TControllerDefinition = {}) {
+export function Route(options: Omit<TControllerDefinition, 'controller'> = {}) {
     return function (
         target: any,
         propertyKey: string,
