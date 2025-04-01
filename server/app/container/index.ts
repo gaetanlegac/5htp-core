@@ -2,8 +2,6 @@
 - DEPENDANCES
 ----------------------------------*/
 
-import './patch';
-
 // Npm
 import path from 'path';
 
