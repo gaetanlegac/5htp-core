@@ -192,10 +192,6 @@ export default class ServerRouter<
     ----------------------------------*/
 
     private registerRoutes(defModules: GlobImportedWithMetas<TRouteModule>) {
-
-        console.log("--------REGISTER ROUTES", defModules);
-        
-
         for (const routeModule of defModules) {
 
             const register = routeModule.exports.__register;

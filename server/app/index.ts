@@ -171,23 +171,34 @@ export abstract class Application<
                 printService(subservice, level + 1);
         }
         
+        // Satrt services
         for (const serviceId in this.registered) {
 
             const service = this.registered[serviceId];
             printService(service, 0);
             const instance = service.start();
             this[service.name] = instance.getServiceInstance();
-
         }
     }
 
     protected async ready() {
+
+        const processService = (service: AnyService) => {
+
+            service.ready();
+            
+            // Subservices
+            for (const serviceId in service.services)
+                processService(service.services[serviceId]);
+        }
+
         for (const serviceId in this.registered) {
 
             const registeredService = this.registered[serviceId];
             const service = this[registeredService.name];
 
-            // TODO: Events.on('service.register')
+            // TODO: move to router
+            //  Application.on('service.ready')
             const routes = service.__routes;
             if (routes) for (const route of routes) { 
 
@@ -209,7 +220,7 @@ export abstract class Application<
                 this.Router.controllers[ route.path ] = route;
             }
 
-            service.ready();
+            processService(service);
         }
     }
 

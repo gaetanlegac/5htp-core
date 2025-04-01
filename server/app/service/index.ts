@@ -110,7 +110,7 @@ export default abstract class Service<
         public config: TConfig,
         // Make this argument appear as instanciated sercices index
         // But actually, Setup.use returns a registered service, not yet launched
-        getServices: () => TServicesIndex,
+        getServices: (instance: AnyService) => TServicesIndex,
         app: TApplication | 'self'
     ) {
 
@@ -122,7 +122,7 @@ export default abstract class Service<
             : app
 
         if (typeof getServices === 'function')
-            this.services = getServices();
+            this.services = getServices(this);
         
     }
 
