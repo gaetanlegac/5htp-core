@@ -178,6 +178,7 @@ export abstract class Application<
             printService(service, 0);
             const instance = service.start();
             this[service.name] = instance.getServiceInstance();
+            this[service.name].status = 'starting';
         }
     }
 
@@ -185,11 +186,23 @@ export abstract class Application<
 
         const processService = (service: AnyService) => {
 
+            if (service.status !== 'starting')
+                return;
+
             service.ready();
+            service.status = 'running';
             
             // Subservices
-            for (const serviceId in service.services)
-                processService(service.services[serviceId]);
+            for (const serviceId in service.services) {
+
+                const subservice = service.services[serviceId];
+                if (!subservice) {
+                    console.error(`Subservice ${serviceId} has not been initialised correctly in ${service.constructor.name}`, service.services);
+                    continue;
+                }
+
+                processService(subservice);
+            }
         }
 
         for (const serviceId in this.registered) {

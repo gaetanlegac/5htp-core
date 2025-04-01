@@ -2,5 +2,6 @@
     "id": "Core/Fetch",
     "name": "Fetch",
     "parent": "app",
-    "dependences": []
+    "dependences": [],
+    "priority": 0
 }
