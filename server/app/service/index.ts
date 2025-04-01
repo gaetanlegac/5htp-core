@@ -110,7 +110,7 @@ export default abstract class Service<
         public config: TConfig,
         // Make this argument appear as instanciated sercices index
         // But actually, Setup.use returns a registered service, not yet launched
-        public getServices: TServicesIndex,
+        getServices: () => TServicesIndex,
         app: TApplication | 'self'
     ) {
 
@@ -120,6 +120,9 @@ export default abstract class Service<
         this.app = app === 'self'
             ? this as unknown as TApplication
             : app
+
+        if (typeof getServices === 'function')
+            this.services = getServices();
         
     }
 
@@ -143,11 +146,11 @@ export default abstract class Service<
 
     public use( serviceId: string ) {
 
-        const serviceName = this.app.servicesIdToName[serviceId];
-        if (serviceName === undefined)
-            throw new Error(`Service ${serviceName} not found.`);
+        const registeredService = this.app.registered[serviceId];
+        if (registeredService === undefined)
+            throw new Error(`Service ${registeredService} not found.`);
 
-        return this.app[ serviceName ];
+        return this.app[ registeredService.name ];
     }
 
     /*----------------------------------

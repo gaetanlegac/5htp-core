@@ -98,7 +98,7 @@ export default class SQL extends Service<Config, Hooks, Application, Services> {
     public constructor( 
         parent: AnyService, 
         config: Config,
-        drivers: TRegisteredServicesIndex,
+        drivers: () => TRegisteredServicesIndex,
         app: Application, 
     ) {
 

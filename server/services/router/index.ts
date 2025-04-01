@@ -147,7 +147,7 @@ export default class ServerRouter<
     public constructor( 
         parent: AnyService, 
         config: Config,
-        services: TSubservices,
+        services: () => TSubservices,
         app: Application, 
     ) {
 

@@ -7,7 +7,7 @@ import type express from 'express';
 
 // Core
 import AppContainer from './container';
-import ApplicationService, { StartedServicesIndex } from './service';
+import ApplicationService, { AnyService, StartedServicesIndex } from './service';
 import CommandsManager from './commands';
 import ServicesContainer, { 
     ServicesContainer as ServicesContainerClass, 
@@ -82,8 +82,12 @@ export abstract class Application<
     public debug: boolean = false;
     public launched: boolean = false;
 
-    protected abstract serviceNames: string[];
-    protected abstract servicesIdToName: { [serviceId: string]: string };
+    protected abstract registered: { 
+        [serviceId: string]: {
+            name: string,
+            start: () => AnyService
+        }
+    };
 
     /*----------------------------------
     - INIT
@@ -132,6 +136,8 @@ export abstract class Application<
         console.log("Core version", CORE_VERSION);
         const startTime = Date.now();
 
+        this.startServices();
+
         await this.ready();
         await this.runHook('ready');
 
@@ -151,16 +157,37 @@ export abstract class Application<
 
     }
 
+    private startServices() {
+
+        // Print services
+        console.log('----------------------------------');
+        console.log('- SERVICES');
+        console.log('----------------------------------');
+        const printService = (service, level: number = 0) => {
+
+            console.log('-' + '-'.repeat(level * 4), service.name, '(' + service.priority + ')');
+
+            if (service.subservices) for (const subservice of service.subservices)
+                printService(subservice, level + 1);
+        }
+        
+        for (const serviceId in this.registered) {
+
+            const service = this.registered[serviceId];
+            printService(service, 0);
+            const instance = service.start();
+            this[service.name] = instance.getServiceInstance();
+
+        }
+    }
+
     protected async ready() {
+        for (const serviceId in this.registered) {
 
-        console.info(`[boot] Prepare services`);
-        for (const serviceName of this.serviceNames) {
+            const registeredService = this.registered[serviceId];
+            const service = this[registeredService.name];
 
-            const service = this[serviceName];
-
-            if (typeof service.getServices === 'function')
-                service.services = service.getServices();
-
+            // TODO: Events.on('service.register')
             const routes = service.__routes;
             if (routes) for (const route of routes) { 
 

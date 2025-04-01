@@ -4,7 +4,7 @@
 
 // Core
 import type { Application } from '@server/app';
-import Service, { AnyService } from '@server/app/service';
+import Service, { AnyService, TRegisteredServicesIndex } from '@server/app/service';
 
 // Specific
 import type Driver from './driver';
@@ -44,14 +44,19 @@ export default class DisksManager<
     - LIFECYCLE
     ----------------------------------*/
 
-    public async ready() {
+    public constructor( 
+        parent: AnyService, 
+        config: TConfig,
+        services: () => TRegisteredServicesIndex,
+        app: Application, 
+    ) {
+
+        super(parent, config, services, app);
 
         const drivers = this.services;
         
         if (Object.keys( drivers ).length === 0)
             throw new Error("At least one disk driver should be mounted.");
-
-        console.log('start disks service', Object.keys( drivers ), Object.keys( this.mounted ), Object.keys( this.services ));
 
         const defaultDisk = drivers[ this.config.default ];
         if (defaultDisk === undefined)
