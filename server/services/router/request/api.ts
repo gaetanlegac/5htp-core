@@ -66,9 +66,8 @@ export default class ApiClientRequest extends RequestService implements ApiClien
     public createFetcher<TData extends unknown = unknown>(...[method, path, data, options]: TFetcherArgs): TFetcher<TData> {
         return { 
             method, path, data, options,
-            then: () => { throw new Error("Async resolvers should not be run from server side."); },
-            run: () => { throw new Error("Async resolvers should not be run from server side."); },
-        };
+            // We don't put the then and catch methods so the api consumer on server side will know it's a fetcher and not a promize to wait
+        } as TFetcher<TData>;
     }
 
     public async fetchSync(fetchers: TFetcherList, alreadyLoadedData: {}): Promise<TObjetDonnees> {

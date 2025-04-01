@@ -174,8 +174,8 @@ export default class ServerRouter<
          // Use require to avoid circular references
          this.registerRoutes([
             ...require("metas:@/server/routes/**/*.ts"),
-            ...require("metas:@/client/pages/**/*.tsx"),
-            ...require("metas:@client/pages/**/*.tsx")
+            ...require("metas:@/client/pages/**/([a-z0-9]*).tsx"),
+            ...require("metas:@/client/pages/**/([a-z0-9]*).tsx")
         ]);
 
         // Start HTTP server
@@ -192,6 +192,9 @@ export default class ServerRouter<
     ----------------------------------*/
 
     private registerRoutes(defModules: GlobImportedWithMetas<TRouteModule>) {
+
+        console.log("--------REGISTER ROUTES", defModules);
+        
 
         for (const routeModule of defModules) {
 
