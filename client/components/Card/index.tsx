@@ -7,8 +7,7 @@ import React from 'react';
 import type { ComponentChild } from 'preact';
 
 // Core components
-import { Logo } from '@client/components';
-import { Link } from '@client/services/router';
+import { Logo, Link } from '@client/components';
 
 // Resources
 import './index.less';
