@@ -191,7 +191,6 @@ export default ({ service: clientRouter, loaderComponent }: TProps) => {
         // Reset scroll
         window.scrollTo(0, 0);
         // Should be called AFTER rendering the page (so after the state change)
-        console.log("CHANGE PAGE", currentPage);
         currentPage?.updateClient();
         // Scroll to the selected content via url hash
         restoreScroll(currentPage);

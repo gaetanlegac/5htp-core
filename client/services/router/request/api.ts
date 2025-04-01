@@ -21,7 +21,7 @@ import FileToUpload from '@client/components/File/FileToUpload';
 - TYPES
 ----------------------------------*/
 
-const debug = true;
+const debug = false;
 
 export type Config = {
 
@@ -86,7 +86,7 @@ export default class ApiClient implements ApiClientService {
         else if (typeof ids === 'string')   
             ids = [ids];
 
-        console.log("[api] Reload data", ids, params, page.fetchers);
+        debug && console.log("[api] Reload data", ids, params, page.fetchers);
 
         for (const id of ids) {
 
@@ -97,7 +97,7 @@ export default class ApiClient implements ApiClientService {
             if (params !== undefined)
                 fetcher.data = { ...(fetcher.data || {}), ...params };
 
-            console.log("[api][reload]", id, fetcher.method, fetcher.path, fetcher.data);
+            debug && console.log("[api][reload]", id, fetcher.method, fetcher.path, fetcher.data);
 
             this.fetchAsync(fetcher.method, fetcher.path, fetcher.data).then((data) => {
 
@@ -227,7 +227,7 @@ export default class ApiClient implements ApiClientService {
 
             } else if (options.encoding === 'multipart') {
 
-                console.log("[api] Multipart request", data);
+                debug && console.log("[api] Multipart request", data);
                 // Browser will automatically choose the right headers
                 config.body = toMultipart(data);
 
