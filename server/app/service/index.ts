@@ -97,7 +97,7 @@ export default abstract class Service<
 > {
 
     public started?: Promise<void>;
-    public status: 'stopped' | 'starting' | 'running' | 'paused' = 'stopped';
+    public status: 'stopped' | 'starting' | 'running' | 'paused' = 'starting';
 
     public commands?: Command[];
     public metas!: TServiceMetas;

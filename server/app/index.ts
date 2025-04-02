@@ -178,7 +178,6 @@ export abstract class Application<
             printService(service, 0);
             const instance = service.start();
             this[service.name] = instance.getServiceInstance();
-            this[service.name].status = 'starting';
         }
     }
 
