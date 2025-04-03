@@ -102,8 +102,13 @@ export default (initProps: Props) => {
     React.useEffect(() => {
 
         if (choicesViaFunc && opened) {
+
+            const keywords = search.keywords === current?.label 
+                ? undefined 
+                : search.keywords;
+
             //setSearch(s => ({ ...s, loading: true }));
-            initChoices(search.keywords).then((searchResults) => {
+            initChoices(keywords).then((searchResults) => {
                 //setSearch(s => ({ ...s, loading: false }))
                 setChoices(searchResults);
             })
@@ -113,7 +118,7 @@ export default (initProps: Props) => {
 
     }, [
         opened,
-        //search.keywords,
+        search.keywords,
         // When initChoices is a function, React considers it's always different
         // It avoids the choices are fetched everytimle the parent component is re-rendered
         typeof initChoices === 'function' ? true : initChoices
@@ -129,6 +134,10 @@ export default (initProps: Props) => {
         props.value = current ? ensureChoice(current, choices).value : '';
         props.onChange = (value: string) => onChange( valueToChoice(value) );
     }   
+
+    if (props.placeholder === 'Where the candidate will work ?') {
+        console.log('----------', props, choices);
+    }
 
     /*----------------------------------
     - RENDER
