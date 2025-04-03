@@ -58,6 +58,7 @@ export default (initProps: Props) => {
     let Component: typeof TextInput | typeof NumberInput | typeof Textarea;
     if (props.type === 'number') {
         Component = NumberInput;
+        props.min = props.min ?? 0;
     } else if (props.type === 'longtext' && typeof document !== 'undefined') {
         Component = Textarea;
         props.autosize = true;
