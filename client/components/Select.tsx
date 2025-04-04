@@ -28,7 +28,10 @@ export type Props = SelectProps & InputBaseProps<ComboboxItem> & {
 
 export type Choice = ComboboxItem;
 
-const ensureChoice = (choice: ComboboxItem | string, choices: ComboboxItem[]): ComboboxItem => {
+const ensureChoice = (
+    choice: ComboboxItem | string, 
+    choices: ComboboxItem[]
+): ComboboxItem => {
 
     // Allready a choice
     if (typeof choice === 'object' && choice.label) {
@@ -128,15 +131,17 @@ export default (initProps: Props) => {
     if (multiple) {
         Component = MantineMultiSelect;
         props.value = current ? current.map( c => ensureChoice(c, choices).value ) : [];
-        props.onChange = (value: string[]) => onChange( value.map(valueToChoice) );
+        props.onChange = (value: string[]) => {
+            onChange( value.map(valueToChoice) )
+        };
     } else {
         Component = MantineSelect;
         props.value = current ? ensureChoice(current, choices).value : '';
         props.onChange = (value: string) => onChange( valueToChoice(value) );
     }   
 
-    if (props.placeholder === 'Where the candidate will work ?') {
-        console.log('----------', props, choices);
+    if (props.placeholder === 'Languages') {
+        console.log("CHOICES", current, props.value);
     }
 
     /*----------------------------------
