@@ -376,7 +376,7 @@ export default class Console {
             logs
         }
 
-        await application.reportBug( bugReport );
+        await application.runHook('bug', bugReport);
     }
 
     public getChannel() {

@@ -34,7 +34,7 @@ export type Services = {
 - CLASSE
 ----------------------------------*/
 
-export default class ModelsManager extends Service<Config, Hooks, Application, Services> {
+export default class ModelsManager extends Service<Config, Hooks, Application> {
 
     public client = new PrismaClient();
   

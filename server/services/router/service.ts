@@ -28,11 +28,10 @@ export default abstract class RouterService<
         //      It's fixed with a not very clean way in Service.bindService
         router: Router, 
         config: TConfig,
-        services: TRegisteredServicesIndex,
         app: Application
     ) {
 
-        super(router, config, services, app);
+        super(router, config, app);
         
     }
 

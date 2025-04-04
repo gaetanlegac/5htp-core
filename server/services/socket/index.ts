@@ -26,15 +26,13 @@ export type Config<TUser extends {}> = {
     //server: ServerOptions["server"],
     //users: UsersManagementService<TUser>,
     port: number,
+
+    users: UsersManagementService<TUser, Application>,
+    router: Router
 }
 
 export type Hooks = {
 
-}
-
-export type Services<TUser extends {}> = {
-    users: UsersManagementService<TUser, Application>,
-    router: Router
 }
 
 /*----------------------------------
@@ -42,14 +40,13 @@ export type Services<TUser extends {}> = {
 ----------------------------------*/
 export default class WebSocketCommander<
     TUser extends {},
-    TConfig extends Config<TUser>= Config<TUser>,
-    TServices extends Services<TUser> = Services<TUser>
-> extends Service<TConfig, Hooks, Application, TServices> {
+    TConfig extends Config<TUser>= Config<TUser>
+> extends Service<TConfig, Hooks, Application> {
 
     // Services
     public ws!: WebSocketServer;
-    public users!: TServices["users"];
-    public router!: Router;
+    public users!: TConfig["users"];
+    public router!: TConfig["router"];
 
     // Context
     public scopes: {[path: string]: SocketScope<TUser>} = {}
@@ -57,13 +54,12 @@ export default class WebSocketCommander<
     public constructor(
         parent: AnyService, 
         config: TConfig,
-        services: Services,
         app: TApplication, 
     ) {
-        super(parent, config, services, app);
+        super(parent, config, app);
         
-        this.users = this.services.users;
-        this.router = this.services.router;
+        this.users = this.config.users;
+        this.router = this.config.router;
         
     }
     

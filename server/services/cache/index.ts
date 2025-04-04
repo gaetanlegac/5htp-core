@@ -59,20 +59,17 @@ type TCacheGetOnlyArgs = [
 export type Config = {
     debug: boolean,
     disk: string, // TODO: keyof disks
+    disks: DisksManager
 }
 
 export type Hooks = {
 
 }
 
-export type Services = {
-    disks: DisksManager,
-}
-
 /*----------------------------------
 - SERVICE
 ----------------------------------*/
-export default class Cache extends Service<Config, Hooks, Application, Services> {
+export default class Cache extends Service<Config, Hooks, Application> {
 
     public commands = registerCommands(this);
 
@@ -83,13 +80,12 @@ export default class Cache extends Service<Config, Hooks, Application, Services>
     public constructor( 
         parent: AnyService, 
         config: Config,
-        services: Services,
         app: Application, 
     ) {
 
-        super(parent, config, services, app);
+        super(parent, config, app);
 
-        this.disk = this.services.disks.get(config.disk)
+        this.disk = this.config.disks.get(config.disk)
     }
 
     /*----------------------------------

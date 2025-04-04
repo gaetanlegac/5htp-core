@@ -17,6 +17,9 @@ export type { default as Driver } from './driver';
 type Config = {
     debug: boolean,
     default: string,//keyof MountpointList,
+    drivers: {
+        [driverId: string]: Driver
+    }
 }
 
 export type Hooks = {
@@ -34,11 +37,9 @@ export default class DisksManager<
     MountpointList extends Services = {},
     TConfig extends Config = Config,
     TApplication extends Application = Application
-> extends Service<TConfig, Hooks, TApplication, MountpointList> {
+> extends Service<TConfig, Hooks, TApplication> {
 
     public default!: Driver;
-
-    public mounted: MountpointList = this.services;
 
     /*----------------------------------
     - LIFECYCLE
@@ -47,13 +48,12 @@ export default class DisksManager<
     public constructor( 
         parent: AnyService, 
         config: TConfig,
-        services: () => TRegisteredServicesIndex,
         app: Application, 
     ) {
 
-        super(parent, config, services, app);
+        super(parent, config, app);
 
-        const drivers = this.services;
+        const drivers = this.config.drivers;
         
         if (Object.keys( drivers ).length === 0)
             throw new Error("At least one disk driver should be mounted.");
@@ -78,7 +78,7 @@ export default class DisksManager<
 
         const disk = diskName == 'default' || diskName === undefined
             ? this.default 
-            : this.mounted[diskName];
+            : this.config.drivers[diskName];
 
         if (disk === undefined)
             throw new Error(`Disk "${diskName as string}" not found.`);

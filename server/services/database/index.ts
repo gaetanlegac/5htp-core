@@ -91,20 +91,19 @@ const emptyOkPacket = {
 
 // TODO: build callable instance sithut instanciating the service
 
-export default class SQL extends Service<Config, Hooks, Application, Services> {
+export default class SQL extends Service<Config, Hooks, Application> {
 
     public database: Database;
 
     public constructor( 
         parent: AnyService, 
         config: Config,
-        drivers: () => TRegisteredServicesIndex,
         app: Application, 
     ) {
 
-        super(parent, config, drivers, app);
+        super(parent, config, app);
 
-        this.database = new Database(this, config);
+        this.database = new Database(this, this.config);
     }
 
     public getServiceInstance() {

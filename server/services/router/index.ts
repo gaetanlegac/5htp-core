@@ -96,10 +96,10 @@ export type Config<
         request: ServerRequest<ServerRouter>, 
         app: Application
     ) => TAdditionnalSsrData,
-}
 
-export type Services = {
-    [routerServiceId: string]: RouterService
+    plugins: {
+        [routerServiceId: string]: RouterService
+    }
 }
 
 // Set it as a function, so when we instanciate the services, we can callthis.router to pass the router instance in roiuter services
@@ -129,7 +129,6 @@ export default class ServerRouter<
     // Services
     public http: HTTP;
     public render: DocumentRenderer<this>;
-    protected routerServices: TSubservices = {} as TSubservices
 
     // Indexed
     public routes: TRoute[] = []; // API + pages front front
@@ -147,13 +146,12 @@ export default class ServerRouter<
     public constructor( 
         parent: AnyService, 
         config: Config,
-        services: () => TSubservices,
         app: Application, 
     ) {
 
-        super(parent, config, services, app);
+        super(parent, config, app);
 
-        this.http = new HTTP(config.http, this);
+        this.http = new HTTP(this.config.http, this);
         this.render = new DocumentRenderer(this);
     }
 
@@ -164,11 +162,8 @@ export default class ServerRouter<
     public async ready() {
 
         // Detect router services
-        for (const serviceName in this.services) {
-
-            const routerService = this.services[serviceName];
-            if (routerService instanceof RouterService)
-                this.routerServices[ serviceName ] = routerService;
+        for (const serviceName in this.config.plugins) {
+            this.app.register( this.config.plugins[serviceName] )
         }
 
          // Use require to avoid circular references
@@ -326,10 +321,6 @@ export default class ServerRouter<
 
     private async afterRegister() {
 
-        // Generate typescript typings
-        if (this.app.env.profile === 'dev')
-            this.genTypings();
-
         // Ordonne par ordre de priorité
         this.config.debug && console.info("Loading routes ...");
         this.routes.sort((r1, r2) => {
@@ -391,21 +382,6 @@ export default class ServerRouter<
         }
 
         this.config.debug && console.info(this.routes.length + " routes where registered.");
-    }
-
-    private genTypings() {
-        /*fs.outputFileSync( path.join(this.app.path.typings, 'routes.d.ts'), `
-declare type Routes = {
-        ${this.routes.map( route => `
-            '${route.path}': {
-                params: {
-                    ${route.keys.map( k => "'" + k + "': string").join(',\n')}
-                }
-            }
-        `).join(',')}
-    }
-}
-        `);*/
     }
 
     /*----------------------------------
@@ -475,10 +451,11 @@ declare type Routes = {
     public createContextServices( request: ServerRequest<this> ) {
 
         const contextServices: Partial<TRouterContextServices<this>> = {}
-        for (const serviceName in this.routerServices) {
+        for (const serviceName in this.config.plugins) {
 
-            const routerService = this.routerServices[serviceName];
+            const routerService = this.config.plugins[serviceName];
             const requestService = routerService.requestService( request );
+
             if (requestService !== null)
                 contextServices[ serviceName ] = requestService;
 

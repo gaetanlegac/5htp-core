@@ -26,16 +26,14 @@ import type FsDriver from '../disks/driver';
 
 export type Config = {
     debug?: boolean,
-    disk?: string
+    disk?: string,
+
+    disks: DisksManager,
+    router?: RouterService
 }
 
 export type Hooks = {
 
-}
-
-export type Services = {
-    disks: DisksManager,
-    router?: RouterService
 }
 
 /*----------------------------------
@@ -60,14 +58,14 @@ const LogPrefix = `[services][fetch]`
 - SERVICE
 -  Tools that helps to consume external resources (including apis, ..)
 -----------------------------------*/
-export default class FetchService extends Service<Config, Hooks, Application, Services> {
+export default class FetchService extends Service<Config, Hooks, Application> {
 
     private disk?: FsDriver;
 
     public async ready() {
 
-        if (this.services.disks)
-            this.disk = this.services.disks.get( this.config.disk );
+        if (this.config.disks)
+            this.disk = this.config.disks.get( this.config.disk );
 
     }
 
@@ -97,10 +95,10 @@ export default class FetchService extends Service<Config, Hooks, Application, Se
     ) {
 
         // Parse url if router service is provided
-        if (this.services.router === undefined)
+        if (this.config.router === undefined)
             throw new Error(`Please bind the Router service to the Fetch service in order to contact APIs.`);
 
-        url = this.services.router.url(url);
+        url = this.config.router.url(url);
 
         // Send request
         const res = await got(url, {

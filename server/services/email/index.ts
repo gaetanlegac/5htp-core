@@ -31,6 +31,9 @@ export type Config = {
     bugReport: {
         from: TPerson,
         to: TPerson
+    },
+    transporters: {
+        [transporterId: string]: Transporter
     }
 }
 
@@ -106,9 +109,9 @@ type TOptions = {
 /*----------------------------------
 - FONCTIONS
 ----------------------------------*/
-export default class Email extends Service<Config, Hooks, Application, Services> {
+export default class Email extends Service<Config, Hooks, Application> {
     
-    private transporters = this.services;
+    private transporters = this.config.transporters;
 
     /*----------------------------------
     - ACTIONS

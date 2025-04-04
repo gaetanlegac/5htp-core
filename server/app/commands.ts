@@ -48,7 +48,7 @@ export type Services = {
 /*----------------------------------
 - SERVICE
 ----------------------------------*/
-export default class CommandsManager extends Service<Config, Hooks, Application, Services> {
+export default class CommandsManager extends Service<Config, Hooks, Application> {
 
     public priority = 2 as 2;
 

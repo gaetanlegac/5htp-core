@@ -37,12 +37,12 @@ export default class AuthenticationRouterService<
     - LIFECYCLE
     ----------------------------------*/
 
-    public users;
+    public users: UsersService;
 
     public constructor(...args) {
         super(...args);
 
-        this.users = this.services.users;
+        this.users = this.config.users;
     }
 
     protected async ready() {
@@ -51,7 +51,7 @@ export default class AuthenticationRouterService<
         this.parent.on('request', async (request: TRequest) => {
 
             // TODO: Typings. (context.user ?)
-            const decoded = await this.services.users.decode( request.req, true);
+            const decoded = await this.users.decode( request.req, true);
 
             request.user = decoded || null;
         })
@@ -61,7 +61,7 @@ export default class AuthenticationRouterService<
 
             if (route.options.auth !== undefined)
                 // TODO: How to pas the router type to router config ? Circular rfeerence ?
-                this.services.users.check(request, route.options.auth);
+                this.users.check(request, route.options.auth);
         })
     }
 

@@ -99,7 +99,7 @@ export abstract class Application<
 
         // Application itself doesnt have configuration
         // Configuration must be handled by application services
-        super(self, {}, () => ({}), self);
+        super(self, {}, self);
         
         // Handle unhandled crash
         this.on('error', (e, request) => this.container.handleBug(e, "An error occured in the application", request));
@@ -138,6 +138,9 @@ export abstract class Application<
 
         this.startServices();
 
+        console.log('----------------------------------');
+        console.log('- SERVICES');
+        console.log('----------------------------------');
         await this.ready();
         await this.runHook('ready');
 
@@ -150,69 +153,40 @@ export abstract class Application<
     - ERROR HANDLING
     ----------------------------------*/
 
-    // Default error handler
-    public async reportBug( bug: ServerBug ) {
-
-        console.error( bug.error );
-
-    }
-
     private startServices() {
-
-        // Print services
-        console.log('----------------------------------');
-        console.log('- SERVICES');
-        console.log('----------------------------------');
-        const printService = (service, level: number = 0) => {
-
-            console.log('-' + '-'.repeat(level * 4), service.name, '(' + service.priority + ')');
-
-            if (service.subservices) for (const subservice of service.subservices)
-                printService(subservice, level + 1);
-        }
         
         // Satrt services
         for (const serviceId in this.registered) {
 
             const service = this.registered[serviceId];
-            printService(service, 0);
             const instance = service.start();
             this[service.name] = instance.getServiceInstance();
         }
     }
 
+    public register( service: AnyService ) {
+
+        service.ready();
+
+    }
+
     protected async ready() {
 
-        const processService = (service: AnyService) => {
+        // Print services
+        const processService = (propKey: string, service: AnyService, level: number = 0) => {
 
             if (service.status !== 'starting')
                 return;
 
             service.ready();
             service.status = 'running';
-            
-            // Subservices
-            for (const serviceId in service.services) {
+            console.log('-' + '-'.repeat(level * 1), propKey + ': ' + service.constructor.name);
 
-                const subservice = service.services[serviceId];
-                if (!subservice) {
-                    console.error(`Subservice ${serviceId} has not been initialised correctly in ${service.constructor.name}`, service.services);
-                    continue;
-                }
-
-                processService(subservice);
-            }
-        }
-
-        for (const serviceId in this.registered) {
-
-            const registeredService = this.registered[serviceId];
-            const service = this[registeredService.name];
-
-            // TODO: move to router
-            //  Application.on('service.ready')
+            // Routes
             const routes = service.__routes;
             if (routes) for (const route of routes) { 
+
+                console.log('Attached service', service.constructor.name, 'to route', route.path);
 
                 const origController = route.controller;
                 route.controller = (context: RouterContext) => {
@@ -231,8 +205,37 @@ export abstract class Application<
 
                 this.Router.controllers[ route.path ] = route;
             }
+            
+            // Subservices
+            for (const propKey in service) {
 
-            processService(service);
+                if (propKey === 'app')
+                    continue;
+                const propValue = service[propKey];
+
+                // Check if service
+                const isService = 
+                    typeof propValue === 'object' && 
+                    !(propValue instanceof Application) &&
+                    propValue !== null && 
+                    propValue.status !== undefined;
+                if (!isService)
+                    continue;
+
+                processService(propKey, propValue, level + 1);
+            }
+        }
+
+        for (const serviceId in this.registered) {
+
+            const registeredService = this.registered[serviceId];
+            const service = this[registeredService.name];
+
+            // TODO: move to router
+            //  Application.on('service.ready')
+            
+
+            processService(serviceId, service);
         }
     }
 

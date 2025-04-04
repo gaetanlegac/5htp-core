@@ -13,11 +13,7 @@ import type { TControllerDefinition, TRoute } from '../../services/router';
 ----------------------------------*/
 
 export type AnyService<TSubServices extends StartedServicesIndex = StartedServicesIndex> = 
-    Service<{}, {}, Application, TSubServices>
-
-type TServiceConfig = {
-    priority?: number
-}
+    Service<{}, {}, Application>
 
 export type { TRegisteredServicesIndex, TRegisteredService } from './container';
 
@@ -41,9 +37,11 @@ export type StartedServicesIndex = {
     [serviceId: string]: AnyService
 }
 
-type TServiceUseOptions = {
-    optional?: boolean
-}
+export type TServiceArgs<TService extends AnyService> = [
+    parent: TService | 'self',
+    getConfig: (instance: TService) => {},
+    app: TService['app'] | 'self'
+]
 
 /*----------------------------------
 - CONFIG
@@ -90,10 +88,9 @@ export function Route(options: Omit<TControllerDefinition, 'controller'> = {}) {
 - CLASS
 ----------------------------------*/
 export default abstract class Service<
-    TConfig extends TServiceConfig, 
+    TConfig extends {}, 
     THooks extends THooksList,
-    TApplication extends Application,
-    TServicesIndex extends StartedServicesIndex = {}
+    TApplication extends Application
 > {
 
     public started?: Promise<void>;
@@ -104,16 +101,11 @@ export default abstract class Service<
     public bindings: string[] = []
 
     public app: TApplication;
+    public config: TConfig = {} as TConfig;
 
-    public constructor( 
-        public parent: AnyService | 'self', 
-        public config: TConfig,
-        // Make this argument appear as instanciated sercices index
-        // But actually, Setup.use returns a registered service, not yet launched
-        getServices: (instance: AnyService) => TServicesIndex,
-        app: TApplication | 'self'
-    ) {
+    public constructor(...[parent, getConfig, app]: TServiceArgs<AnyService>) {
 
+        this.parent = parent;
         if (this.parent === 'self') 
             this.parent = this;
 
@@ -121,16 +113,14 @@ export default abstract class Service<
             ? this as unknown as TApplication
             : app
 
-        if (typeof getServices === 'function')
-            this.services = getServices(this);
+        if (typeof getConfig === 'function')
+            this.config = getConfig(this);
         
     }
 
     public getServiceInstance() {
         return this;
     }
-
-    public services: TServicesIndex = {} as TServicesIndex;
 
     /*----------------------------------
     - LIFECYCLE
