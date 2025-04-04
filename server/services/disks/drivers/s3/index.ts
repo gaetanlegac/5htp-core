@@ -14,7 +14,7 @@ import dayjs from 'dayjs';
 
 // Core
 import type { Application } from '@server/app';
-import type { AnyService, TRegisteredServicesIndex } from '@server/app/service';
+import type { TServiceArgs } from '@server/app/service';
 
 // Specific
 import DiskDriver, { 
@@ -50,14 +50,9 @@ export default class S3Driver<
 
     public s3: AWS.S3; 
 
-    public constructor( 
-        public parent: AnyService, 
-        public config: TConfig,
-        public services: {},
-        public app: Application
-    ) {
+    public constructor(...args: TServiceArgs) {
 
-        super( parent, config, services, app );
+        super(...args);
 
         AWS.config.update({
             accessKeyId: this.config.accessKeyId,
@@ -87,6 +82,7 @@ export default class S3Driver<
         bucketName: TBucketName, 
         filename: string
     ) {
+
         const bucket = this.config.buckets[bucketName];
         if (bucket === undefined)
             throw new Error(`Bucket "${bucketName}" not found in configuration`);
