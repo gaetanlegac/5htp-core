@@ -157,10 +157,14 @@ export abstract class Application<
         
         // Satrt services
         for (const serviceId in this.registered) {
-
-            const service = this.registered[serviceId];
-            const instance = service.start();
-            this[service.name] = instance.getServiceInstance();
+            try {
+                const service = this.registered[serviceId];
+                const instance = service.start();
+                this[service.name] = instance.getServiceInstance();
+            } catch (error) {
+                console.error("Error while starting service", serviceId, service, error);
+                throw error;
+            }
         }
     }
 
