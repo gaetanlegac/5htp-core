@@ -24,12 +24,12 @@ export type Props = ButtonProps & {
 ----------------------------------*/
 export default ({ 
     label, children, 
-    menuProps = {}, ...btnProps 
+    menuProps = {}, size, ...btnProps 
 }: Props) => {
     return (
-        <Menu {...menuProps}>
+        <Menu {...menuProps} size={size}>
             <Menu.Target>
-                <Button {...btnProps}>{label}</Button>
+                <Button {...btnProps} iconR="angle-down">{label}</Button>
             </Menu.Target>
             <Menu.Dropdown>
                 {children}
