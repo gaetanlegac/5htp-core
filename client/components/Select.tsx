@@ -30,21 +30,16 @@ export type Choice = ComboboxItem;
 const ensureChoice = (
     choice: ComboboxItem | string, 
     choices: ComboboxItem[],
-    current: ComboboxItem[] = []
+    current: ComboboxItem[]
 ): ComboboxItem => {
 
     // Allready a choice
-    if (typeof choice === 'object' && choice.label) {
+    if (typeof choice === 'object')
         return choice;
-    }
-
-    // Complete list of the choices
-    const allChoices = [...choices, ...current];
 
     // Find the choice
-    const found = allChoices.find( c => c.value === choice);
-    if (found)
-        return found;
+    const found = [...choices, ...current].find( c => c.value === choice );
+    if (found) return found;
 
     // Create a new choice
     return {
@@ -69,11 +64,7 @@ export default (initProps: Props) => {
         ...props
     }] = useMantineInput<Props, string|number>(initProps);
 
-    const initRef = React.useRef<boolean>();
     const currentArray = Array.isArray(current) ? current : current ? [current] : [];
-
-    if (props.placeholder === 'Which languages the candidate should speak ?')
-        console.log("choices", current);
 
     const choicesViaFunc = typeof initChoices === 'function';
     if (choicesViaFunc)
@@ -114,8 +105,6 @@ export default (initProps: Props) => {
             })
         }
 
-        initRef.current = true;
-
     }, [
         opened,
         search.keywords,
@@ -123,6 +112,10 @@ export default (initProps: Props) => {
         // It avoids the choices are fetched everytimle the parent component is re-rendered
         typeof initChoices === 'function' ? true : initChoices
     ]);
+
+    /*----------------------------------
+    - RENDER
+    ----------------------------------*/
 
     if (multiple) {
 
@@ -151,9 +144,6 @@ export default (initProps: Props) => {
         };
     }   
 
-    /*----------------------------------
-    - RENDER
-    ----------------------------------*/
     if (minimal) {
         return (
             <Menu width={300} opened={opened} onChange={setOpened} 
@@ -217,7 +207,17 @@ export default (initProps: Props) => {
             <MantineMultiSelect 
                 {...props} 
     
-                data={choices}
+                data={[
+                    {
+                        group: 'Search results',
+                        // Exclude the choices that are already selected
+                        items: choices.filter(c => !props.value.includes(c.value))
+                    },
+                    {
+                        group: 'Selected',
+                        items: currentArray
+                    }
+                ]}
                 nothingFound={search.loading ? 'Loading...' : props || 'No options found'}
                 comboboxProps={{
                     withArrow: false
