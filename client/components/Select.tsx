@@ -30,7 +30,7 @@ export type Choice = ComboboxItem;
 const ensureChoice = (
     choice: ComboboxItem | string, 
     choices: ComboboxItem[],
-    current: ComboboxItem | ComboboxItem[] | null
+    current: ComboboxItem[] = []
 ): ComboboxItem => {
 
     // Allready a choice
@@ -39,9 +39,7 @@ const ensureChoice = (
     }
 
     // Complete list of the choices
-    const allChoices = [...choices];
-    if (Array.isArray(current))
-        allChoices.push(...current);
+    const allChoices = [...choices, ...current];
 
     // Find the choice
     const found = allChoices.find( c => c.value === choice);
@@ -72,23 +70,19 @@ export default (initProps: Props) => {
     }] = useMantineInput<Props, string|number>(initProps);
 
     const initRef = React.useRef<boolean>();
+    const currentArray = Array.isArray(current) ? current : current ? [current] : [];
+
+    if (props.placeholder === 'Which languages the candidate should speak ?')
+        console.log("choices", current);
 
     const choicesViaFunc = typeof initChoices === 'function';
     if (choicesViaFunc)
         enableSearch = true;
     else 
-        initChoices = initChoices?.map( c => ensureChoice(c, [], current) ) || [];
-
-    if (enableSearch)
-        props.searchable = true;
+        initChoices = initChoices?.map( c => ensureChoice(c, [], currentArray) ) || [];
 
     let [choices, setChoices] = React.useState<ComboboxItem[]>( choicesViaFunc 
-        ? (Array.isArray(current) 
-            ? current.map( c => ensureChoice(c, [], current) )
-            : current 
-                ? [ensureChoice(current, [], [])]
-                : []
-        ) || []
+        ? currentArray.map( c => ensureChoice(c, [], currentArray) )
         : initChoices
     );
 
@@ -104,8 +98,6 @@ export default (initProps: Props) => {
     /*----------------------------------
     - ACTIONS
     ----------------------------------*/
-
-    const valueToChoice = (value: string) => choices.find(c => c.value === value);
 
     React.useEffect(() => {
 
@@ -133,14 +125,25 @@ export default (initProps: Props) => {
     ]);
 
     if (multiple) {
-        props.value = current ? current.map( c => ensureChoice(c, choices, current).value ) : [];
+
+        props.value = current 
+            ? current.map( c => ensureChoice(c, choices, currentArray).value ) 
+            : [];
+
         props.onChange = (value: string[]) => {
-            onChange( value.map(valueToChoice) )
+            onChange( value.map(value => ensureChoice(value, choices, currentArray)) )
         };
+
     } else {
-        props.value = current ? [ensureChoice(current, choices, current).value] : [];
-        props.onChange = (value: string[]) => onChange( value.length > 0 ? valueToChoice( value[value.length - 1] ) : undefined );
-        //props.maxValues = 1;
+
+        props.value = current 
+            ? [ensureChoice(current, choices, currentArray).value] 
+            : [];
+
+        props.onChange = (value: string[]) => onChange( value.length > 0 
+            ? ensureChoice(value[value.length - 1], choices, currentArray) 
+            : undefined 
+        );
     }   
 
     /*----------------------------------
@@ -215,6 +218,7 @@ export default (initProps: Props) => {
                     withArrow: false
                 }}
     
+                searchable={enableSearch}
                 clearable={!required}
                 required={required}
                 allowDeselect={!required}
