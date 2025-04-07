@@ -26,7 +26,10 @@ export default (initProps: Props) => {
     - INIT
     ----------------------------------*/
 
-    const [{ title }, { errors, required, ...props }] = useMantineInput<Props>(initProps);
+    const [{ title, onChange }, { errors, required, ...props }] = useMantineInput<Props>(initProps);
+
+    console.log("initProps", initProps);
+    
 
     /*----------------------------------
     - RENDER
@@ -37,6 +40,7 @@ export default (initProps: Props) => {
             error={errors?.join(', ')}
             required={required}
             {...props}
+            onChange={e => onChange?.(e.target.checked)}
         />
     )
 }
