@@ -510,7 +510,7 @@ export default function ToolbarPlugin({
             )}
             
             {blockType === 'code' ? (
-                <DropDown label={getLanguageFriendlyName(codeLanguage)}
+                <DropDown size="s" label={getLanguageFriendlyName(codeLanguage)}
                     disabled={!isEditable}
                     icon="code"
                 >
@@ -591,7 +591,7 @@ export default function ToolbarPlugin({
 
                     <DropDown popover={{ tag: 'li' }} icon="font" size="s"
                         disabled={!isEditable}
-                        label="Formatting options for additional text styles"
+                        hint="Formatting options for additional text styles"
                     >
 
                         <Button icon="strikethrough" size="s"
@@ -640,8 +640,8 @@ export default function ToolbarPlugin({
                             <DropDown popover={{ tag: 'li' }}
                                 disabled={!isEditable}
                                 size="s"
-                                label="Insert"
-                                title="Insert specialized editor node"
+                                icon="plus-circle"
+                                hint="Insert specialized editor node"
                             >
 
                                 <Button icon="horizontal-rule" size="s" onClick={() => {

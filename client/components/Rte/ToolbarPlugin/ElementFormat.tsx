@@ -85,8 +85,10 @@ export default function ElementFormatDropdown({
     const formatOption = FormatOptions.find((option) => option.value === currentValue) || FormatOptions[0];
 
     return (
-        <DropDown disabled={disabled} icon={isRTL ? formatOption.iconRTL : formatOption.icon} size="s" 
-            label={formatOption.label}
+        <DropDown disabled={disabled} 
+            icon={isRTL ? formatOption.iconRTL : formatOption.icon} 
+            size="s" 
+            hint={formatOption.label}
             popover={{ tag: 'li' }}
         >
             {FormatOptions.map((option) => (
