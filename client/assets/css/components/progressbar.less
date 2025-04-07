@@ -1,0 +1,45 @@
+@import (reference) "@/client/assets/vars.less";
+
+div.progressbar {
+
+    background: var(--cLine);
+    position: relative;
+
+    @hProgress: 0.5rem;
+    
+    &,
+    > .progress {
+        border-radius: @hProgress / 2rem;
+        height: @hProgress;
+    }
+
+    > .progress {
+        --cBg: var(--cTxtAccent);
+        background: var(--cBg);
+        width: 0%;
+        max-width: 100%;
+        transition: width .25s ease-in;
+    }
+
+    &.col {
+
+        width: @hProgress * 2rem;
+        
+        &,
+        > .progress {
+            border-radius: @hProgress;
+        }
+
+        > .progress {
+
+            width: auto;
+            height: 0%;
+            max-height: 100%;
+
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
+    }
+}
