@@ -5,7 +5,6 @@
 // Npm
 import React from 'react';
 import { 
-    Select as MantineSelect, 
     SelectProps, 
     MultiSelect as MantineMultiSelect, 
     ComboboxItem,
@@ -133,22 +132,16 @@ export default (initProps: Props) => {
         typeof initChoices === 'function' ? true : initChoices
     ]);
 
-    let Component: typeof MantineSelect | typeof MantineMultiSelect;
     if (multiple) {
-        Component = MantineMultiSelect;
         props.value = current ? current.map( c => ensureChoice(c, choices, current).value ) : [];
         props.onChange = (value: string[]) => {
             onChange( value.map(valueToChoice) )
         };
     } else {
-        Component = MantineSelect;
-        props.value = current ? ensureChoice(current, choices, current).value : '';
-        props.onChange = (value: string) => onChange( valueToChoice(value) );
+        props.value = current ? [ensureChoice(current, choices, current).value] : [];
+        props.onChange = (value: string[]) => onChange( value.length > 0 ? valueToChoice( value[value.length - 1] ) : undefined );
+        //props.maxValues = 1;
     }   
-
-    if (props.placeholder === 'Languages') {
-        console.log("CHOICES", current, props.value);
-    }
 
     /*----------------------------------
     - RENDER
@@ -213,7 +206,7 @@ export default (initProps: Props) => {
 
     } else {
         return (
-            <Component 
+            <MantineMultiSelect 
                 {...props} 
     
                 data={choices}
@@ -225,6 +218,7 @@ export default (initProps: Props) => {
                 clearable={!required}
                 required={required}
                 allowDeselect={!required}
+                checkIconPosition="right"
     
                 onDropdownOpen={() => setOpened(true)}
                 onDropdownClose={() => setOpened(false)}
