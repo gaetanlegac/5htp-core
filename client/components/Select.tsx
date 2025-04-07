@@ -30,7 +30,8 @@ export type Choice = ComboboxItem;
 
 const ensureChoice = (
     choice: ComboboxItem | string, 
-    choices: ComboboxItem[]
+    choices: ComboboxItem[],
+    current: ComboboxItem | ComboboxItem[] | null
 ): ComboboxItem => {
 
     // Allready a choice
@@ -38,8 +39,13 @@ const ensureChoice = (
         return choice;
     }
 
+    // Complete list of the choices
+    const allChoices = [...choices];
+    if (Array.isArray(current))
+        allChoices.push(...current);
+
     // Find the choice
-    const found = choices.find( c => c.value === choice);
+    const found = allChoices.find( c => c.value === choice);
     if (found)
         return found;
 
@@ -72,16 +78,16 @@ export default (initProps: Props) => {
     if (choicesViaFunc)
         enableSearch = true;
     else 
-        initChoices = initChoices?.map( c => ensureChoice(c, []) ) || [];
+        initChoices = initChoices?.map( c => ensureChoice(c, [], current) ) || [];
 
     if (enableSearch)
         props.searchable = true;
 
     let [choices, setChoices] = React.useState<ComboboxItem[]>( choicesViaFunc 
         ? (Array.isArray(current) 
-            ? current.map( c => ensureChoice(c, []) )
+            ? current.map( c => ensureChoice(c, [], current) )
             : current 
-                ? [ensureChoice(current, [])]
+                ? [ensureChoice(current, [], [])]
                 : []
         ) || []
         : initChoices
@@ -130,13 +136,13 @@ export default (initProps: Props) => {
     let Component: typeof MantineSelect | typeof MantineMultiSelect;
     if (multiple) {
         Component = MantineMultiSelect;
-        props.value = current ? current.map( c => ensureChoice(c, choices).value ) : [];
+        props.value = current ? current.map( c => ensureChoice(c, choices, current).value ) : [];
         props.onChange = (value: string[]) => {
             onChange( value.map(valueToChoice) )
         };
     } else {
         Component = MantineSelect;
-        props.value = current ? ensureChoice(current, choices).value : '';
+        props.value = current ? ensureChoice(current, choices, current).value : '';
         props.onChange = (value: string) => onChange( valueToChoice(value) );
     }   
 

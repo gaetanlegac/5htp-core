@@ -57,7 +57,7 @@ const sizeAdapter = {
 }
 
 export function useMantineInput<TProps extends __BaseInputProps & InputBaseProps<any>, TValue>({
-    title, wrapper, hint, errors, icon, iconR, minimal, onChange, value, ...props
+    title, wrapper, hint, errors, icon, iconR, prefix, suffix, minimal, onChange, value, ...props
 }: InputBaseProps<TValue> & TProps): [
     InputBaseProps<any>,
     TProps
@@ -74,11 +74,11 @@ export function useMantineInput<TProps extends __BaseInputProps & InputBaseProps
         props.description = hint;
     } 
     // Prefix
-    if (props.leftSection === undefined && icon !== undefined)
-        props.leftSection = <i src={icon} />;
+    if (props.leftSection === undefined)
+        props.leftSection = icon !== undefined ? <i src={icon} /> : prefix;
     // Suffix
-    if (props.rightSection === undefined && iconR !== undefined)
-        props.rightSection = <i src={iconR} />;
+    if (props.rightSection === undefined)
+        props.rightSection = iconR !== undefined ? <i src={iconR} /> : suffix;
     
     // Errors
     if (errors?.length)

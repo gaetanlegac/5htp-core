@@ -1,6 +1,10 @@
 .table {
+    
     overflow: auto;
-    max-height: 90vh;
+
+    &.scrollable {
+        max-height: 90vh;
+    }
 
     > table {
         border-collapse: collapse;
@@ -27,7 +31,6 @@ table {
 
     // By default, chrome disables text inherits
     line-height: inherit;
-    font-size: 0.9em;
 
     th {
         font-weight: 500;
@@ -74,7 +77,7 @@ table {
         top: 0;
         background: var(--cBg);
         white-space: break-spaces;
-        z-index: 5;
+        z-index: 2;
     }
 
     tbody {

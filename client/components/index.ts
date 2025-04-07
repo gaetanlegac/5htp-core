@@ -103,6 +103,7 @@ export {
     Progress,
     Radio,
     Rating,
+    RangeSlider,
     RingProgress,
     SegmentedControl,
     //Select,

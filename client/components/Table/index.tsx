@@ -136,32 +136,36 @@ export default function Liste<TRow extends TDonneeInconnue>({
                     }
                 }
 
-                const isCurrentlySorted = sort && sorted && sorted.id === sort.id;
-                const isSortable = sort && onSort;
-                if (isSortable) {
-                    classe += ' clickable';
-                    cellProps.onClick = () => {
-                        if (isCurrentlySorted)
-                            onSort(null, sort.order);
-                        else
-                            onSort(sort.id, sort.order);
+                if (iDonnee === 0) {
+
+                    const headerProps = { className: '', ...cellProps };
+                    const isCurrentlySorted = sort && sorted && sorted.id === sort.id;
+                    const isSortable = sort && onSort;
+                    if (isSortable) {
+                        headerProps.className += ' clickable';
+                        headerProps.onClick = () => {
+                            if (isCurrentlySorted)
+                                onSort(null, sort.order);
+                            else
+                                onSort(sort.id, sort.order);
+                        }
                     }
+                    
+                    renduColonnes.push(
+                        <th {...headerProps}>
+                            <div class="row sp-btw">
+                                
+                                {isSortable ? (
+                                    <a>{label}</a>
+                                ) : label}
+    
+                                {isCurrentlySorted && (
+                                    <i src={sort.order === "asc" ? "caret-up" : "caret-down"} />
+                                )}
+                            </div>
+                        </th>
+                    );
                 }
-
-                if (iDonnee === 0) renduColonnes.push(
-                    <th class={classe} {...cellProps}>
-                        <div class="row sp-btw">
-                            
-                            {isSortable ? (
-                                <a>{label}</a>
-                            ) : label}
-
-                            {isCurrentlySorted && (
-                                <i src={sort.order === "asc" ? "caret-up" : "caret-down"} />
-                            )}
-                        </div>
-                    </th>
-                );
 
                 let render: ComponentChild;
                 if (Array.isArray(cell)) {
