@@ -140,10 +140,15 @@ export default (initProps: Props) => {
             ? [ensureChoice(current, choices, currentArray).value] 
             : [];
 
-        props.onChange = (value: string[]) => onChange( value.length > 0 
-            ? ensureChoice(value[value.length - 1], choices, currentArray) 
-            : undefined 
-        );
+        props.onChange = (value: string[]) => {
+
+            setOpened(false);
+
+            onChange( value.length > 0 
+                ? ensureChoice(value[value.length - 1], choices, currentArray) 
+                : undefined 
+            )
+        };
     }   
 
     /*----------------------------------
@@ -224,6 +229,7 @@ export default (initProps: Props) => {
                 allowDeselect={!required}
                 checkIconPosition="right"
     
+                dropdownOpened={opened}
                 onDropdownOpen={() => setOpened(true)}
                 onDropdownClose={() => setOpened(false)}
                 onSearchChange={(keywords) => setSearch(s => ({ ...s, keywords }))}
