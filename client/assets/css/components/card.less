@@ -17,6 +17,17 @@
 
     background-color: var(--cBg);
     padding: @cardPadding;
+    box-shadow: 0 3px 2px fade(#000, 10%);
+    border: 1px solid fade(#000, 10%);
+
+    &.floating {
+        box-shadow: 0 10px 50px fade(black, 15%);
+        z-index: 10;
+    }
+
+    &.minimal {
+        box-shadow: none;
+    }
 
     &.row {
         padding: @cardPadding @cardPaddingLong;
@@ -45,6 +56,15 @@
             > * + * {
                 border-left: solid 1px #eee;
             }
+        }
+    }
+
+    a&,
+    &.clickable {
+        text-decoration: none; // Remove a underline
+
+        &:hover {
+            border-color: #aaa;
         }
     }
 

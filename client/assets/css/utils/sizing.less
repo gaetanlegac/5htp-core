@@ -48,6 +48,8 @@
     // Fixes
     .w-@{taille1} { 
         width: @taille1 * @sizingUnit !important; 
+        // Override .scrollable > *, which has a min-width: fit-content
+        min-width: 0!important;
     }
     .h-@{taille1} { 
         height: @taille1 * @sizingUnit !important; 
