@@ -10,7 +10,7 @@ const safeStringify = require('fast-safe-stringify'); // remplace les référenc
 
 // Core: general
 import { Application, Services } from '@server/app';
-import Service, { AnyService, TRegisteredServicesIndex } from '@server/app/service';
+import Service, { AnyService, TRegisteredServicesIndex, TServiceArgs } from '@server/app/service';
 import { NotFound } from '@common/errors';
 
 // Services
@@ -95,13 +95,9 @@ export default class SQL extends Service<Config, Hooks, Application> {
 
     public database: Database;
 
-    public constructor( 
-        parent: AnyService, 
-        config: Config,
-        app: Application, 
-    ) {
+    public constructor( ...args: TServiceArgs<SQL>) {
 
-        super(parent, config, app);
+        super(...args);
 
         this.database = new Database(this, this.config);
     }

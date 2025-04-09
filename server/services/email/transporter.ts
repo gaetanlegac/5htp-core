@@ -25,7 +25,7 @@ export type TBasicConfig = {
 - CLASS 
 ----------------------------------*/
 export abstract class Transporter<TConfig extends TBasicConfig = TBasicConfig>
-    extends Service<TConfig, {}, Application, {}> {
+    extends Service<TConfig, {}, Application> {
 
     public abstract send( emails: TCompleteEmail[] ): Promise<void>;
 }

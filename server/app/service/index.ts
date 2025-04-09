@@ -38,7 +38,7 @@ export type StartedServicesIndex = {
 }
 
 export type TServiceArgs<TService extends AnyService> = [
-    parent: TService | 'self',
+    parent: AnyService | 'self',
     getConfig: (instance: TService) => {},
     app: TService['app'] | 'self'
 ]
@@ -134,11 +134,15 @@ export default abstract class Service<
     - SUBSERVICES
     ----------------------------------*/
 
-    public use( serviceId: string ) {
+    // TODO:; babel plugin: transform Service references to app.use('Service')
+    public use<TService extends AnyService = AnyService>( 
+        serviceId: string,
+        useOptions: { optional?: boolean } = {}
+    ): TService {
 
         const registeredService = this.app.registered[serviceId];
-        if (registeredService === undefined)
-            throw new Error(`Service ${registeredService} not found.`);
+        if (registeredService === undefined && useOptions.optional === false)
+            throw new Error(`Service ${registeredService} not registered.`);
 
         return this.app[ registeredService.name ];
     }

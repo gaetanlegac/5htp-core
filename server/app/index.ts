@@ -55,7 +55,7 @@ export type ApplicationProperties = Prettify<keyof Application>;
 ----------------------------------*/
 export abstract class Application<
     TServicesContainer extends ServicesContainerClass = ServicesContainerClass
-> extends ApplicationService<Config, Hooks, /* TODO: this ? */Application, {}> {
+> extends ApplicationService<Config, Hooks, Application> {
 
     public app!: this;
     public servicesContainer!: TServicesContainer;
@@ -113,7 +113,7 @@ export abstract class Application<
         // We can't pass this in super so we assign here
         this.parent = this;
         this.app = this;
-        
+
     }
 
     /*----------------------------------
@@ -162,7 +162,7 @@ export abstract class Application<
                 const instance = service.start();
                 this[service.name] = instance.getServiceInstance();
             } catch (error) {
-                console.error("Error while starting service", serviceId, service, error);
+                console.error("Error while starting service", serviceId, error);
                 throw error;
             }
         }

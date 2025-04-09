@@ -4,7 +4,7 @@
 
 // Core
 import type { Application } from '@server/app';
-import Service, { AnyService, TRegisteredServicesIndex } from '@server/app/service';
+import Service, { AnyService, TRegisteredServicesIndex, TServiceArgs } from '@server/app/service';
 
 // Specific
 import type Driver from './driver';
@@ -45,13 +45,9 @@ export default class DisksManager<
     - LIFECYCLE
     ----------------------------------*/
 
-    public constructor( 
-        parent: AnyService, 
-        config: TConfig,
-        app: Application, 
-    ) {
+    public constructor( ...args: TServiceArgs<DisksManager>) {
 
-        super(parent, config, app);
+        super(...args);
 
         const drivers = this.config.drivers;
         

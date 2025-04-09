@@ -18,7 +18,7 @@ import type { GlobImportedWithMetas } from 'babel-plugin-glob-import';
 
 // Core
 import type { Application } from '@server/app';
-import Service, { AnyService } from '@server/app/service';
+import Service, { AnyService, TServiceArgs } from '@server/app/service';
 import type { TRegisteredServicesIndex } from '@server/app/service/container';
 import context from '@server/context';
 import type DisksManager from '@server/services/disks';
@@ -120,9 +120,8 @@ export type TControllerDefinition = {
 /*----------------------------------
 - CLASSE
 ----------------------------------*/
-export default class ServerRouter<
-    TSubservices extends Services = Services
-> extends Service<Config, Hooks, Application, TSubservices> implements BaseRouter {
+export default class ServerRouter 
+    extends Service<Config, Hooks, Application> implements BaseRouter {
 
     public disks = this.use<DisksManager>('Core/Disks', { optional: true });
     
@@ -143,13 +142,9 @@ export default class ServerRouter<
     - SERVICE
     ----------------------------------*/
 
-    public constructor( 
-        parent: AnyService, 
-        config: Config,
-        app: Application, 
-    ) {
+    public constructor( ...args: TServiceArgs<ServerRouter>) {
 
-        super(parent, config, app);
+        super(...args);
 
         this.http = new HTTP(this.config.http, this);
         this.render = new DocumentRenderer(this);
@@ -454,8 +449,13 @@ export default class ServerRouter<
         for (const serviceName in this.config.plugins) {
 
             const routerService = this.config.plugins[serviceName];
-            const requestService = routerService.requestService( request );
+            if (!routerService)
+                throw new Error(`Could not access router service ${serviceName}. Maybe the referenced service is not started yet? Try to reduce its priority.`);
 
+            if (!routerService.requestService)
+                throw new Error(`Router service ${serviceName} is not implementing the requestService method from the RouterService interface.`);
+
+            const requestService = routerService.requestService( request );
             if (requestService !== null)
                 contextServices[ serviceName ] = requestService;
 

@@ -49,10 +49,6 @@ export type THooks = {
     
 }
 
-export type TServices = {
-
-}
-
 export type TBasicUser = {
     type: string,
     name: string,
@@ -73,12 +69,10 @@ export default abstract class AuthService<
     TApplication extends Application,
     TJwtSession extends TBasicJwtSession = TBasicJwtSession,
     TRequest extends ServerRequest<Router> = ServerRequest<Router>,
-> extends Service<TConfig, THooks, TApplication, TServices> {
+> extends Service<TConfig, THooks, TApplication> {
 
     public abstract login( ...args: any[] ): Promise<{ user: TUser, token: string }>;
     public abstract decodeSession( jwt: TJwtSession, req: THttpRequest ): Promise<TUser | null>;
-
-    protected abstract displaySessionName(session: TJwtSession): string;
 
     // https://beeceptor.com/docs/concepts/authorization-header/#examples
     public async decode( req: THttpRequest, withData: true ): Promise<TUser | null>;
@@ -220,13 +214,13 @@ export default abstract class AuthService<
         // Insufficient permissions
         } else if (!user.roles.includes(role)) {
 
-            console.warn(LogPrefix, "Refusé: " + role + " pour " + user.name + " (" + (user.roles ? user.roles.join(', ') : 'role inconnu') + ")");
+            console.warn(LogPrefix, "Refusé: " + role + " pour " + user.name + " (" + (user.roles || 'role inconnu') + ")");
 
             throw new Forbidden("You do not have sufficient permissions to access this resource.");
 
         } else {
 
-            console.warn(LogPrefix, "Autorisé " + role + " pour " + user.name + " (" + user.roles.join(', ') + ")");
+            console.warn(LogPrefix, "Autorisé " + role + " pour " + user.name + " (" + user.roles + ")");
 
         }
 
