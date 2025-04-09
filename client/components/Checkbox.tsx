@@ -28,9 +28,6 @@ export default (initProps: Props) => {
 
     const [{ title, onChange }, { errors, required, ...props }] = useMantineInput<Props>(initProps);
 
-    console.log("initProps", initProps);
-    
-
     /*----------------------------------
     - RENDER
     ----------------------------------*/
