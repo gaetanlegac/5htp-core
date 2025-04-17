@@ -8,21 +8,21 @@ import {
     SelectProps, 
     MultiSelect as MantineMultiSelect, 
     ComboboxItem,
-
-    Menu,
-    Button
+    Menu
 } from '@mantine/core';
 import Input from '@client/components/Input';
 
 // Core
 import { useMantineInput, InputBaseProps } from '@client/components/utils';
+import Button, { Props as ButtonProps } from '@client/components/Button';
+import Popover, { Props as PopoverProps } from '@client/components/containers/Popover';
 
 /*----------------------------------
 - TYPES
 ----------------------------------*/
 
 export type Props = SelectProps & InputBaseProps<ComboboxItem> & {
-    
+    popoverProps?: PopoverProps
 }
 
 export type Choice = ComboboxItem;
@@ -37,8 +37,11 @@ const ensureChoice = (
     if (typeof choice === 'object')
         return choice;
 
+    // Ensure current is an array of choices
+    const allChoices = [...choices, ...current];
+
     // Find the choice
-    const found = [...choices, ...current].find( c => c.value === choice );
+    const found = allChoices.find( c => c.value === choice );
     if (found) return found;
 
     // Create a new choice
@@ -60,11 +63,14 @@ export default (initProps: Props) => {
         onChange, value: current,
         required
     }, {
-        multiple, choices: initChoices, enableSearch,
+        multiple, choices: initChoices, enableSearch, popoverProps,
         ...props
     }] = useMantineInput<Props, string|number>(initProps);
 
-    const currentArray = Array.isArray(current) ? current : current ? [current] : [];
+    const currentArray = (Array.isArray(current) 
+        ? current 
+        : current ? [current] : []
+    ).map(c => ensureChoice(c, [], []));
 
     const choicesViaFunc = typeof initChoices === 'function';
     if (choicesViaFunc)
@@ -146,33 +152,14 @@ export default (initProps: Props) => {
 
     if (minimal) {
         return (
-            <Menu width={300} opened={opened} onChange={setOpened} 
-                trapFocus withArrow shadow='lg' 
-                closeOnItemClick={!multiple}>
-                <Menu.Target>
-                    <Button variant="subtle" 
-                        leftSection={(
-                            (current && multiple) ? (
-                                <span class="badge bg info s">
-                                    {current.length}
-                                </span>
-                            ) : null
-                        )} 
-                        rightSection={<i src="angle-down" />} 
-                        onClick={() => setOpened((o) => !o)} >
-                            
-                        {props.label || props.placeholder}
-
-                    </Button>
-                </Menu.Target>
-                <Menu.Dropdown>
-
+            <Popover {...(popoverProps || {})} state={[opened, setOpened]} content={(
+                <div class="card col menu floating">
                     {enableSearch && <>
+
                         <Input title="Search" value={search.keywords} 
                             wrapper={false} minimal icon="search"
                             onChange={v => setSearch(s => ({ ...s, keywords: v }))} />
 
-                        <Menu.Divider />
                     </>}
 
                     {choices.map(choice => {
@@ -182,8 +169,9 @@ export default (initProps: Props) => {
                             : props.value === choice.value;
 
                         return (
-                            <Menu.Item key={choice.value} 
-                                rightSection={isSelected ? <i src="check" /> : null}
+                            <Button key={choice.value} 
+                                size="s"
+                                suffix={isSelected ? <i src="check" /> : null}
                                 onClick={() => onChange( multiple 
                                     ? (isSelected 
                                         ? current.filter(c => c.value !== choice.value)
@@ -195,11 +183,26 @@ export default (initProps: Props) => {
                                     )
                                 )}>
                                     {choice.label}
-                            </Menu.Item>
+                            </Button>
                         )
                     })}
-                </Menu.Dropdown>
-            </Menu>
+                </div>
+            )}>
+                <Button
+                    prefix={(
+                        (multiple && current?.length) ? (
+                            <span class="badge bg info s">
+                                {current.length}
+                            </span>
+                        ) : icon ? <i src={icon} /> : null
+                    )} 
+                    suffix={iconR ? <i src={iconR} /> : <i src="angle-down" />} 
+                    onClick={() => setOpened((o) => !o)}>
+                        
+                    {props.label || props.placeholder}
+
+                </Button>
+            </Popover>
         )
 
     } else {
