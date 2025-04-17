@@ -69,6 +69,7 @@ export default function App({ context }: {
                     SegmentedControl: { defaultProps: { size: 'md' } },
                     Menu: { defaultProps: { size: 'md' } },
                     MenuItem: { defaultProps: { size: 'md' } },
+                    Autocomplete: { defaultProps: { size: 'md' } },
                     // Add any others you use...
                 },
             }} withGlobalStyles withNormalizeCSS>
