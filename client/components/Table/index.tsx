@@ -34,6 +34,7 @@ export type Props<TRow> = {
     // Interactions
     sort?: TSortOptions,
     onSort?: (columnId: string | null, order: TSortOptions["order"]) => void,
+    onCellClick?: (row: TRow) => void,
 
     selection?: [TRow[], React.SetStateAction<TRow[]>],
     maxSelection?: number,
@@ -58,6 +59,7 @@ type TSortOptions = {
 export default function Liste<TRow extends TDonneeInconnue>({
     stickyHeader, onSort, sort: sorted,
     data: rows, setData, empty,
+    onCellClick,
     selection: selectionState, maxSelection,
     columns, ...props
 }: Props<TRow>) {
@@ -165,6 +167,11 @@ export default function Liste<TRow extends TDonneeInconnue>({
                             </div>
                         </th>
                     );
+                }
+
+                if (onCellClick) {
+                    cellProps.onClick = () => onCellClick(row);
+                    classe += ' clickable';
                 }
 
                 let render: ComponentChild;
