@@ -15,6 +15,7 @@ import type express from 'express';
 import type { Request, Response, NextFunction } from 'express';
 import { v4 as uuid } from 'uuid';
 import zod from 'zod';
+export { default as schema } from 'zod';
 import type { GlobImportedWithMetas } from 'babel-plugin-glob-import';
 
 // Core
