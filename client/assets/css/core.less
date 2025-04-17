@@ -78,21 +78,23 @@
 html {
 	font-size: @sTxtPage;
     line-height: 1.25em;
-	font-weight: 400;
 }
 
 * {
     box-sizing: border-box;
     outline: none;
     font-size: 1em;
+	font-weight: 500;
     padding: 0;
     margin: 0;
-    // Avoids flexbox childrens to overflw parent
-    min-width: 0;
     
     &, &:hover, &:focus {
         -webkit-tap-highlight-color: transparent;
     }
+}
+
+p {
+    font-weight: 400;
 }
 
 body {

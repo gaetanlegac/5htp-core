@@ -177,6 +177,11 @@
 .row, 
 .col {
 
+    > * {
+        // Avoids flexbox childrens to overflw parent
+        min-width: 0;
+    }
+
     &.sp-btw { justify-content: space-between; }
     &.sp-ar { justify-content: space-around; }
     &.wrap { flex-wrap: wrap; }
