@@ -2,6 +2,9 @@
 - DEPENDANCES
 ----------------------------------*/
 
+// Npm
+import zod from 'zod';
+
 // types
 import type {
     default as ClientRouter,
@@ -42,6 +45,7 @@ export type TRoute<RouterContext extends TClientOrServerContextForPage = TClient
     path: string,
 
     // Execute
+    schema?: zod.ZodSchema,
     controller: TRouteController<RouterContext>,
     options: TRouteOptions
 } & (
@@ -67,7 +71,8 @@ export type TErrorRoute<RouterContext extends TClientOrServerContextForPage = TC
 export type TAnyRoute<RouterContext extends TClientOrServerContextForPage = TClientOrServerContextForPage> =
     TRoute<RouterContext> | TErrorRoute<RouterContext>
 
-export type TClientOrServerContext = ClientRouterContext | ServerRouterContext;
+// ClientRouterContext already includes server context
+export type TClientOrServerContext = ClientRouterContext;// | ServerRouterContext;
 
 export type TClientOrServerContextForPage = With<TClientOrServerContext, 'page'>
 

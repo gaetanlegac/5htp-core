@@ -14,6 +14,7 @@
 import type express from 'express';
 import type { Request, Response, NextFunction } from 'express';
 import { v4 as uuid } from 'uuid';
+import zod from 'zod';
 import type { GlobImportedWithMetas } from 'babel-plugin-glob-import';
 
 // Core
@@ -113,7 +114,7 @@ export type Hooks = {
 
 export type TControllerDefinition = {
     path?: string,
-    validate?: (schema: any) => any,
+    schema?: zod.ZodSchema,
     controller: TServerController<ServerRouter>,
 }
 

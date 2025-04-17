@@ -8,6 +8,8 @@ import type { Command } from "../commands";
 import type { TServiceMetas } from './container';
 import type { TControllerDefinition, TRoute } from '../../services/router';
 
+export { default as schema } from 'zod';
+
 /*----------------------------------
 - TYPES: OPTIONS
 ----------------------------------*/
@@ -71,6 +73,7 @@ export function Route(options: Omit<TControllerDefinition, 'controller'> = {}) {
             method: 'POST',
             path: '/api/' + options.path,
             controller: originalMethod,
+            schema: options.schema,
             options: {
                 priority: options.priority || 0
             }

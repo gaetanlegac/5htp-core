@@ -16,7 +16,7 @@ import ServicesContainer, {
 import type { ServerBug } from './container/console';
 
 // Built-in
-import type { default as Router, Request as ServerRequest } from '@server/services/router';
+import type { default as Router, Request as ServerRequest, TRoute } from '@server/services/router';
 
 export { default as Services } from './service/container';
 export type { TEnvConfig as Environment } from './container/config';
@@ -187,7 +187,7 @@ export abstract class Application<
             console.log('-' + '-'.repeat(level * 1), propKey + ': ' + service.constructor.name);
 
             // Routes
-            const routes = service.__routes;
+            const routes = service.__routes as TRoute[];
             if (routes) for (const route of routes) { 
 
                 console.log('Attached service', service.constructor.name, 'to route', route.path);
@@ -196,9 +196,9 @@ export abstract class Application<
                 route.controller = (context: RouterContext) => {
 
                     // Filter data
-                    const data = route.options.validate 
-                        ? route.options.validate( context.schema )
-                        : context.request.data;
+                    const data = route.schema 
+                        ? route.schema.parse( context.request.data )
+                        : {};
 
                     // Run controller
                     return origController.bind( service )(
