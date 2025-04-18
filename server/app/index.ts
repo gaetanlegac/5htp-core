@@ -13,10 +13,10 @@ import ServicesContainer, {
     ServicesContainer as ServicesContainerClass, 
     TServiceMetas 
 } from './service/container';
-import type { ServerBug } from './container/console';
 
 // Built-in
 import type { default as Router, Request as ServerRequest, TRoute } from '@server/services/router';
+import { Anomaly } from '@common/errors';
 
 export { default as Services } from './service/container';
 export type { TEnvConfig as Environment } from './container/config';
@@ -114,6 +114,12 @@ export abstract class Application<
         this.parent = this;
         this.app = this;
 
+    }
+
+    public report(...anomalyArgs: ConstructorParameters<typeof Anomaly>) {
+        return this.container.Console.createBugReport(
+            new Anomaly(...anomalyArgs)
+        );
     }
 
     /*----------------------------------

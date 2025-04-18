@@ -410,14 +410,14 @@ export default class ServerRouter
             this
         );
 
-        // Hook
-        await this.runHook('request', request);
-
         // Create request context so we can access request context across all the request-triggered libs
         context.run({ channelType: 'request', channelId: requestId }, async () => {
 
             let response: ServerResponse<this>;
             try {
+
+                // Hook
+                await this.runHook('request', request);
 
                 // Bulk API Requests
                 if (request.path === '/api' && typeof request.data.fetchers === "object") {

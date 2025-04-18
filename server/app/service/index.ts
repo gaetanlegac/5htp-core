@@ -7,6 +7,7 @@ import type { Application } from "..";
 import type { Command } from "../commands"; 
 import type { TServiceMetas } from './container';
 import type { TControllerDefinition, TRoute } from '../../services/router';
+import { Anomaly } from "@common/errors";
 
 export { default as schema } from 'zod';
 
@@ -182,13 +183,7 @@ export default abstract class Service<
         //this.config.debug && console.info(`[hook] Run all ${name} hook (${callbacks.length}).`);
         return Promise.all( 
             callbacks.map(
-                cb => cb(...args).catch(e => {
-
-                    if (name !== 'error')
-                        this.runHook('error', e);
-                    else 
-                        console.error(`[hook] Error while executing hook ${name}:`, e);
-                })
+                cb => cb(...args)
             ) 
         ).then(() => {
             //this.config.debug && console.info(`[hook] Hooks ${name} executed with success.`);
