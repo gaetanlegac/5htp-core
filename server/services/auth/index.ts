@@ -89,6 +89,8 @@ export default abstract class AuthService<
 
         // Get auth session
         const session = this.getAuthSession(tokenType, token);
+        if (session === null)
+            return null;
 
         // Return email only
         if (!withData) {
@@ -132,7 +134,7 @@ export default abstract class AuthService<
         return { tokenType, token };
     }
 
-    private getAuthSession( tokenType: string | undefined, token: string ): TJwtSession {
+    private getAuthSession( tokenType: string | undefined, token: string ): TJwtSession | null {
 
         let session: TJwtSession;
 
@@ -153,10 +155,12 @@ export default abstract class AuthService<
                 });
             } catch (error) {
                 console.warn(LogPrefix, "Failed to decode jwt token:", token);
-                throw new Forbidden(`The JWT token provided in the Authorization header is invalid`);
+                return null;
+                //throw new Forbidden(`The JWT token provided in the Authorization header is invalid`);
             }
         } else 
-            throw new InputError(`The authorization scheme provided in the Authorization header is unsupported.`);
+            return null;
+            //throw new InputError(`The authorization scheme provided in the Authorization header is unsupported.`);
 
         return session;
     }
