@@ -187,6 +187,12 @@ export class NotFound extends CoreError {
     public static msgDefaut = "The resource you asked for was not found.";
 }
 
+export class Gone extends CoreError {
+    public http = 410;
+    public title = "Gone";
+    public static msgDefaut = "The resource you asked for has been removed.";
+}
+
 export class RateLimit extends CoreError {
     public http = 429;
     public title = "You're going too fast";
