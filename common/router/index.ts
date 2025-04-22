@@ -95,10 +95,11 @@ export type TRouteOptions = {
     accept?: string,
     raw?: boolean, // true to return raw data
     auth?: TUserRole | boolean,
-    canonicalParams?: string[],
+    redirectLogged?: string, // Redirect to this route if auth: false and user is logged
 
     // Rendering
     static?: boolean,
+    canonicalParams?: string[], // For SEO + unique ID for static cache
     layout?: false | string, // The nale of the layout
 
     // To cleanup

@@ -6,8 +6,8 @@
 
 // Core
 import { 
-    default as Router, Request as ServerRequest, TAnyRoute,
-    RouterService
+    default as Router, Request as ServerRequest, Response as ServerResponse, TAnyRoute,
+    RouterService, TRouterServiceArgs
 } from '@server/services/router';
 
 // Specific
@@ -39,7 +39,7 @@ export default class AuthenticationRouterService<
 
     public users: UsersService;
 
-    public constructor(...args) {
+    public constructor(...args: TRouterServiceArgs) {
         super(...args);
 
         this.users = this.config.users;
@@ -57,11 +57,21 @@ export default class AuthenticationRouterService<
         })
 
         // Check route permissions
-        this.parent.on('resolved', async (route: TAnyRoute, request: TRequest) => {
+        this.parent.on('resolved', async (
+            route: TAnyRoute, 
+            request: TRequest, 
+            response: ServerResponse<Router>
+        ) => {
 
-            if (route.options.auth !== undefined)
-                // TODO: How to pas the router type to router config ? Circular rfeerence ?
-                this.users.check(request, route.options.auth);
+            if (route.options.auth !== undefined) {
+
+                // Basic auth check
+                this.users.check(request, 'User', route.options.auth);
+
+                // Redirect to logged page
+                if (route.options.auth === false && request.user && route.options.redirectLogged)
+                    response.redirect(route.options.redirectLogged);
+            }
         })
     }
 

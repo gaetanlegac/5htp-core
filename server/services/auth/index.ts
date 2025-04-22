@@ -71,7 +71,7 @@ export default abstract class AuthService<
     TRequest extends ServerRequest<Router> = ServerRequest<Router>,
 > extends Service<TConfig, THooks, TApplication> {
 
-    public abstract login( ...args: any[] ): Promise<{ user: TUser, token: string }>;
+    //public abstract login( ...args: any[] ): Promise<{ user: TUser, token: string }>;
     public abstract decodeSession( jwt: TJwtSession, req: THttpRequest ): Promise<TUser | null>;
 
     // https://beeceptor.com/docs/concepts/authorization-header/#examples
@@ -183,9 +183,9 @@ export default abstract class AuthService<
         request.res.clearCookie('authorization');
     }
 
-    public check( request: TRequest, entity: string, role: TUserRole, motivation?: string): TUser;
-    public check( request: TRequest, entity: string, role: false, motivation?: string): null;
-    public check( request: TRequest, entity: string, role: TUserRole | false = 'USER', motivation?: string): TUser | null {
+    public check( request: TRequest, entity: string, role: TUserRole): TUser;
+    public check( request: TRequest, entity: string, role: false): null;
+    public check( request: TRequest, entity: string, role: TUserRole | false = 'USER'): TUser | null {
 
         const user = request.user;
 
@@ -195,7 +195,7 @@ export default abstract class AuthService<
 
             throw new Error(`request.user has not been decoded.`);
 
-        // No auth needed
+        // Shoudln't be logged
         } else if (role === false) {
 
             return user;
