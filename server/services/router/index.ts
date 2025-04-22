@@ -487,9 +487,6 @@ export default class ServerRouter
             let route = this.controllers[request.path];
             if (route !== undefined) {
 
-                // Run on resolution hooks. Ex: authentication check
-                await this.runHook('resolved', route);
-
                 // Create response
                 await this.resolvedRoute(route, response, logId, timeStart);
                 if (response.wasProvided)
@@ -542,7 +539,7 @@ export default class ServerRouter
     ) {
 
         // Run on resolution hooks. Ex: authentication check
-        await this.runHook('resolved', route);
+        await this.runHook('resolved', route, response.request, response);
 
         // Create response
         await response.runController(route);
