@@ -81,7 +81,7 @@ export abstract class Application<
     // Status
     public debug: boolean = false;
     public launched: boolean = false;
-
+    
     protected abstract registered: { 
         [serviceId: string]: {
             name: string,
@@ -183,12 +183,14 @@ export abstract class Application<
     protected async ready() {
 
         // Print services
-        const processService = (propKey: string, service: AnyService, level: number = 0) => {
+        const processService = async (propKey: string, service: AnyService, level: number = 0) => {
 
             if (service.status !== 'starting')
                 return;
 
-            service.ready();
+            // Services start shouldn't block app boot
+            // use await ServiceName.started to make services depends on each other
+            this.starting = service.ready();
             service.status = 'running';
             console.log('-' + '-'.repeat(level * 1), propKey + ': ' + service.constructor.name);
 
@@ -232,6 +234,7 @@ export abstract class Application<
                 if (!isService)
                     continue;
 
+                // Services start shouldn't block app boot
                 processService(propKey, propValue, level + 1);
             }
         }
@@ -244,7 +247,7 @@ export abstract class Application<
             // TODO: move to router
             //  Application.on('service.ready')
             
-
+            // Services start shouldn't block app boot
             processService(serviceId, service);
         }
     }
