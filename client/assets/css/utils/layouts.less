@@ -134,10 +134,9 @@
     display: flex;
     flex-direction: column;
 
-    &.scrollable {
-        > * {
-            min-height: fit-content;
-        }
+    // Not too precice as it culd override important heights (ex: btn)
+    :where(& > *) {
+        min-height: fit-content;
     }
 
     // Put this one at first because high possibilities we need to override

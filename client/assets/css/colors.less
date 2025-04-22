@@ -1,0 +1,244 @@
+@import (reference) '@/client/assets/vars.less';
+
+/*----------------------------------
+- BASIC THEMES
+----------------------------------*/
+
+@whiteTheme: {
+    alpha: false;
+    background: #FFF;
+    foreground: #555;
+    accent1: @c1;
+    accent2: @c2;
+}
+
+@greyTheme: {
+    alpha: false;
+    background: #F3F3F3;
+    foreground: #4D4D4D;
+    accent1: @c1;
+    accent2: @c2;
+}
+
+@silverTheme: {
+    alpha: false;
+    background: @cBgPage - #080808;
+    foreground: #777;
+    accent1: @c1;
+    accent2: @c2;
+}
+
+@darkTheme: {
+    alpha: false;
+    background: #000;
+    foreground: #DDD;
+    accent1: #83B2FF;
+    accent2: @c2;
+}
+
+@darkerTheme: {
+    alpha: false;
+    background: #181818;
+    foreground: #bbb;
+    accent1: #fff;
+    accent2: @c2;
+}
+
+@darkestTheme: {
+    alpha: false;
+    background: #242424;
+    foreground: #ddd;
+    accent1: #fff;
+    accent2: @c2;
+}
+
+/*----------------------------------
+- COLOR THEMES
+----------------------------------*/
+
+@primaryTheme: {
+    alpha: false;
+    background: #111;
+    foreground: #fff;
+    accent1: #FFF;
+    accent2: #FFF;
+}
+
+/*@accentTheme: {
+    alpha: false;
+    background: @c1;
+    foreground: #fff;
+    accent1: #fff;
+    accent2: #fff;;
+}*/
+
+
+
+@accentTheme: {
+    alpha: false;
+    background: #EAE8F9;
+    foreground: @c1 - #444;
+    accent1: #fff;
+    accent2: #fff;;
+}
+
+.bg.primary {
+
+    .apply-theme(@primaryTheme);
+}
+
+.bg.accent,
+.btn.bg.col.active {
+    .apply-theme(@accentTheme); 
+}
+
+.bg.grey {
+    .apply-theme(@greyTheme, @whiteTheme);
+}
+
+.card,
+.bg.white {
+    .apply-theme(@whiteTheme, @greyTheme);
+}
+
+.bg.silver {
+    .apply-theme(@silverTheme, @whiteTheme);
+
+    box-shadow: inset 0 0 20px fade(#000, 5%)
+}
+
+.bg.dark {
+    .apply-theme(@darkTheme, @darkerTheme);
+}
+
+.bg.darker {
+    .apply-theme(@darkerTheme, @darkestTheme);
+}
+
+/*----------------------------------
+- GRADIENT & IMG THEMES
+----------------------------------*/
+
+.bg.img {
+    
+    .apply-theme({
+        alpha: true;
+        background: #000;
+        foreground: fade(#fff, 60%);
+        accent1: #fff;
+        accent2: green;
+    }, @whiteTheme);
+}
+
+.card:not(.bg), .card.bg.white {
+    border: 1px solid var(--cLine);
+}
+
+.bg.color1 { .color-theme(#0066ff ); }
+.bg.color2 { .color-theme(#00e6da ); }
+.bg.color3 { .color-theme(#00e417 ); }
+.bg.color4 { .color-theme(#ffb700 ); }
+.bg.color5 { .color-theme(#eb4a00 ); }
+.bg.color6 { .color-theme(#e500ac ); }
+.bg.color7 { .color-theme(#6200ff ); }
+
+.bg.light1 { .color-theme(#cce0fe ); }
+.bg.light2 { .color-theme(#c7f0ee ); }
+.bg.light3 { .color-theme(#cef5d2 ); }
+.bg.light4 { .color-theme(#feeab6 ); }
+.bg.light5 { .color-theme(#ffdccc ); }
+.bg.light6 { .color-theme(#fcccf0 ); }
+.bg.light7 { .color-theme(#e2d5f7 ); }
+
+.bg.success {
+    box-shadow: none;
+    border: none;
+
+    .apply-theme({ 
+        alpha: false;
+        background: #D7FEEE; 
+        foreground: darken( #D7FEEE, 80% );
+        accent1: #111;
+        accent2: #111;
+    });
+
+    &.light {
+        .apply-theme({ 
+            alpha: false;
+            background: lighten( @cSuccess, 40% ); 
+            foreground: darken( @cSuccess, 50% );
+            accent1: #111;
+            accent2: #111;
+        });
+    }
+}
+
+.bg.error {
+    box-shadow: none;
+    border: none;
+
+    .apply-theme({ 
+        alpha: false;
+        background: lighten( @cError, 20% ); 
+        foreground: darken( @cError, 50% );
+        accent1: #111;
+        accent2: #111;
+    });
+}
+
+.bg.warn { 
+    box-shadow: none;
+    border: none;
+
+    .apply-theme({ 
+        alpha: false;
+        background: lighten( @cWarn, 20% ); 
+        foreground: darken( @cWarn, 50% );
+        accent1: #111;
+        accent2: #111;
+    });
+
+    &.light {
+        .apply-theme({ 
+            alpha: false;
+            background: lighten( @cWarn, 20% ); 
+            foreground: darken( @cWarn, 50% );
+            accent1: #111;
+            accent2: #111;
+        });
+    }
+}
+
+.bg.info {
+    box-shadow: none;
+    border: none;
+    
+    .apply-theme({ 
+        alpha: false;
+        background: lighten( @cInfo, 50% ); 
+        foreground: darken( @cInfo, 50% );
+        accent1: #111;
+        accent2: #111;
+    });
+
+    &.light {
+        .apply-theme({ 
+            alpha: false;
+            background: lighten( @cInfo, 35% ); 
+            foreground: darken( @cInfo, 50% );
+            accent1: #111;
+            accent2: #111;
+        });
+    }
+}
+
+.fg {
+
+    &.primary { .build-theme-fg(@c1, #fff); }
+
+    &.desc { color: var(--cTxtDesc); }
+
+    &.success { .build-theme-fg( @cSuccess ); }
+    &.error { .build-theme-fg( @cError ); }
+    &.warn { .build-theme-fg( @cWarn ); }
+}

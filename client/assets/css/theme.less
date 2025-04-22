@@ -119,3 +119,13 @@
 
     color: var(--cTxtBase);
 }
+
+.color-theme( @color ) {
+    .apply-theme({ 
+        alpha: false;
+        background: @color; 
+        foreground: #111;
+        accent1: #111;
+        accent2: #111;
+    });
+}

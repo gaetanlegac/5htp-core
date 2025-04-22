@@ -160,18 +160,19 @@
         color: var(--cTxtAccent);
     }
 
+    &.secondary {
+        border: 1px solid var(--cLine);
+
+        &:hover {
+            border-color: var(--cLine2);
+        }
+    }
+
     /*----------------------------------
     - STATE
     ----------------------------------*/
 
     cursor: pointer;
-
-    &:not(.primary).active {
-
-        &.col {
-            box-shadow: 0 0 0 0.2em @c2;
-        }
-    }
 
     &[disabled] {
         cursor: default;
@@ -279,12 +280,26 @@
     &.menu > .btn, 
     &.menu > li > .btn {
 
-        > .label {
+        &:not(.col) > .label {
             // All the list items label must be aligned
             justify-content: flex-start;
             // Since they're all horizontally aligned,
             // Label = max width, so icon right are also aligned to right
             flex: 1;
+        }
+    }
+}
+
+.submenu.card {
+    animation: aff-submenu 0.1s ease;
+    @keyframes aff-submenu {
+        0% {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+        100% {
+            opacity: 1;
+            transform: scale(1);
         }
     }
 }
@@ -323,7 +338,9 @@ ul.col {
     &.menu > li > .btn {
         
         // Align items ver sla gauche
-        justify-content: flex-start;
+        &:not(.col) {
+            justify-content: flex-start;
+        }
         
         // Align all icons by giveing them the same width
         > i {
