@@ -42,6 +42,11 @@
     display: flex;
     flex-wrap: nowrap;
 
+    > * {
+        // Avoids flexbox childrens to overflw parent
+        min-width: 0;
+    }
+
     &.scrollable {
         > * {
             min-width: fit-content;
@@ -175,11 +180,6 @@
 
 .row, 
 .col {
-
-    > * {
-        // Avoids flexbox childrens to overflw parent
-        min-width: 0;
-    }
 
     &.sp-btw { justify-content: space-between; }
     &.sp-ar { justify-content: space-around; }

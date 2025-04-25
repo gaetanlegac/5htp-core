@@ -76,6 +76,14 @@
 
 @accentTheme: {
     alpha: false;
+    background: @c1;
+    foreground: #fff;
+    accent1: #fff;
+    accent2: #fff;;
+}
+
+@accentLightTheme: {
+    alpha: false;
     background: #EAE8F9;
     foreground: @c1 - #444;
     accent1: #fff;
@@ -87,9 +95,13 @@
     .apply-theme(@primaryTheme);
 }
 
-.bg.accent,
-.btn.bg.col.active {
+.bg.accent {
     .apply-theme(@accentTheme); 
+}
+
+.bg.accent.light,
+.btn.bg.col.active {
+    .apply-theme(@accentLightTheme); 
 }
 
 .bg.grey {
@@ -134,21 +146,30 @@
     border: 1px solid var(--cLine);
 }
 
-.bg.color1 { .color-theme(#0066ff ); }
-.bg.color2 { .color-theme(#00e6da ); }
-.bg.color3 { .color-theme(#00e417 ); }
-.bg.color4 { .color-theme(#ffb700 ); }
-.bg.color5 { .color-theme(#eb4a00 ); }
-.bg.color6 { .color-theme(#e500ac ); }
-.bg.color7 { .color-theme(#6200ff ); }
+/* --- vivid swatches --- */
+.bg.color1  { .color-theme(#1fb4ff ); }   // bright cyan
+.bg.color2  { .color-theme(#ff6a1a ); }   // vivid orange
+.bg.color3  { .color-theme(#f52ff9 ); }   // hot magenta
+.bg.color4  { .color-theme(#962eff ); }   // electric violet
+.bg.color5  { .color-theme(#23ff6e ); }   // neon green
+.bg.color6  { .color-theme(#ffde1f ); }   // vibrant yellow
+.bg.color7  { .color-theme(#ff145d ); }   // punch‑red
+.bg.color8  { .color-theme(#12fff9 ); }   // aqua glow
+.bg.color9  { .color-theme(#ffba1f ); }   // golden amber
+.bg.color10 { .color-theme(#1eff5e ); }   // lime burst
 
-.bg.light1 { .color-theme(#cce0fe ); }
-.bg.light2 { .color-theme(#c7f0ee ); }
-.bg.light3 { .color-theme(#cef5d2 ); }
-.bg.light4 { .color-theme(#feeab6 ); }
-.bg.light5 { .color-theme(#ffdccc ); }
-.bg.light6 { .color-theme(#fcccf0 ); }
-.bg.light7 { .color-theme(#e2d5f7 ); }
+/* --- matching light versions (≈20 % tint of base) --- */
+.bg.light1  { .color-theme(#d2f0ff ); }
+.bg.light2  { .color-theme(#ffe1d1 ); }
+.bg.light3  { .color-theme(#fdd5fe ); }
+.bg.light4  { .color-theme(#ead5ff ); }
+.bg.light5  { .color-theme(#d3ffe2 ); }
+.bg.light6  { .color-theme(#fff8d2 ); }
+.bg.light7  { .color-theme(#ffd0df ); }
+.bg.light8  { .color-theme(#d0fffe ); }
+.bg.light9  { .color-theme(#fff1d2 ); }
+.bg.light10 { .color-theme(#d2ffdf ); }
+
 
 .bg.success {
     box-shadow: none;
