@@ -70,6 +70,7 @@ export default function App({ context }: {
                     Menu: { defaultProps: { size: 'md' } },
                     MenuItem: { defaultProps: { size: 'md' } },
                     Autocomplete: { defaultProps: { size: 'md' } },
+                    TagsInput: { defaultProps: { size: 'md' } },
                     // Add any others you use...
                 },
             }} withGlobalStyles withNormalizeCSS>
