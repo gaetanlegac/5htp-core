@@ -59,7 +59,7 @@ export {
     //Button,
     //Card,
     Center,
-    //Checkbox,
+    Checkbox as CheckboxMantine,
     Chip,
     Code,
     ColorPicker,
