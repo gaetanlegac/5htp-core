@@ -203,7 +203,7 @@ export default function Liste<TRow extends TDonneeInconnue>({
                     render = JSON.stringify(cell);
 
                 return (
-                    <td class={classe} {...cellProps}>
+                    <td {...cellProps} className={classe}>
                         {render}
                     </td>
                 )
