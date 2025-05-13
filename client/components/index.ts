@@ -22,7 +22,9 @@ export { default as Date } from './Date';
 export { default as Select } from './Select';
 export { default as Checkbox } from './Checkbox';
 export { InputWrapper } from './utils';
-export { default as DropDown } from './DropDown';   
+export { default as DropDown } from './DropDown';  
+
+export { default as ConnectedInput } from './ConnectedInput';
 
 // Mantine
 export {
