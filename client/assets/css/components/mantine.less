@@ -63,13 +63,14 @@
 
 .mantine-TextInput-input,
 .mantine-Input-input {
-
     border: solid 1px var(--cLine) !important;
+}
 
-    &:focus {
-        border-color: @c1 !important;
-        box-shadow: 0 0 0 4px fade(@c1, 20%) !important;
-    }
+.card.active,
+.mantine-TextInput-input:focus,
+.mantine-Input-input:focus {
+    border: solid 1px @c1 !important;
+    box-shadow: 0 0 0 4px fade(@c1, 20%) !important;
 }
 
 .mantine-MultiSelect-pill {
