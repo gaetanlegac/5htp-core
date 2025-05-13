@@ -99,7 +99,7 @@ export default function Liste<TRow extends TDonneeInconnue>({
                 <td>
                     <Checkbox
                         id={"selectionner" + iDonnee}
-                        value={selection.current.some(s => s.id === row.id)}
+                        value={selection.current.some(s => s?.id === row?.id)}
                         onChange={(isSelected: boolean) => {
                             selection.set(current => isSelected
                                 // Ajoute
@@ -230,7 +230,7 @@ export default function Liste<TRow extends TDonneeInconnue>({
                                 <Checkbox
                                     value={selection.current.length >= rows.length}
                                     onChange={(status: boolean) => {
-                                        selection.set(status ? rows : []);
+                                        selection.set(status ? rows.filter(r => r?.id) : []);
                                     }}
                                 />
                             </th>
