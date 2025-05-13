@@ -156,6 +156,8 @@ export default (props: Props) => {
             {React.cloneElement( children, {
                 onClick: (e) => {
                     show(isShown => !isShown);
+                    e.stopPropagation();
+                    return false;
                 }
             })}
 
