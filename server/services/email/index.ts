@@ -2,10 +2,6 @@
 - DEPENDANCES
 ----------------------------------*/
 
-/* NOTE: On évite d'utiliser les alias ici,
-        Afin que l'envoi des rapports de bug fonctionne même en cas d'erreur avec les alias
-*/
-
 // Core
 import type { Application } from '@server/app';
 import Service from '@server/app/service';
@@ -13,7 +9,6 @@ import markdown from '@common/data/markdown';
 
 // Speciic
 import { jsonToHtml } from './utils';
-import type { Transporter } from './transporter';
 
 /*----------------------------------
 - SERVICE CONFIG
@@ -25,16 +20,12 @@ export type Config = {
     debug: boolean,
     simulateWhenLocal: boolean,
     default: {
-        transporter: string,
         from: TPerson
     },
     bugReport: {
         from: TPerson,
         to: TPerson
     },
-    transporters: {
-        [transporterId: string]: Transporter
-    }
 }
 
 export type Hooks = {
@@ -49,9 +40,7 @@ export type Services = {
 - TYPES: EMAILS
 ----------------------------------*/
 
-export { Transporter } from './transporter';
-
-export type TEmail = THtmlEmail | TMarkdownEmail// | TTemplateEmail;
+export type TEmail = THtmlEmail | TMarkdownEmail;
 
 type TPerson = {
     name?: string,
@@ -73,11 +62,6 @@ export type TMarkdownEmail = TBaseEmail & {
     subject: string,
     markdown: string,
 }
-
-/*export type TTemplateEmail = TBaseEmail & {
-    template: keyof typeof templates,
-    data?: TObjetDonnees
-}*/
 
 export type TCompleteEmail = With<THtmlEmail, {
     to: TPerson[],
@@ -109,13 +93,14 @@ type TOptions = {
 /*----------------------------------
 - FONCTIONS
 ----------------------------------*/
-export default class Email extends Service<Config, Hooks, Application> {
-    
-    private transporters = this.config.transporters;
+export default abstract class Email<TConfig extends Config> 
+    extends Service<TConfig, Hooks, Application> {
 
     /*----------------------------------
     - ACTIONS
     ----------------------------------*/
+
+    protected abstract sendNow( emails: TCompleteEmail[] ): Promise<void>;
 
     public async send( to: string, subject: string, markdown: string, options?: TOptions );
     public async send( emails: TEmail | TEmail[], options?: TOptions ): Promise<void>;
@@ -162,30 +147,7 @@ export default class Email extends Service<Config, Hooks, Application> {
                 ? email.to
                 : [email.to];
 
-            // Via template
-            // TODO: Restore templates feature
-            /*if ('template' in email) {
-
-                const template = templates[email.template];
-
-                if (template === undefined)
-                    throw new Error(`Impossible de charger la template email ${email.template} depuis le cache (NotFound).`);
-
-                const txt = template(email.data || {})
-
-                const delimTitre = txt.indexOf('\n\n');
-
-                return {
-                    ...email,
-                    // Vire le "> " au début
-                    subject: txt.substring(2, delimTitre),
-                    html: htmlWarning + txt.substring(delimTitre + 2),
-                    from,
-                    to,
-                    cc
-                }
-
-            } else */if ('markdown' in email) {
+            if ('markdown' in email) {
 
                 return {
                     ...email,
@@ -209,11 +171,7 @@ export default class Email extends Service<Config, Hooks, Application> {
             
         });
 
-        const transporterName = options.transporter || this.config.default.transporter;
-        if (transporterName === undefined)
-            throw new Error(`Please define at least one mail transporter.`);
-
-        console.info(LogPrefix, `Sending ${emailsToSend.length} emails via transporter "${transporterName}"`, emailsToSend[0].subject);
+        console.info(LogPrefix, `Sending ${emailsToSend.length} emails via transporter`, emailsToSend[0].subject);
 
         // Pas d'envoi d'email quand local
         if (this.app.env.name === 'local' && this.config.simulateWhenLocal === true) {
@@ -224,8 +182,7 @@ export default class Email extends Service<Config, Hooks, Application> {
             return;
         }
 
-        const transporter = this.transporters[ transporterName ];
-        await transporter.send(emailsToSend);
+        await this.sendNow(emailsToSend);
 
     }
 }

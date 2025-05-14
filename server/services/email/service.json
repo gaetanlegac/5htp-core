@@ -1,6 +1,0 @@
-{
-    "id": "Core/Email",
-    "name": "Email",
-    "parent": "app",
-    "dependences": []
-}

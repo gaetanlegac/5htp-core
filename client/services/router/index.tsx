@@ -127,7 +127,7 @@ type THookName = 'page.change' | 'page.changed' | 'page.rendered'
 
 type Config<TAdditionnalContext extends {} = {}> = {
     preload: string[], // List of globs
-    context: (context: ClientContext, router: ClientRouter) => TAdditionnalContext,
+    context: (context: {}, router: ClientRouter) => TAdditionnalContext,
 }
 
 /*----------------------------------
