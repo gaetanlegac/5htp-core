@@ -26,7 +26,11 @@ export default (initProps: Props) => {
     - INIT
     ----------------------------------*/
 
-    const [{ title, onChange }, { errors, required, ...props }] = useMantineInput<Props>(initProps);
+    const [{ title, onChange, value }, { errors, required, ...props }] = useMantineInput<Props>(initProps);
+
+    if (initProps.title === 'Exact match')
+    console.log("Checkbox", initProps, props);
+    
 
     /*----------------------------------
     - RENDER
@@ -36,6 +40,7 @@ export default (initProps: Props) => {
             label={title}
             error={errors?.join(', ')}
             required={required}
+            checked={value}
             {...props}
             onChange={e => onChange?.(e.target.checked)}
         />
