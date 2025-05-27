@@ -286,7 +286,8 @@ export default class Console {
     public async createBugReport( error: Error | CoreError | Anomaly, request?: ServerRequest ) {
 
         // Print error
-        this.logger.error(LogPrefix, `Sending bug report for the following error:`, error);
+        const originalError = ('originalError' in error && error.originalError) ? error.originalError : error;
+        this.logger.error(LogPrefix, `Sending bug report for the following error:`, error, originalError);
         /*const youchRes = new Youch(error, {});
         const jsonResponse = await youchRes.toJSON()
         console.log( forTerminal(jsonResponse, {
@@ -371,8 +372,8 @@ export default class Console {
             } : {}),
 
             // Error
-            error,
-            stacktrace: error.stack || error.message,
+            error: originalError,
+            stacktrace: (originalError.stack || originalError.message || error.stack || error.message) as string,
             logs
         }
 
