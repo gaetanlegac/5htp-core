@@ -34,9 +34,9 @@ export default class Facet<
 
     public findFirst(
         ...args: Parameters<S>
-    ): Promise<R> {
+    ): Promise<R | null> {
         return this.delegate
             .findFirst(this.subset(...args))
-            .then(this.transform)
+            .then(result => result ? this.transform(result) : null)
     }
 }
