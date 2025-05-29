@@ -13,6 +13,10 @@ declare type With<
     TAdditionnal
 )
 
+declare type NonNullFields<T, K extends keyof T> = Omit<T, K> & {
+    [P in K]: NonNullable<T[P]>;
+};
+
 declare type ValueOf<T> = T[keyof T];
 
 // Extrait la valeur de retour d'une promise
@@ -55,6 +59,49 @@ declare type Routes = {
 
 declare type PrimitiveValue = string | number | boolean;
 
+/*----------------------------------
+- COPY FROM CLI/APP/INDEX.TS
+----------------------------------*/
+
+type TEnvConfig = {
+    name: 'local' | 'server',
+    profile: 'dev' | 'prod',
+    version: string,
+}
+
+type TServiceSetup = {
+    id: string,
+    name: string,
+    config: {},
+    subservices: TServiceSubservices
+}
+
+type TServiceRef = {
+    refTo: string
+}
+
+type TServiceSubservices = {
+    [key: string]: TServiceSetup | TServiceRef
+}
+
 declare module '@cli/app' {
-    export const app: 'test';
+    type App = {
+
+        env: TEnvConfig;
+
+        use: (referenceName: string) => TServiceRef;
+
+        setup: (...args: [
+            // { user: app.setup('Core/User') }
+            servicePath: string,
+            serviceConfig?: {}
+        ] | [
+            // app.setup('User', 'Core/User')
+            serviceName: string, 
+            servicePath: string,
+            serviceConfig?: {}
+        ]) => TServiceSetup;
+    }
+    const app: App;
+    export = app;
 }
