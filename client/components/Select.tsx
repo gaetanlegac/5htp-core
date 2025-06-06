@@ -22,7 +22,8 @@ import Popover, { Props as PopoverProps } from '@client/components/containers/Po
 ----------------------------------*/
 
 export type Props = SelectProps & InputBaseProps<ComboboxItem> & {
-    popoverProps?: PopoverProps
+    popoverProps?: PopoverProps,
+    buttonProps?: ButtonProps,
 }
 
 export type Choice = ComboboxItem;
@@ -63,7 +64,7 @@ export default (initProps: Props) => {
         onChange, value: current,
         required
     }, {
-        multiple, choices: initChoices, enableSearch, popoverProps,
+        multiple, choices: initChoices, enableSearch, popoverProps, buttonProps,
         ...props
     }] = useMantineInput<Props, string|number>(initProps);
 
@@ -95,7 +96,8 @@ export default (initProps: Props) => {
     /*----------------------------------
     - ACTIONS
     ----------------------------------*/
-
+    
+    // Load search results
     React.useEffect(() => {
 
         if (choicesViaFunc && opened) {
@@ -113,11 +115,15 @@ export default (initProps: Props) => {
 
     }, [
         opened,
-        search.keywords,
-        // When initChoices is a function, React considers it's always different
-        // It avoids the choices are fetched everytimle the parent component is re-rendered
-        typeof initChoices === 'function' ? true : initChoices
+        search.keywords
     ]);
+
+    // When initChoices is not a function and has changed
+    React.useEffect(() => {
+        if (!choicesViaFunc) {
+            setChoices(initChoices);
+        }
+    }, [initChoices]);
 
     /*----------------------------------
     - RENDER
@@ -189,6 +195,7 @@ export default (initProps: Props) => {
                 </div>
             )}>
                 <Button
+                    {...buttonProps}
                     prefix={(
                         (multiple && current?.length) ? (
                             <span class="badge bg info s">
