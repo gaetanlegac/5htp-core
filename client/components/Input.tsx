@@ -61,8 +61,8 @@ export default (initProps: Props) => {
         props.min = props.min ?? 0;
     } else if (props.type === 'longtext' && typeof document !== 'undefined') {
         Component = Textarea;
-        props.autosize = true;
-        props.minRows = 2;
+        props.autosize = props.autosize || true;
+        props.minRows = props.minRows || 2;
     } else {
         Component = TextInput;
     }
