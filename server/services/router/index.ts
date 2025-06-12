@@ -468,7 +468,9 @@ export default class ServerRouter
 
     public async resolve(request: ServerRequest<this>): Promise<ServerResponse<this>> {
 
-        const logId = LogPrefix + ' ' + (request.isVirtual ? ' ---- ' : '') + request.ip + ' ' + request.method + ' ' + request.domain + ' ' + request.path;
+        const logId = LogPrefix + ' ' + (request.isVirtual ? ' ---- ' : '') 
+            + request.ip + ' ' + request.user?.email + ' '
+            + request.method + ' ' + /*request.domain + ' ' +*/ request.path;
         console.info(logId);
         const timeStart = Date.now();
 

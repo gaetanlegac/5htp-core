@@ -144,8 +144,6 @@ export default class HttpServer {
 
         routes.get("/ping", (req, res) => res.send("pong"));
 
-        routes.all('*', morgan('short'));
-
         /*----------------------------------
         - SESSION & SECURITE
         ----------------------------------*/
