@@ -168,7 +168,7 @@ export default class ClientRouter<
 
         // Error code
         if (typeof url === 'number') {
-            this.createResponse( this.errors[url], this.context.request ).then(( page ) => {
+            this.createResponse( this.errors[url], this.context.request, data ).then(( page ) => {
                 this.navigate(page, data);
             })
             return;
@@ -335,10 +335,10 @@ export default class ClientRouter<
 
         };
 
-        console.log("404 error page not found.", this.errors, this.routes);
-
         const notFoundRoute = this.errors[404];
-        return await this.createResponse(notFoundRoute, request);
+        return await this.createResponse(notFoundRoute, request, {
+            error: new Error("Page not found")
+        });
     }
 
     private async load(route: TUnresolvedNormalRoute): Promise<TRoute>;
@@ -504,7 +504,9 @@ export default class ClientRouter<
         // Listener remover
         return () => {
             debug && console.info(LogPrefix, `De-register hook ${hookName} (index ${cbIndex})`);
-            delete (callbacks as THookCallback<this>[])[cbIndex];
+            this.hooks[hookName] = this.hooks[hookName]?.filter(
+                (_, index) => index !== cbIndex
+            );
         }
 
     }
