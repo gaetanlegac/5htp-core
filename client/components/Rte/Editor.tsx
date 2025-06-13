@@ -111,6 +111,7 @@ export default ({ value, setValue, props }: {
     let {
         // Decoration
         title,
+        toolbar,
         // Actions
         preview = true
     } = props;
@@ -240,7 +241,7 @@ export default ({ value, setValue, props }: {
             theme: ExampleTheme,
         }}>
             <div className="editor-container">
-                <ToolbarPlugin setIsLinkEditMode={setIsLinkEditMode} />
+                <ToolbarPlugin setIsLinkEditMode={setIsLinkEditMode} display={toolbar} />
                 <div className="editor-inner">
                     <RichTextPlugin
                         contentEditable={

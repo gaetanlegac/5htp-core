@@ -1,10 +1,6 @@
-/**
- * Copyright (c) Meta Platforms, Inc. and affiliates.
- *
- * This source code is licensed under the MIT license found in the
- * LICENSE file in the root directory of this source tree.
- *
- */
+/*----------------------------------
+- DEPENDANCES
+----------------------------------*/
 
 // Core
 import Button from '@client/components/Button';
@@ -49,6 +45,7 @@ import {
 } from '@lexical/utils';
 import {
     $createParagraphNode,
+    $createTextNode,
     $getNodeByKey,
     $getRoot,
     $getSelection,
@@ -94,6 +91,47 @@ import { INSERT_PAGE_BREAK } from '../plugins/PageBreakPlugin';
 import { InsertPollDialog } from '../plugins/PollPlugin';
 import { InsertTableDialog } from '../plugins/TablePlugin';
 
+/*----------------------------------
+- TYPES
+----------------------------------*/
+export type TToolbarDisplay = {
+    // Default to true
+    blocks?: boolean,
+    formatting?: boolean | {
+        bold?: boolean,
+        italic?: boolean,
+        underline?: boolean,
+        code?: boolean,
+        link?: boolean,
+    },
+    styles?: boolean | {
+        strikethrough?: boolean,
+        subscript?: boolean,
+        superscript?: boolean,
+        clear?: boolean,
+    },
+    insert?: boolean | {
+        horizontalRule?: boolean,
+        pageBreak?: boolean,
+        code?: boolean,
+        image?: boolean,
+        inlineImage?: boolean,
+        table?: boolean,
+        poll?: boolean,
+        columns?: boolean,
+        stickyNote?: boolean,
+        collapsibleContainer?: boolean,
+    },
+    alignment?: boolean,
+    custom?: (
+        editor: LexicalEditor, 
+        getSelection: typeof $getSelection
+    ) => React.JSX.Element,
+}
+
+/*----------------------------------
+- UTILS
+----------------------------------*/
 function getCodeLanguageOptions(): [string, string][] {
     const options: [string, string][] = [];
 
@@ -116,16 +154,18 @@ function dropDownActiveClass(active: boolean) {
     }
 }
 
-
-
 function Divider(): React.JSX.Element {
     return <div className="divider" />;
 }
 
+/*----------------------------------
+- COMPONENT
+----------------------------------*/
 export default function ToolbarPlugin({
-    setIsLinkEditMode,
+    setIsLinkEditMode, display
 }: {
     setIsLinkEditMode: Dispatch<boolean>;
+    display?: TToolbarDisplay
 }): React.JSX.Element {
 
     const { modal } = useContext();
@@ -497,7 +537,13 @@ export default function ToolbarPlugin({
 
             <Divider /> */}
 
-            {blockTypeNames.includes(blockType) && activeEditor === editor && (
+            {display?.custom && display?.custom(editor, $getSelection)}
+
+            {(
+                blockTypeNames.includes(blockType)
+                && 
+                display?.blocks
+            ) && activeEditor === editor && (
                 <>
                     <BlockFormatDropDown
                         disabled={!isEditable}
@@ -526,49 +572,48 @@ export default function ToolbarPlugin({
                         ))}
                     </div>
                 </DropDown>
-            ) : (
+            ) : display?.formatting !== false && (
                 <>
-                    <Button icon="bold" size="s"
-                        disabled={!isEditable}
-                        onClick={() => {
-                            activeEditor.dispatchCommand(FORMAT_TEXT_COMMAND, 'bold');
-                        }}
-                        active={isBold}
-                        title={IS_APPLE ? 'Bold (⌘B)' : 'Bold (Ctrl+B)'}
-                    />
-                    <Button icon="italic" size="s"
-                        disabled={!isEditable}
-                        onClick={() => {
-                            activeEditor.dispatchCommand(FORMAT_TEXT_COMMAND, 'italic');
-                        }}
-                        active={isItalic}
-                        title={IS_APPLE ? 'Italic (⌘I)' : 'Italic (Ctrl+I)'}
-                    />
-                    <Button icon="underline" size="s"
-                        disabled={!isEditable}
-                        onClick={() => {
-                            activeEditor.dispatchCommand(FORMAT_TEXT_COMMAND, 'underline');
-                        }}
-                        active={isUnderline}
-                        title={IS_APPLE ? 'Underline (⌘U)' : 'Underline (Ctrl+U)'}
-                    />
-
-                    {canViewerSeeInsertCodeButton && (
-                        <Button icon="code" size="s"
+                    {display?.formatting === true || display?.formatting?.bold !== false && (
+                        <Button icon="bold" size="s"
                             disabled={!isEditable}
                             onClick={() => {
-                                activeEditor.dispatchCommand(FORMAT_TEXT_COMMAND, 'code');
+                                activeEditor.dispatchCommand(FORMAT_TEXT_COMMAND, 'bold');
                             }}
-                            active={isCode}
-                            title="Insert code block"
+                            active={isBold}
+                            title={IS_APPLE ? 'Bold (⌘B)' : 'Bold (Ctrl+B)'}
                         />
                     )}
-                    <Button icon="link" size="s"
-                        disabled={!isEditable}
-                        onClick={insertLink}
-                        active={isLink}
-                        title="Insert link"
-                    />
+                    {display?.formatting === true || display?.formatting?.italic !== false && (
+                        <Button icon="italic" size="s"
+                            disabled={!isEditable}
+                            onClick={() => {
+                                activeEditor.dispatchCommand(FORMAT_TEXT_COMMAND, 'italic');
+                            }}
+                            active={isItalic}
+                            title={IS_APPLE ? 'Italic (⌘I)' : 'Italic (Ctrl+I)'}
+                        />
+                    )}
+
+                    {display?.formatting === true || display?.formatting?.underline !== false && (
+                        <Button icon="underline" size="s"
+                            disabled={!isEditable}
+                            onClick={() => {
+                                activeEditor.dispatchCommand(FORMAT_TEXT_COMMAND, 'underline');
+                            }}
+                            active={isUnderline}
+                            title={IS_APPLE ? 'Underline (⌘U)' : 'Underline (Ctrl+U)'}
+                        />
+                    )}
+
+                    {display?.formatting === true || display?.formatting?.link !== false && (
+                        <Button icon="link" size="s"
+                            disabled={!isEditable}
+                            onClick={insertLink}
+                            active={isLink}
+                            title="Insert link"
+                        />
+                    )}
 
                     {/* <DropdownColorPicker
                         disabled={!isEditable}
@@ -589,52 +634,62 @@ export default function ToolbarPlugin({
                         title="bg color"
                     /> */}
 
-                    <DropDown popover={{ tag: 'li' }} icon="font" size="s"
-                        disabled={!isEditable}
-                        hint="Formatting options for additional text styles"
-                    >
-
-                        <Button icon="strikethrough" size="s"
-                            onClick={() => {
-                                activeEditor.dispatchCommand( FORMAT_TEXT_COMMAND, 'strikethrough');
-                            }}
-                            active={isStrikethrough}
-                            title="Format text with a strikethrough"
+                    {display?.styles !== false && (
+                        <DropDown popover={{ tag: 'li' }} icon="font" size="s"
+                            disabled={!isEditable}
+                            hint="Formatting options for additional text styles"
                         >
-                            Strikethrough
-                        </Button>
 
-                        <Button icon="subscript" size="s"
-                            onClick={() => {
-                                activeEditor.dispatchCommand(FORMAT_TEXT_COMMAND, 'subscript');
-                            }}
-                            active={isSubscript}
-                            title="Format text with a subscript"
-                        >
-                            Subscript
-                        </Button>
+                            {display?.styles === true || display?.styles?.strikethrough !== false && (
+                                <Button icon="strikethrough" size="s"
+                                    onClick={() => {
+                                        activeEditor.dispatchCommand( FORMAT_TEXT_COMMAND, 'strikethrough');
+                                    }}
+                                    active={isStrikethrough}
+                                    title="Format text with a strikethrough"
+                                >
+                                    Strikethrough
+                                </Button>
+                            )}
 
-                        <Button icon="superscript" size="s"
-                            onClick={() => {
-                                activeEditor.dispatchCommand(
-                                    FORMAT_TEXT_COMMAND,
-                                    'superscript',
-                                );
-                            }}
-                            active={isSuperscript}
-                            title="Format text with a superscript">
-                            Superscript
-                        </Button>
+                            {display?.styles === true || display?.styles?.subscript !== false && (
+                                <Button icon="subscript" size="s"
+                                    onClick={() => {
+                                        activeEditor.dispatchCommand(FORMAT_TEXT_COMMAND, 'subscript');
+                                    }}
+                                    active={isSubscript}
+                                    title="Format text with a subscript"
+                                >
+                                    Subscript
+                                </Button>
+                            )}
 
-                        <Button icon="empty-set" size="s"
-                            onClick={clearFormatting}
-                            title="Clear all text formatting">
-                            Clear Formatting
-                        </Button>
+                            {display?.styles === true || display?.styles?.superscript !== false && (
+                                <Button icon="superscript" size="s"
+                                    onClick={() => {
+                                        activeEditor.dispatchCommand(
+                                            FORMAT_TEXT_COMMAND,
+                                            'superscript',
+                                        );
+                                    }}
+                                    active={isSuperscript}
+                                    title="Format text with a superscript">
+                                    Superscript
+                                </Button>
+                            )}
 
-                    </DropDown>
+                            {display?.styles === true || display?.styles?.clear !== false && (
+                                <Button icon="empty-set" size="s"
+                                    onClick={clearFormatting}
+                                    title="Clear all text formatting">
+                                    Clear Formatting
+                                </Button>
+                            )}
 
-                    {canViewerSeeInsertDropdown && (
+                        </DropDown>
+                    )}
+
+                    {(canViewerSeeInsertDropdown && display?.insert !== false) && (
                         <>
                             <Divider />
                             <DropDown popover={{ tag: 'li' }}
@@ -644,29 +699,48 @@ export default function ToolbarPlugin({
                                 hint="Insert specialized editor node"
                             >
 
-                                <Button icon="horizontal-rule" size="s" onClick={() => {
-                                    activeEditor.dispatchCommand( INSERT_HORIZONTAL_RULE_COMMAND, undefined, );
-                                }}>
-                                    Horizontal Rule
-                                </Button>
+                                {display?.insert === true || display?.insert?.horizontalRule !== false && (
+                                    <Button icon="horizontal-rule" size="s" onClick={() => {
+                                        activeEditor.dispatchCommand( INSERT_HORIZONTAL_RULE_COMMAND, undefined, );
+                                    }}>
+                                        Horizontal Rule
+                                    </Button>
+                                )}
 
-                                <Button icon="page-break" size="s" onClick={() => {
-                                    activeEditor.dispatchCommand(INSERT_PAGE_BREAK, undefined);
-                                }}>
-                                    Page Break
-                                </Button>
+                                {display?.insert === true || display?.insert?.pageBreak !== false && (
+                                    <Button icon="page-break" size="s" onClick={() => {
+                                        activeEditor.dispatchCommand(INSERT_PAGE_BREAK, undefined);
+                                    }}>
+                                        Page Break
+                                    </Button>
+                                )}
 
-                                <Button icon="image" size="s" onClick={() => {
-                                    modal.show('Insert Image', InsertImageDialog, { editor: activeEditor });
-                                }}>
-                                    Image
-                                </Button>
+                                {(canViewerSeeInsertCodeButton && (display?.insert === true || display?.insert?.code !== false)) && (
+                                    <Button icon="code" size="s"
+                                        disabled={!isEditable}
+                                        onClick={() => {
+                                            activeEditor.dispatchCommand(FORMAT_TEXT_COMMAND, 'code');
+                                        }}
+                                        active={isCode}
+                                        title="Insert code block"
+                                    />
+                                )}
 
-                                <Button icon="image" size="s" onClick={() => {
-                                    modal.show('Insert Inline Image', InsertInlineImageDialog, { editor: activeEditor });
-                                }}>
-                                    Inline Image
-                                </Button>
+                                {display?.insert === true || display?.insert?.image !== false && (
+                                    <Button icon="image" size="s" onClick={() => {
+                                        modal.show('Insert Image', InsertImageDialog, { editor: activeEditor });
+                                    }}>
+                                        Image
+                                    </Button>
+                                )}
+
+                                {display?.insert === true || display?.insert?.inlineImage !== false && (
+                                    <Button icon="image" size="s" onClick={() => {
+                                        modal.show('Insert Inline Image', InsertInlineImageDialog, { editor: activeEditor });
+                                    }}>
+                                        Inline Image
+                                    </Button>
+                                )}
 
                                 {/* <Button
                                     onClick={() => {
@@ -680,24 +754,30 @@ export default function ToolbarPlugin({
                                     <span className="text">Excalidraw</span>
                                 </Button> */}
 
-                                <Button icon="table" size="s" onClick={() => {
-                                    modal.show('Insert Table', InsertTableDialog, { editor: activeEditor });
-                                }}>
-                                    Table
-                                </Button>
+                                {display?.insert === true || display?.insert?.table !== false && (
+                                    <Button icon="table" size="s" onClick={() => {
+                                        modal.show('Insert Table', InsertTableDialog, { editor: activeEditor });
+                                    }}>
+                                        Table
+                                    </Button>
+                                )}
 
-                                <Button icon="poll" size="s" onClick={() => {
-                                    modal.show('Insert Poll', InsertPollDialog, { editor: activeEditor });
-                                }}>
-                                   Poll
-                                </Button>
+                                {display?.insert === true || display?.insert?.poll !== false && (
+                                    <Button icon="poll" size="s" onClick={() => {
+                                        modal.show('Insert Poll', InsertPollDialog, { editor: activeEditor });
+                                    }}>
+                                        Poll
+                                    </Button>
+                                )}
 
-                                <Button icon="columns" size="s" onClick={() => {
-                                    modal.show('Insert Columns Layout', InsertLayoutDialog, { editor: activeEditor });
-                                }} >
-                                    Columns Layout
-                                </Button>
-
+                                {display?.insert === true || display?.insert?.columns !== false && (
+                                    <Button icon="columns" size="s" onClick={() => {
+                                        modal.show('Insert Columns Layout', InsertLayoutDialog, { editor: activeEditor });
+                                    }} >
+                                        Columns Layout
+                                    </Button>
+                                )}
+        
                                 {/* <Button
                                     onClick={() => {
                                         modal.show('Insert Equation', (onClose) => (
@@ -712,24 +792,28 @@ export default function ToolbarPlugin({
                                     <span className="text">Equation</span>
                                 </Button> */}
 
-                                <Button icon="sticky-note" size="s" onClick={() => {
-                                    editor.update(() => {
-                                        const root = $getRoot();
-                                        const stickyNode = $createStickyNode(0, 0);
-                                        root.append(stickyNode);
-                                    });
-                                }}>
-                                    Sticky Note
-                                </Button>
+                                {display?.insert === true || display?.insert?.stickyNote !== false && (
+                                    <Button icon="sticky-note" size="s" onClick={() => {
+                                        editor.update(() => {
+                                            const root = $getRoot();
+                                            const stickyNode = $createStickyNode(0, 0);
+                                            root.append(stickyNode);
+                                        });
+                                    }}>
+                                        Sticky Note
+                                    </Button>
+                                )}
 
-                                <Button icon="caret-right" size="s" onClick={() => {
-                                    editor.dispatchCommand(
-                                        INSERT_COLLAPSIBLE_COMMAND,
-                                        undefined,
-                                    );
-                                }}>
-                                    Collapsible container
-                                </Button>
+                                {display?.insert === true || display?.insert?.collapsibleContainer !== false && (
+                                    <Button icon="caret-right" size="s" onClick={() => {
+                                        editor.dispatchCommand(
+                                            INSERT_COLLAPSIBLE_COMMAND,
+                                            undefined,
+                                        );
+                                    }}>
+                                        Collapsible container
+                                    </Button>
+                                )}
 
                                 {/*EmbedConfigs.map((embedConfig) => (
                                     <Button
@@ -749,13 +833,17 @@ export default function ToolbarPlugin({
                     )}
                 </>
             )}
-            <Divider />
-            <ElementFormatDropdown
-                disabled={!isEditable}
-                value={elementFormat}
-                editor={activeEditor}
-                isRTL={isRTL}
-            />
+
+            {display?.alignment !== false && <>
+                <Divider />
+                <ElementFormatDropdown
+                    disabled={!isEditable}
+                    value={elementFormat}
+                    editor={activeEditor}
+                    isRTL={isRTL}
+                />
+            </>}
+
         </div>
     );
 }

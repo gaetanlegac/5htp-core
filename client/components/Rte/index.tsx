@@ -7,6 +7,7 @@ import React from 'react';
 
 // Core libs
 import { useInput, InputBaseProps, InputWrapper } from '../utils';
+import type { TToolbarDisplay } from './ToolbarPlugin';
 
 // Special componets
 import type TEditor from './Editor';
@@ -19,6 +20,7 @@ import './style.less';
 export type Props = {
     preview?: boolean,
     title: string,
+    toolbar?: TToolbarDisplay
 } 
 
 /*----------------------------------

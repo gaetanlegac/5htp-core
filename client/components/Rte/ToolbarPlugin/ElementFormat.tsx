@@ -92,7 +92,7 @@ export default function ElementFormatDropdown({
             popover={{ tag: 'li' }}
         >
             {FormatOptions.map((option) => (
-                <Button icon={isRTL ? option.iconRTL : option.icon}
+                <Button size="s" icon={isRTL ? option.iconRTL : option.icon}
                     onClick={() => {
                         if (option.value === 'indent')
                             editor.dispatchCommand(INDENT_CONTENT_COMMAND, undefined);
