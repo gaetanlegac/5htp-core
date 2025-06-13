@@ -94,7 +94,8 @@ export function Route(options: Omit<TControllerDefinition, 'controller'> = {}) {
 export default abstract class Service<
     TConfig extends {}, 
     THooks extends THooksList,
-    TApplication extends Application
+    TApplication extends Application,
+    TParent extends AnyService | Application = Application
 > {
 
     public started?: Promise<void>;
@@ -104,6 +105,7 @@ export default abstract class Service<
     public metas!: TServiceMetas;
     public bindings: string[] = []
 
+    public parent: TParent;
     public app: TApplication;
     public config: TConfig = {} as TConfig;
 
