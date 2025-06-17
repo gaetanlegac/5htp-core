@@ -43,6 +43,7 @@ export type LexicalNode = {
 
 type TRenderOptions = {
 
+    format?: 'html' | 'text', // Default = html
     transform?: RteUtils["transformNode"],
 
     render?: (
@@ -91,17 +92,9 @@ export class RteUtils {
         }
 
         // Parse content if string
-        let json: LexicalState;
-        if (typeof content === 'string' && content.trim().startsWith('{')) {
-            try {
-                json = JSON.parse(content) as LexicalState;
-            } catch (error) { 
-                throw new Anomaly("Invalid JSON format for the given JSON RTE content.");
-            }
-        } else if (content && typeof content === 'object' && content.root)
-            json = content;
-        else
-            return { html: '', json: content, ...assets };
+        let json = this.parseState(content);
+        if (json === false)
+            return { html: '', json: content, ...assets }
 
         // Parse prev version if string
         if (typeof options?.attachements?.prevVersion === 'string') {
@@ -128,9 +121,28 @@ export class RteUtils {
         }
 
         // Convert json to HTML
-        const html = await this.jsonToHtml( json, options );
+        let html: string;
+        if (options.format === 'text')
+            html = await this.jsonToText( json.root );
+        else
+            html = await this.jsonToHtml( json, options );
 
         return { html, json: content, ...assets };
+    }
+
+    private parseState( content: string | LexicalState ): LexicalState | false {
+
+        if (typeof content === 'string' && content.trim().startsWith('{')) {
+            try {
+                return JSON.parse(content) as LexicalState;
+            } catch (error) { 
+                throw new Anomaly("Invalid JSON format for the given JSON RTE content.");
+            }
+        } else if (content && typeof content === 'object' && content.root)
+            return content;
+        else
+            return false;
+        
     }
 
     private async processContent( 
