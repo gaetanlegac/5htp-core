@@ -17,7 +17,7 @@ import Ansi2Html from 'ansi-to-html';
 // Core libs
 import type ApplicationContainer from '..';
 import context from '@server/context';
-import type { ServerBug, Anomaly, CoreError } from '@common/errors';
+import type { ServerBug, TCatchedError, CoreError } from '@common/errors';
 import type ServerRequest from '@server/services/router/request';
 import { SqlError } from '@server/services/database/debug';
 
@@ -99,8 +99,6 @@ export type TJsonLog = {
 
 const LogPrefix = '[console]'
 
-const errorMailInterval = (1 * 60 * 60 * 1000); // 1 hour
-
 const logLevels = {
     'log': 0, 
     'info': 3, 
@@ -144,13 +142,6 @@ export default class Console {
     public logger!: Logger<ILogObj>;
     // Buffers
     public logs: TJsonLog[] = [];
-    // Bug ID => Timestamp latest send
-    private sentBugs: {[bugId: string]: number} = {};
-
-    // Old (still useful???)
-    /*public clients: TGuestLogs[] = [];
-    public requests: TRequestLogs[] = [];
-    public sqlQueries: TDbQueryLog[] = [];*/
 
     /*----------------------------------
     - LIFECYCLE
@@ -283,11 +274,9 @@ export default class Console {
             this.logs = this.logs.slice(bufferOverflow);
     }
 
-    public async createBugReport( error: Error | CoreError | Anomaly, request?: ServerRequest ) {
+    // We don't prevent duplicates because we want to receive all variants of the same error
+    public async createBugReport( error: TCatchedError, request?: ServerRequest ) {
 
-        // Print error
-        const originalError = ('originalError' in error && error.originalError) ? error.originalError : error;
-        this.logger.error(LogPrefix, `Sending bug report for the following error:`, error, originalError);
         /*const youchRes = new Youch(error, {});
         const jsonResponse = await youchRes.toJSON()
         console.log( forTerminal(jsonResponse, {
@@ -314,28 +303,6 @@ export default class Console {
         if (application === undefined) 
             return console.error(LogPrefix, "Can't send bug report because the application is not instanciated");
 
-        // Print the error so it's accessible via logs
-        if (error instanceof SqlError)  {
-            let printedQuery: string;
-            try {
-                printedQuery = this.printSql( error.query );
-            } catch (error) {
-                printedQuery = 'Failed to print query:' + (error || 'unknown error');
-            }
-            console.error(`Error caused by this query:`, printedQuery);
-        }
-
-        if (('dataForDebugging' in error) && error.dataForDebugging !== undefined)
-            console.error(LogPrefix, `More data about the error:`, error.dataForDebugging);
-
-        // Prevent spamming the mailbox if infinite loop 
-        const bugId = ['server', request?.user?.name, undefined, error.message].filter(e => !!e).join('::');
-        const lastSending = this.sentBugs[bugId];
-        this.sentBugs[bugId] = Date.now();
-        const shouldSendReport = lastSending === undefined || lastSending < Date.now() - errorMailInterval;
-        if (!shouldSendReport)
-            return;
-
         // Get context
         const now = new Date();
         const hash = uuid();
@@ -344,6 +311,35 @@ export default class Console {
         // On envoi l'email avant l'insertion dans bla bdd
         // Car cette denrière a plus de chances de provoquer une erreur
         const logs = this.logs.filter(e => e.channel.channelId === channelId).slice(-100);
+
+        const errors: TCatchedError[] = []
+        let currentError: TCatchedError | undefined = error;
+        let title: string | undefined;
+        while (currentError !== undefined) {
+
+            this.logger.error(LogPrefix, `Sending bug report for the following error:`, currentError);
+            if (('dataForDebugging' in currentError) && currentError.dataForDebugging !== undefined)
+                console.error(LogPrefix, `More data about the error:`, currentError.dataForDebugging);
+
+            // Print the error so it's accessible via logs
+            if (currentError instanceof SqlError)  {
+                let printedQuery: string;
+                try {
+                    printedQuery = this.printSql( currentError.query );
+                } catch (error) {
+                    printedQuery = 'Failed to print query:' + (error || 'unknown error');
+                }
+                console.error(`Error caused by this query:`, printedQuery);
+            }
+
+            if (title === undefined)
+                title = currentError.message;
+
+            errors.push(currentError);
+            currentError = 'originalError' in currentError 
+                ? currentError.originalError
+                : undefined
+        }
 
         const bugReport: ServerBug = {
 
@@ -372,8 +368,8 @@ export default class Console {
             } : {}),
 
             // Error
-            error: originalError,
-            stacktrace: (originalError.stack || originalError.message || error.stack || error.message) as string,
+            title,
+            errors,
             logs
         }
 
@@ -392,12 +388,22 @@ export default class Console {
     ----------------------------------*/
 
     public bugToHtml( report: ServerBug ) {
+
         return `
 <b>Channel</b>: ${report.channelType} (${report.channelId})<br />
 <b>User</b>: ${report.user ? (report.user.name + ' (' + report.user.email + ')') : 'Unknown'}<br />
 <b>IP</b>: ${report.ip}<br />
-<b>Error</b>: ${report.error.message}<br />
-${this.printHtml(report.stacktrace)}<br />
+
+${report.errors.map(e => `
+    <hr />
+    <b>Error</b>: ${e.message}<br />
+    ${this.printHtml(e.stack || e.message)}<br />
+    ${'dataForDebugging' in e ? `
+        <b>Data for debugging</b><br />
+        ${this.jsonToHTML(e.dataForDebugging)}<br />
+    ` : ''}
+`).join('')}
+
 ${report.request ? `
     <hr />
     <b>Request</b>: ${report.request.method} ${report.request.url}<br />
@@ -433,7 +439,7 @@ Logs: ${this.config.enable ? `<br/>` + this.logsToHTML(report.logs) : 'Logs coll
         });
 
         // Print args as ANSI
-        const logArgsAndErrorsMarkup = this.logger.runtime.prettyFormatLogObj(log.args, this.logger.settings);
+        const logArgsAndErrorsMarkup = this.logger["runtime"].prettyFormatLogObj(log.args, this.logger.settings);
         const logErrors = logArgsAndErrorsMarkup.errors;
         const logArgs = logArgsAndErrorsMarkup.args;
         const logErrorsStr = (logErrors.length > 0 && logArgs.length > 0 ? "\n" : "") + logErrors.join("\n");

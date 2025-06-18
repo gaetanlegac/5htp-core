@@ -55,10 +55,12 @@ export type ServerBug = {
     },
     
     // Error
-    error: Error,
-    stacktrace: string,
+    title?: string,
+    errors: TCatchedError[],
     logs: TJsonLog[],
 }
+
+export type TCatchedError = Error | CoreError | Anomaly;
 
 /*----------------------------------
 - ERREURS
