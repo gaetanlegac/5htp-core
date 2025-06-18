@@ -56,8 +56,8 @@ export type ServerBug = {
     
     // Error
     title?: string,
-    errors: TCatchedError[],
-    logs: TJsonLog[],
+    stacktraces: string[],
+    context: object[],
 }
 
 export type TCatchedError = Error | CoreError | Anomaly;

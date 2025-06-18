@@ -310,16 +310,26 @@ export default class Console {
 
         // On envoi l'email avant l'insertion dans bla bdd
         // Car cette denrière a plus de chances de provoquer une erreur
-        const logs = this.logs.filter(e => e.channel.channelId === channelId).slice(-100);
+        //const logs = this.logs.filter(e => e.channel.channelId === channelId).slice(-100);
+        const stacktraces: string[] = [];
+        const context: object[] = [];
 
-        const errors: TCatchedError[] = []
         let currentError: TCatchedError | undefined = error;
         let title: string | undefined;
         while (currentError !== undefined) {
 
+            if (title === undefined)
+                title = currentError.message;
+
+            // Stacktrace
             this.logger.error(LogPrefix, `Sending bug report for the following error:`, currentError);
-            if (('dataForDebugging' in currentError) && currentError.dataForDebugging !== undefined)
+            stacktraces.push(currentError.stack || currentError.message);
+
+            // Context
+            if (('dataForDebugging' in currentError) && currentError.dataForDebugging !== undefined) {
                 console.error(LogPrefix, `More data about the error:`, currentError.dataForDebugging);
+                context.push(currentError.dataForDebugging || {});
+            }
 
             // Print the error so it's accessible via logs
             if (currentError instanceof SqlError)  {
@@ -332,10 +342,7 @@ export default class Console {
                 console.error(`Error caused by this query:`, printedQuery);
             }
 
-            if (title === undefined)
-                title = currentError.message;
-
-            errors.push(currentError);
+            // Go deeper
             currentError = 'originalError' in currentError 
                 ? currentError.originalError
                 : undefined
@@ -369,8 +376,8 @@ export default class Console {
 
             // Error
             title,
-            errors,
-            logs
+            stacktraces,
+            context
         }
 
         await application.runHook('bug', bugReport);
@@ -394,14 +401,15 @@ export default class Console {
 <b>User</b>: ${report.user ? (report.user.name + ' (' + report.user.email + ')') : 'Unknown'}<br />
 <b>IP</b>: ${report.ip}<br />
 
-${report.errors.map(e => `
+${report.stacktraces.map((stacktrace, index) => `
     <hr />
-    <b>Error</b>: ${e.message}<br />
-    ${this.printHtml(e.stack || e.message)}<br />
-    ${'dataForDebugging' in e ? `
-        <b>Data for debugging</b><br />
-        ${this.jsonToHTML(e.dataForDebugging)}<br />
-    ` : ''}
+    <b>Error ${index + 1}</b>:
+    ${this.printHtml(stacktrace)}<br />
+`).join('')}
+
+${report.context.map((context, index) => `
+    <hr />
+    <b>Context ${index + 1}</b>: ${this.jsonToHTML(context)}<br />
 `).join('')}
 
 ${report.request ? `
