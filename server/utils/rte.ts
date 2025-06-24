@@ -346,24 +346,52 @@ export class RteUtils {
         return html;
     }
 
-    private jsonToText( node: LexicalNode ) {
-
-        let text = '';
-
-        // Check if the node has text content
-        if (node.type === 'text' && node.text) {
-            text += node.text;
+    private jsonToText(root: LexicalNode): string {
+        let result = '';
+      
+        function traverse(node: LexicalNode) {
+          switch (node.type) {
+            case 'text':
+              // Leaf text node
+              result += node.text ?? '';
+              break;
+            case 'linebreak':
+              // Explicit line break node
+              result += '\n';
+              break;
+            default:
+              // Container or block node: dive into children if any
+              if (node.children) {
+                node.children.forEach(traverse);
+              }
+              // After finishing a block-level node, append newline
+              if (isBlockNode(node.type)) {
+                result += '\n';
+              }
+              break;
+          }
         }
-
-        // Recursively process children nodes
-        if (node.children && Array.isArray(node.children)) {
-            node.children.forEach(childNode => {
-                text += this.jsonToText(childNode);
-            });
+      
+        // Heuristic: treat these as blocks
+        function isBlockNode(type: string): boolean {
+          return [
+            'root',
+            'paragraph',
+            'heading',
+            'listitem',
+            'unorderedlist',
+            'orderedlist',
+            'quote',
+            'codeblock',
+            'table',
+          ].includes(type);
         }
-
-        return text;
-    }
+      
+        traverse(root);
+      
+        // Trim trailing whitespace/newlines
+        return result.replace(/\s+$/, '');
+      }
 
     public async htmlToJson(htmlString: string): Promise<LexicalState> {
 
