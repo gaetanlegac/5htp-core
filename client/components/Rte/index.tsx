@@ -20,7 +20,8 @@ import './style.less';
 export type Props = {
     preview?: boolean,
     title: string,
-    toolbar?: TToolbarDisplay
+    toolbar?: TToolbarDisplay,
+    decorateText?: boolean
 } 
 
 /*----------------------------------

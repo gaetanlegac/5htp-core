@@ -28,7 +28,7 @@ export type Props = {
     
     tag?: "a" | "button",
     type?: 'guide' | 'primary' | 'secondary' | 'link',
-    shape?: 'default' | 'icon' | 'tile' | 'pill',
+    shape?: 'default' | 'icon' | 'tile' | 'pill' | 'custom',
     size?: TComponentSize,
     class?: string,
 
@@ -273,11 +273,14 @@ export default ({
             }       
         }}>
             {prefix}
-            {children && (
-                <span class={"label"}>
-                    {children}
-                </span>
-            )}
+            {children === undefined 
+                ? null 
+                : shape === 'custom' 
+                ? children : (
+                    <span class={"label"}>
+                        {children}
+                    </span>
+                )}
             {suffix}
         </Tag>
     )

@@ -73,6 +73,7 @@ import YouTubePlugin from './plugins/YouTubePlugin';
 // Core libs
 import editorNodes from '@common/data/rte/nodes';
 import type { Props as TRteProps } from '.';
+import type { LexicalState } from '@common/utils/rte';
 
 // Special componets
 import ExampleTheme from './themes/PlaygroundEditorTheme';
@@ -112,6 +113,7 @@ export default ({ value, setValue, props }: {
         // Decoration
         title,
         toolbar,
+        decorateText = true,
         // Actions
         preview = true
     } = props;
@@ -146,7 +148,7 @@ export default ({ value, setValue, props }: {
         }
     }, [isPreview]);
 
-    const renderPreview = async (value: {} | undefined) => {
+    const renderPreview = async (value: LexicalState | undefined) => {
 
         if (!value)
             return '';
@@ -166,7 +168,7 @@ export default ({ value, setValue, props }: {
                     <i src="spin" />
                 </div>
             ) : (
-                <div class="preview reading h-1-4 scrollable col clickable" 
+                <div class={"preview h-1-4 scrollable clickable" + (decorateText ? ' reading col' : '')} 
                     onClick={() => setIsPreview(false)}
                     dangerouslySetInnerHTML={{ __html: html }} />
             )
@@ -247,7 +249,7 @@ export default ({ value, setValue, props }: {
                         contentEditable={
                             <div className="editor" ref={onRef}>
                                 <ContentEditable
-                                    className="editor-input reading col"
+                                    className={"editor-input" + (decorateText ? ' reading col' : '')}
                                     aria-placeholder={"Type text here ..."}
                                     placeholder={
                                         <div className="editor-placeholder">Type text here ...</div>
@@ -278,7 +280,15 @@ export default ({ value, setValue, props }: {
                     <SpeechToTextPlugin />
                     <AutoLinkPlugin />
                     <CodeHighlightPlugin />
-                    <ListPlugin />
+
+                    {toolbar?.insert !== false && <>
+
+                        {(toolbar?.insert === true || toolbar?.insert?.list !== false) && (
+                            <ListPlugin />
+                        )}
+                    
+                    </>}
+
                     <CheckListPlugin />
                     <ListMaxIndentLevelPlugin maxDepth={7} />
                     <TablePlugin
@@ -318,10 +328,13 @@ export default ({ value, setValue, props }: {
                                 cellMerge={true}
                             />
                             <TableHoverActionsPlugin anchorElem={floatingAnchorElem} />
-                            <FloatingTextFormatToolbarPlugin
-                                anchorElem={floatingAnchorElem}
-                                setIsLinkEditMode={setIsLinkEditMode}
-                            />
+
+                            {toolbar?.formatting !== false && (
+                                <FloatingTextFormatToolbarPlugin
+                                    anchorElem={floatingAnchorElem}
+                                    setIsLinkEditMode={setIsLinkEditMode}
+                                />
+                            )}
                         </>
                     )}
 

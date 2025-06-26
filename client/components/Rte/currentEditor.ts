@@ -3,7 +3,16 @@ import { $generateHtmlFromNodes } from '@lexical/html';
 import editorNodes from '@common/data/rte/nodes';
 import ExampleTheme from '@client/components/Rte/themes/PlaygroundEditorTheme';
 
-class RichEditorUtils {
+import { 
+    default as RteUtils, 
+    LexicalNode, 
+    LexicalState, 
+    TRenderOptions,
+    TContentAssets
+} from '@common/utils/rte';
+
+
+class RichEditorUtils extends RteUtils {
 
     public active: {
         title: string,
@@ -12,7 +21,7 @@ class RichEditorUtils {
 
     private virtualEditor: LexicalEditor | null = null;
 
-    public async jsonToHtml( value: {} ): Promise<string | null> {
+    public async jsonToHtml( value: LexicalState, options: TRenderOptions = {} ): Promise<string | null> {
 
         if (!this.virtualEditor) {
             // Create a headless Lexical editor instance
@@ -35,6 +44,26 @@ class RichEditorUtils {
         });
 
         return html;
+    }
+
+    protected async processContent( 
+        node: LexicalNode, 
+        parent: LexicalNode | null, 
+        callback: (node: LexicalNode, parent: LexicalNode | null) => Promise<LexicalNode>
+    ): Promise<LexicalNode> {
+        return node;
+    }
+
+    protected async transformNode( node: LexicalNode, parent: LexicalNode | null, assets: TContentAssets, options: TRenderOptions ): Promise<LexicalNode> {
+        return node;
+    }
+
+    protected async deleteUnusedFile( 
+        node: LexicalNode, 
+        assets: TContentAssets, 
+        options: NonNullable<TRenderOptions["attachements"]>
+    ): Promise<LexicalNode> {
+        return node;
     }
 
 }

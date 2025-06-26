@@ -180,7 +180,10 @@ function TextFormatFloatingToolbar({
     }, [editor, $updateTextFormatFloatingToolbar]);
 
     return (
-        <div ref={popupCharStylesEditorRef} className="floating-text-format-popup card pd-05 row menu">
+        <div ref={popupCharStylesEditorRef} className="floating-text-format-popup card pdv-0 pdh-05 row menu" style={{
+            borderRadius: '2rem',
+            height: '4rem'
+        }}>
             {editor.isEditable() && (
                 <>
                     <Button size="s" icon="bold" active={isBold} onClick={() => {

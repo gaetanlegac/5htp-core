@@ -21,7 +21,7 @@
     min-height: @sizeComponent;
 
     // Shape
-    border-radius: @radius;
+    border-radius: @sizeComponent / 2; // Default = pill
     border: none;
 
     // Text
@@ -208,8 +208,11 @@
         }
     }
 
-    &.pill {
-        border-radius: @sizeComponent / 2;
+    &.rect,
+    &.col,
+    .col.menu > &,
+    .col.menu > li > & {
+        border-radius: @radius;
     }
 
     &.link {
@@ -242,7 +245,6 @@
 
     // Give less imortance to buttons which are in lists
     color: var(--cTxtBase);  
-    padding: 0 1em; // Row display = more condensed
 
     &.active,
     &:hover {
@@ -287,6 +289,13 @@
             // Label = max width, so icon right are also aligned to right
             flex: 1;
         }
+    }
+}
+
+.row {
+    &.menu > .btn:not(.col), 
+    &.menu > li > .btn:not(.col) {
+        padding: 0 1em; // Row display = more condensed
     }
 }
 

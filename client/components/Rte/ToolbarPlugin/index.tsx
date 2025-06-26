@@ -117,6 +117,7 @@ export type TToolbarDisplay = {
         image?: boolean,
         inlineImage?: boolean,
         table?: boolean,
+        list?: boolean,
         poll?: boolean,
         columns?: boolean,
         stickyNote?: boolean,
@@ -514,7 +515,7 @@ export default function ToolbarPlugin({
     const canViewerSeeInsertCodeButton = !isImageCaption;
 
     return (
-        <div className="row menu al-left" style={{ 
+        <div className="row menu al-left pdb-05" style={{ 
             position: 'sticky', 
             top: 0, 
             background: 'white', 
@@ -614,223 +615,223 @@ export default function ToolbarPlugin({
                             title="Insert link"
                         />
                     )}
+                </>
+            )}
 
-                    {/* <DropdownColorPicker
-                        disabled={!isEditable}
-                        buttonClassName="toolbar-item color-picker"
-                        buttonAriaLabel="Formatting text color"
-                        buttonIconClassName="icon font-color"
-                        color={fontColor}
-                        onChange={onFontColorSelect}
-                        title="text color"
-                    />
-                    <DropdownColorPicker
-                        disabled={!isEditable}
-                        buttonClassName="toolbar-item color-picker"
-                        buttonAriaLabel="Formatting background color"
-                        buttonIconClassName="icon bg-color"
-                        color={bgColor}
-                        onChange={onBgColorSelect}
-                        title="bg color"
-                    /> */}
 
-                    {display?.styles !== false && (
-                        <DropDown popover={{ tag: 'li' }} icon="font" size="s"
-                            disabled={!isEditable}
-                            hint="Formatting options for additional text styles"
+            {/* <DropdownColorPicker
+                disabled={!isEditable}
+                buttonClassName="toolbar-item color-picker"
+                buttonAriaLabel="Formatting text color"
+                buttonIconClassName="icon font-color"
+                color={fontColor}
+                onChange={onFontColorSelect}
+                title="text color"
+            />
+            <DropdownColorPicker
+                disabled={!isEditable}
+                buttonClassName="toolbar-item color-picker"
+                buttonAriaLabel="Formatting background color"
+                buttonIconClassName="icon bg-color"
+                color={bgColor}
+                onChange={onBgColorSelect}
+                title="bg color"
+            /> */}
+
+            {display?.styles !== false && (
+                <DropDown popover={{ tag: 'li' }} icon="font" size="s"
+                    disabled={!isEditable}
+                    hint="Formatting options for additional text styles"
+                >
+
+                    {display?.styles === true || display?.styles?.strikethrough !== false && (
+                        <Button icon="strikethrough" size="s"
+                            onClick={() => {
+                                activeEditor.dispatchCommand( FORMAT_TEXT_COMMAND, 'strikethrough');
+                            }}
+                            active={isStrikethrough}
+                            title="Format text with a strikethrough"
                         >
-
-                            {display?.styles === true || display?.styles?.strikethrough !== false && (
-                                <Button icon="strikethrough" size="s"
-                                    onClick={() => {
-                                        activeEditor.dispatchCommand( FORMAT_TEXT_COMMAND, 'strikethrough');
-                                    }}
-                                    active={isStrikethrough}
-                                    title="Format text with a strikethrough"
-                                >
-                                    Strikethrough
-                                </Button>
-                            )}
-
-                            {display?.styles === true || display?.styles?.subscript !== false && (
-                                <Button icon="subscript" size="s"
-                                    onClick={() => {
-                                        activeEditor.dispatchCommand(FORMAT_TEXT_COMMAND, 'subscript');
-                                    }}
-                                    active={isSubscript}
-                                    title="Format text with a subscript"
-                                >
-                                    Subscript
-                                </Button>
-                            )}
-
-                            {display?.styles === true || display?.styles?.superscript !== false && (
-                                <Button icon="superscript" size="s"
-                                    onClick={() => {
-                                        activeEditor.dispatchCommand(
-                                            FORMAT_TEXT_COMMAND,
-                                            'superscript',
-                                        );
-                                    }}
-                                    active={isSuperscript}
-                                    title="Format text with a superscript">
-                                    Superscript
-                                </Button>
-                            )}
-
-                            {display?.styles === true || display?.styles?.clear !== false && (
-                                <Button icon="empty-set" size="s"
-                                    onClick={clearFormatting}
-                                    title="Clear all text formatting">
-                                    Clear Formatting
-                                </Button>
-                            )}
-
-                        </DropDown>
+                            Strikethrough
+                        </Button>
                     )}
 
-                    {(canViewerSeeInsertDropdown && display?.insert !== false) && (
-                        <>
-                            <Divider />
-                            <DropDown popover={{ tag: 'li' }}
+                    {display?.styles === true || display?.styles?.subscript !== false && (
+                        <Button icon="subscript" size="s"
+                            onClick={() => {
+                                activeEditor.dispatchCommand(FORMAT_TEXT_COMMAND, 'subscript');
+                            }}
+                            active={isSubscript}
+                            title="Format text with a subscript"
+                        >
+                            Subscript
+                        </Button>
+                    )}
+
+                    {display?.styles === true || display?.styles?.superscript !== false && (
+                        <Button icon="superscript" size="s"
+                            onClick={() => {
+                                activeEditor.dispatchCommand(
+                                    FORMAT_TEXT_COMMAND,
+                                    'superscript',
+                                );
+                            }}
+                            active={isSuperscript}
+                            title="Format text with a superscript">
+                            Superscript
+                        </Button>
+                    )}
+
+                    {display?.styles === true || display?.styles?.clear !== false && (
+                        <Button icon="empty-set" size="s"
+                            onClick={clearFormatting}
+                            title="Clear all text formatting">
+                            Clear Formatting
+                        </Button>
+                    )}
+
+                </DropDown>
+            )}
+
+            {(canViewerSeeInsertDropdown && display?.insert !== false) && (
+                <>
+                    <DropDown popover={{ tag: 'li' }}
+                        disabled={!isEditable}
+                        size="s"
+                        icon="plus-circle"
+                        hint="Insert specialized editor node"
+                    >
+
+                        {display?.insert === true || display?.insert?.horizontalRule !== false && (
+                            <Button icon="horizontal-rule" size="s" onClick={() => {
+                                activeEditor.dispatchCommand( INSERT_HORIZONTAL_RULE_COMMAND, undefined, );
+                            }}>
+                                Horizontal Rule
+                            </Button>
+                        )}
+
+                        {display?.insert === true || display?.insert?.pageBreak !== false && (
+                            <Button icon="page-break" size="s" onClick={() => {
+                                activeEditor.dispatchCommand(INSERT_PAGE_BREAK, undefined);
+                            }}>
+                                Page Break
+                            </Button>
+                        )}
+
+                        {(canViewerSeeInsertCodeButton && (display?.insert === true || display?.insert?.code !== false)) && (
+                            <Button icon="code" size="s"
                                 disabled={!isEditable}
-                                size="s"
-                                icon="plus-circle"
-                                hint="Insert specialized editor node"
-                            >
+                                onClick={() => {
+                                    activeEditor.dispatchCommand(FORMAT_TEXT_COMMAND, 'code');
+                                }}
+                                active={isCode}
+                                title="Insert code block"
+                            />
+                        )}
 
-                                {display?.insert === true || display?.insert?.horizontalRule !== false && (
-                                    <Button icon="horizontal-rule" size="s" onClick={() => {
-                                        activeEditor.dispatchCommand( INSERT_HORIZONTAL_RULE_COMMAND, undefined, );
-                                    }}>
-                                        Horizontal Rule
-                                    </Button>
-                                )}
+                        {display?.insert === true || display?.insert?.image !== false && (
+                            <Button icon="image" size="s" onClick={() => {
+                                modal.show('Insert Image', InsertImageDialog, { editor: activeEditor });
+                            }}>
+                                Image
+                            </Button>
+                        )}
 
-                                {display?.insert === true || display?.insert?.pageBreak !== false && (
-                                    <Button icon="page-break" size="s" onClick={() => {
-                                        activeEditor.dispatchCommand(INSERT_PAGE_BREAK, undefined);
-                                    }}>
-                                        Page Break
-                                    </Button>
-                                )}
+                        {display?.insert === true || display?.insert?.inlineImage !== false && (
+                            <Button icon="image" size="s" onClick={() => {
+                                modal.show('Insert Inline Image', InsertInlineImageDialog, { editor: activeEditor });
+                            }}>
+                                Inline Image
+                            </Button>
+                        )}
 
-                                {(canViewerSeeInsertCodeButton && (display?.insert === true || display?.insert?.code !== false)) && (
-                                    <Button icon="code" size="s"
-                                        disabled={!isEditable}
-                                        onClick={() => {
-                                            activeEditor.dispatchCommand(FORMAT_TEXT_COMMAND, 'code');
-                                        }}
-                                        active={isCode}
-                                        title="Insert code block"
+                        {/* <Button
+                            onClick={() => {
+                                activeEditor.dispatchCommand(
+                                    INSERT_EXCALIDRAW_COMMAND,
+                                    undefined,
+                                );
+                            }}
+                            className="item">
+                            <i className="icon diagram-2" />
+                            <span className="text">Excalidraw</span>
+                        </Button> */}
+
+                        {display?.insert === true || display?.insert?.table !== false && (
+                            <Button icon="table" size="s" onClick={() => {
+                                modal.show('Insert Table', InsertTableDialog, { editor: activeEditor });
+                            }}>
+                                Table
+                            </Button>
+                        )}
+
+                        {display?.insert === true || display?.insert?.poll !== false && (
+                            <Button icon="poll" size="s" onClick={() => {
+                                modal.show('Insert Poll', InsertPollDialog, { editor: activeEditor });
+                            }}>
+                                Poll
+                            </Button>
+                        )}
+
+                        {display?.insert === true || display?.insert?.columns !== false && (
+                            <Button icon="columns" size="s" onClick={() => {
+                                modal.show('Insert Columns Layout', InsertLayoutDialog, { editor: activeEditor });
+                            }} >
+                                Columns Layout
+                            </Button>
+                        )}
+
+                        {/* <Button
+                            onClick={() => {
+                                modal.show('Insert Equation', (onClose) => (
+                                    <InsertEquationDialog
+                                        activeEditor={activeEditor}
+                                        onClose={onClose}
                                     />
-                                )}
+                                ));
+                            }}
+                            className="item">
+                            <i className="icon equation" />
+                            <span className="text">Equation</span>
+                        </Button> */}
 
-                                {display?.insert === true || display?.insert?.image !== false && (
-                                    <Button icon="image" size="s" onClick={() => {
-                                        modal.show('Insert Image', InsertImageDialog, { editor: activeEditor });
-                                    }}>
-                                        Image
-                                    </Button>
-                                )}
+                        {display?.insert === true || display?.insert?.stickyNote !== false && (
+                            <Button icon="sticky-note" size="s" onClick={() => {
+                                editor.update(() => {
+                                    const root = $getRoot();
+                                    const stickyNode = $createStickyNode(0, 0);
+                                    root.append(stickyNode);
+                                });
+                            }}>
+                                Sticky Note
+                            </Button>
+                        )}
 
-                                {display?.insert === true || display?.insert?.inlineImage !== false && (
-                                    <Button icon="image" size="s" onClick={() => {
-                                        modal.show('Insert Inline Image', InsertInlineImageDialog, { editor: activeEditor });
-                                    }}>
-                                        Inline Image
-                                    </Button>
-                                )}
+                        {display?.insert === true || display?.insert?.collapsibleContainer !== false && (
+                            <Button icon="caret-right" size="s" onClick={() => {
+                                editor.dispatchCommand(
+                                    INSERT_COLLAPSIBLE_COMMAND,
+                                    undefined,
+                                );
+                            }}>
+                                Collapsible container
+                            </Button>
+                        )}
 
-                                {/* <Button
-                                    onClick={() => {
-                                        activeEditor.dispatchCommand(
-                                            INSERT_EXCALIDRAW_COMMAND,
-                                            undefined,
-                                        );
-                                    }}
-                                    className="item">
-                                    <i className="icon diagram-2" />
-                                    <span className="text">Excalidraw</span>
-                                </Button> */}
-
-                                {display?.insert === true || display?.insert?.table !== false && (
-                                    <Button icon="table" size="s" onClick={() => {
-                                        modal.show('Insert Table', InsertTableDialog, { editor: activeEditor });
-                                    }}>
-                                        Table
-                                    </Button>
-                                )}
-
-                                {display?.insert === true || display?.insert?.poll !== false && (
-                                    <Button icon="poll" size="s" onClick={() => {
-                                        modal.show('Insert Poll', InsertPollDialog, { editor: activeEditor });
-                                    }}>
-                                        Poll
-                                    </Button>
-                                )}
-
-                                {display?.insert === true || display?.insert?.columns !== false && (
-                                    <Button icon="columns" size="s" onClick={() => {
-                                        modal.show('Insert Columns Layout', InsertLayoutDialog, { editor: activeEditor });
-                                    }} >
-                                        Columns Layout
-                                    </Button>
-                                )}
-        
-                                {/* <Button
-                                    onClick={() => {
-                                        modal.show('Insert Equation', (onClose) => (
-                                            <InsertEquationDialog
-                                                activeEditor={activeEditor}
-                                                onClose={onClose}
-                                            />
-                                        ));
-                                    }}
-                                    className="item">
-                                    <i className="icon equation" />
-                                    <span className="text">Equation</span>
-                                </Button> */}
-
-                                {display?.insert === true || display?.insert?.stickyNote !== false && (
-                                    <Button icon="sticky-note" size="s" onClick={() => {
-                                        editor.update(() => {
-                                            const root = $getRoot();
-                                            const stickyNode = $createStickyNode(0, 0);
-                                            root.append(stickyNode);
-                                        });
-                                    }}>
-                                        Sticky Note
-                                    </Button>
-                                )}
-
-                                {display?.insert === true || display?.insert?.collapsibleContainer !== false && (
-                                    <Button icon="caret-right" size="s" onClick={() => {
-                                        editor.dispatchCommand(
-                                            INSERT_COLLAPSIBLE_COMMAND,
-                                            undefined,
-                                        );
-                                    }}>
-                                        Collapsible container
-                                    </Button>
-                                )}
-
-                                {/*EmbedConfigs.map((embedConfig) => (
-                                    <Button
-                                        key={embedConfig.type}
-                                        onClick={() => {
-                                            activeEditor.dispatchCommand(
-                                                INSERT_EMBED_COMMAND,
-                                                embedConfig.type,
-                                            );
-                                        }}>
-                                        {embedConfig.icon}
-                                        <span className="text">{embedConfig.contentName}</span>
-                                    </Button>
-                                ))*/}
-                            </DropDown>
-                        </>
-                    )}
+                        {/*EmbedConfigs.map((embedConfig) => (
+                            <Button
+                                key={embedConfig.type}
+                                onClick={() => {
+                                    activeEditor.dispatchCommand(
+                                        INSERT_EMBED_COMMAND,
+                                        embedConfig.type,
+                                    );
+                                }}>
+                                {embedConfig.icon}
+                                <span className="text">{embedConfig.contentName}</span>
+                            </Button>
+                        ))*/}
+                    </DropDown>
                 </>
             )}
 

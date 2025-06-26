@@ -9,143 +9,39 @@ import path from 'path';
 import md5 from 'md5';
 import { fromBuffer } from 'file-type';
 import { JSDOM } from 'jsdom';
+
+// Core
+import editorNodes from '@common/data/rte/nodes';
+import ExampleTheme from '@client/components/Rte/themes/PlaygroundEditorTheme';
+import Slug from '@server/utils/slug';
+
 // Lexical
-import { $getRoot } from 'lexical';
+import { $getRoot, SerializedEditorState, SerializedLexicalNode } from 'lexical';
 import { createHeadlessEditor } from '@lexical/headless';
 import { $generateNodesFromDOM, $generateHtmlFromNodes } from '@lexical/html';
 
-// Core
-import { Anomaly } from '@common/errors';
-import editorNodes from '@common/data/rte/nodes';
-import ExampleTheme from '@client/components/Rte/themes/PlaygroundEditorTheme';
-import type Driver from '@server/services/disks/driver';
-import Slug from '@server/utils/slug';
+// Specifc
+import { 
+    default as BaseRteUtils, 
+    LexicalNode, 
+    LexicalState, 
+    TRenderOptions,
+    TContentAssets,
+    TSkeleton
+} from '@common/utils/rte';
 
 /*----------------------------------
 - TYPES
 ----------------------------------*/
 
-type LexicalState = {
-    root: LexicalNode
-}
-
-export type LexicalNode = {
-    version: number,
-    type: string,
-    children?: LexicalNode[],
-    // Attachement
-    src?: string;
-    // Headhing
-    text?: string;
-    anchor?: string;
-    tag?: string;
-}
-
-type TRenderOptions = {
-
-    format?: 'html' | 'text', // Default = html
-    transform?: RteUtils["transformNode"],
-
-    render?: (
-        node: LexicalNode, 
-        parent: LexicalNode | null, 
-        options: TRenderOptions
-    ) => Promise<LexicalNode>,
-
-    attachements?: {
-        disk: Driver,
-        directory: string,
-        prevVersion?: string | LexicalState | null,
-    }
-}
-
-type TSkeleton = { 
-    id: string,
-    title: string, 
-    level: number, 
-    childrens: TSkeleton 
-}[];
-
-type TContentAssets = {
-    attachements: string[],
-    skeleton: TSkeleton
-}
 
 /*----------------------------------
 - FUNCTIONS
 ----------------------------------*/
 
-export class RteUtils {
+export class RteUtils extends BaseRteUtils {
 
-    public async render( 
-        content: string | LexicalState, 
-        options: TRenderOptions = {}
-    ): Promise<TContentAssets & {
-        html: string,
-        json: string | LexicalState,
-    }> {
-
-        // Transform content
-        const assets: TContentAssets = {
-            attachements: [],
-            skeleton: []
-        }
-
-        // Parse content if string
-        let json = this.parseState(content);
-        if (json === false)
-            return { html: '', json: content, ...assets }
-
-        // Parse prev version if string
-        if (typeof options?.attachements?.prevVersion === 'string') {
-            try {
-                options.attachements.prevVersion = JSON.parse(options.attachements.prevVersion) as LexicalState;
-            } catch (error) {
-                throw new Anomaly("Invalid JSON format for the given JSON RTE prev version.");
-            }
-        }
-
-        const root = await this.processContent(json.root, null, async (node, parent) => {
-            return await this.transformNode(node, parent, assets, options);
-        });
-
-        json = { ...json, root };
-
-        // Delete unused attachements
-        const attachementOptions = options?.attachements;
-        if (attachementOptions && attachementOptions.prevVersion !== undefined) {
-
-            await this.processContent(root, null, async (node) => {
-                return await this.deleteUnusedFile(node, assets, attachementOptions);
-            });
-        }
-
-        // Convert json to HTML
-        let html: string;
-        if (options.format === 'text')
-            html = await this.jsonToText( json.root );
-        else
-            html = await this.jsonToHtml( json, options );
-
-        return { html, json: content, ...assets };
-    }
-
-    private parseState( content: string | LexicalState ): LexicalState | false {
-
-        if (typeof content === 'string' && content.trim().startsWith('{')) {
-            try {
-                return JSON.parse(content) as LexicalState;
-            } catch (error) { 
-                throw new Anomaly("Invalid JSON format for the given JSON RTE content.");
-            }
-        } else if (content && typeof content === 'object' && content.root)
-            return content;
-        else
-            return false;
-        
-    }
-
-    private async processContent( 
+    protected async processContent( 
         node: LexicalNode, 
         parent: LexicalNode | null,
         callback: (node: LexicalNode, parent: LexicalNode | null) => Promise<LexicalNode>
@@ -165,7 +61,7 @@ export class RteUtils {
         return node;
     }
 
-    private async transformNode(
+    protected async transformNode(
         node: LexicalNode, 
         parent: LexicalNode | null, 
         assets: TContentAssets, 
@@ -266,7 +162,7 @@ export class RteUtils {
         });
     }
 
-    private async deleteUnusedFile( 
+    protected async deleteUnusedFile( 
         node: LexicalNode, 
         assets: TContentAssets,
         options: NonNullable<TRenderOptions["attachements"]>
@@ -294,7 +190,7 @@ export class RteUtils {
         return node;
     }
 
-    public async jsonToHtml( json: LexicalState, options: TRenderOptions = {} ) {
+    public async jsonToHtml( json: LexicalState, options: TRenderOptions = {} ): Promise<string | null> {
 
         // Transform before rendering
         const renderTransform = options.render;
@@ -322,7 +218,7 @@ export class RteUtils {
         });
 
         // Set the editor state from JSON
-        const state = editor.parseEditorState(json);
+        const state = editor.parseEditorState(json as SerializedEditorState<SerializedLexicalNode>);
         if (state.isEmpty())
             return '';
 
@@ -345,53 +241,6 @@ export class RteUtils {
 
         return html;
     }
-
-    private jsonToText(root: LexicalNode): string {
-        let result = '';
-      
-        function traverse(node: LexicalNode) {
-          switch (node.type) {
-            case 'text':
-              // Leaf text node
-              result += node.text ?? '';
-              break;
-            case 'linebreak':
-              // Explicit line break node
-              result += '\n';
-              break;
-            default:
-              // Container or block node: dive into children if any
-              if (node.children) {
-                node.children.forEach(traverse);
-              }
-              // After finishing a block-level node, append newline
-              if (isBlockNode(node.type)) {
-                result += '\n';
-              }
-              break;
-          }
-        }
-      
-        // Heuristic: treat these as blocks
-        function isBlockNode(type: string): boolean {
-          return [
-            'root',
-            'paragraph',
-            'heading',
-            'listitem',
-            'unorderedlist',
-            'orderedlist',
-            'quote',
-            'codeblock',
-            'table',
-          ].includes(type);
-        }
-      
-        traverse(root);
-      
-        // Trim trailing whitespace/newlines
-        return result.replace(/\s+$/, '');
-      }
 
     public async htmlToJson(htmlString: string): Promise<LexicalState> {
 

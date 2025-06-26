@@ -17,18 +17,19 @@ import { useMantineInput, InputBaseProps } from './utils';
 ----------------------------------*/
 export type Props = ButtonProps & {
     menuProps?: MenuProps,
-  label: ComponentChild,
+    label: ComponentChild,
+    popover?: PopoverProps,
 }
 
 /*----------------------------------
 - COMPOSANT
 ----------------------------------*/
 export default ({ 
-    label, children, 
+    label, children, popover = {},
     menuProps = {}, size, icon, ...btnProps 
 }: Props) => {
     return (
-        <Popover content={(
+        <Popover {...popover} content={(
             <div class="card bg white col menu">
                 {children}
             </div>
@@ -36,8 +37,8 @@ export default ({
             <Button {...btnProps} 
                 size={size}
                 suffix={<i src="angle-down" />}
+                icon={icon}
             >
-                {icon && <i src={icon} />}
                 {label}
             </Button>
         </Popover>
