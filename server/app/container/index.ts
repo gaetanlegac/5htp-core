@@ -2,6 +2,9 @@
 - DEPENDANCES
 ----------------------------------*/
 
+// Set timezone
+process.env.TZ = 'UTC';
+
 // Npm
 import path from 'path';
 

@@ -37,6 +37,12 @@ export type Services = {
 export default class ModelsManager extends Service<Config, Hooks, Application> {
 
     public client = new PrismaClient();
+
+    public async ready() {
+
+        await this.client.$executeRaw`SET time_zone = '+00:00'`;
+
+    }
   
     public async shutdown() {
         await this.client.$disconnect()
