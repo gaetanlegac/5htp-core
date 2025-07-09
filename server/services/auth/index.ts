@@ -218,13 +218,13 @@ export default abstract class AuthService<
         // Insufficient permissions
         } else if (!user.roles.includes(role)) {
 
-            console.warn(LogPrefix, "Refusé: " + role + " pour " + user.name + " (" + (user.roles || 'role inconnu') + ")");
+            this.config.debug && console.warn(LogPrefix, "Refusé: " + role + " pour " + user.name + " (" + (user.roles || 'role inconnu') + ")");
 
             throw new Forbidden("You do not have sufficient permissions to access this resource.");
 
         } else {
 
-            console.warn(LogPrefix, "Autorisé " + role + " pour " + user.name + " (" + user.roles + ")");
+            this.config.debug && console.warn(LogPrefix, "Autorisé " + role + " pour " + user.name + " (" + user.roles + ")");
 
         }
 
