@@ -49,6 +49,11 @@ export type Services = {
 export type ChannelInfos = {
     channelType: 'cron' | 'master' | 'request' | 'socket',
     channelId?: string,
+
+    method?: string,
+    path?: string,
+
+    user?: string
 }
 
 export type TGuestLogs = {

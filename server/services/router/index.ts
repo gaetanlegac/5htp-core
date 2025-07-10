@@ -21,7 +21,6 @@ import type { GlobImportedWithMetas } from 'babel-plugin-glob-import';
 // Core
 import type { Application } from '@server/app';
 import Service, { AnyService, TServiceArgs } from '@server/app/service';
-import type { TRegisteredServicesIndex } from '@server/app/service/container';
 import context from '@server/context';
 import type DisksManager from '@server/services/disks';
 import { CoreError, NotFound, toJson as errorToJson } from '@common/errors';
@@ -172,6 +171,33 @@ export default class ServerRouter
 
         // Start HTTP server
         await this.http.start();
+
+
+        // override
+        const originalLog = console.log;
+        console.log = (...args: any[]) => {
+
+            // parse stack trace: skip this function and the console.log call
+            /*const stackLine = (new Error()).stack?.split('\n')[2] || '';
+            const match = stackLine.match(/at (\w+)\.(\w+) /);
+            const className = match ? match[1] : '<global>';
+            const methodName = match ? match[2] : '<anonymous>';*/
+
+            const contextData = context.getStore() || {
+                channelType: 'master',
+            }
+
+            const requestPrefix = contextData.channelType === 'request' 
+                ? `[${contextData.user ? contextData.user : 'guest'}] ${contextData.method} ${contextData.path} |` 
+                : 'master';
+
+            // prefix and forward
+            originalLog.call(
+                console, 
+                `${requestPrefix}`, // ${className}.${methodName}
+                ...args
+            );
+        };
 
     }
 
@@ -410,39 +436,34 @@ export default class ServerRouter
             this
         );
 
-        // Create request context so we can access request context across all the request-triggered libs
-        context.run({ channelType: 'request', channelId: requestId }, async () => {
+        let response: ServerResponse<this>;
+        try {
 
-            let response: ServerResponse<this>;
-            try {
+            // Hook
+            await this.runHook('request', request);
 
-                // Hook
-                await this.runHook('request', request);
+            // Bulk API Requests
+            if (request.path === '/api' && typeof request.data.fetchers === "object") {
 
-                // Bulk API Requests
-                if (request.path === '/api' && typeof request.data.fetchers === "object") {
+                return await this.resolveApiBatch(request.data.fetchers, request);
 
-                    return await this.resolveApiBatch(request.data.fetchers, request);
-
-                } else {
-                    response = await this.resolve(request);
-                }
-            } catch (e) {
-                response = await this.handleError(e, request);
+            } else {
+                response = await this.resolve(request);
             }
+        } catch (e) {
+            response = await this.handleError(e, request);
+        }
 
-            if (!res.headersSent) {
-                // Status
-                res.status(response.statusCode);
-                // Headers
-                res.header(response.headers);
-                // Data
-                res.send(response.data);
-            } else if (response.data !== 'true') {
-                throw new Error("Can't return data from the controller since response has already been sent via express.");
-            }
-
-        });
+        if (!res.headersSent) {
+            // Status
+            res.status(response.statusCode);
+            // Headers
+            res.header(response.headers);
+            // Data
+            res.send(response.data);
+        } else if (response.data !== 'true') {
+            throw new Error("Can't return data from the controller since response has already been sent via express.");
+        }
     }
 
     public createContextServices( request: ServerRequest<this> ) {
@@ -466,77 +487,86 @@ export default class ServerRouter
         return contextServices;
     }
 
-    public async resolve(request: ServerRequest<this>): Promise<ServerResponse<this>> {
+    public resolve = (request: ServerRequest<this>) => new Promise<ServerResponse<this>>((resolve, reject) => {
 
-        const logId = LogPrefix + ' ' + (request.isVirtual ? ' ---- ' : '') 
-            + request.ip + ' ' + request.user?.email + ' '
-            + request.method + ' ' + /*request.domain + ' ' +*/ request.path;
-        console.info(logId);
-        const timeStart = Date.now();
+        // Create request context so we can access request context across all the request-triggered libs
+        context.run({ 
+            // This is for debugging
+            channelType: 'request', 
+            channelId: request.id,
+            method: request.method,
+            path: request.path,
+        }, async () => {
 
-        if (this.status === 'starting') {
-            console.log(LogPrefix, `Waiting for servert to be resdy before resolving request`);
-            await this.started;
-        }
+            const timeStart = Date.now();
 
-        try {
-
-            const response = new ServerResponse<this>(request);
-
-            await this.runHook('resolve', request);
-
-            // Controller route
-            let route = this.controllers[request.path];
-            if (route !== undefined) {
-
-                // Create response
-                await this.resolvedRoute(route, response, logId, timeStart);
-                if (response.wasProvided)
-                    return response;
+            if (this.status === 'starting') {
+                console.log(LogPrefix, `Waiting for servert to be resdy before resolving request`);
+                await this.started;
             }
 
-            // Classic routes
-            for (route of this.routes) {
+            try {
 
-                // Match Method
-                if (request.method !== route.method && route.method !== '*')
-                    continue;
+                const response = new ServerResponse<this>(request);
 
-                // Match Response format
-                if (!request.accepts(route.options.accept))
-                    continue;
+                await this.runHook('resolve', request);
 
-                const isMatching = matchRoute(route, request);
-                if (!isMatching)
-                    continue;
+                // Controller route
+                let route = this.controllers[request.path];
+                if (route !== undefined) {
 
-                await this.resolvedRoute(route, response, logId, timeStart);
-                if (response.wasProvided)
-                    return response;
+                    // Create response
+                    await this.resolvedRoute(route, response, timeStart);
+                    if (response.wasProvided)
+                        return resolve(response);
+                }
+
+                const contextStore = context.getStore();
+                if (contextStore)
+                    contextStore.user = request.user?.email;
+
+                // Classic routes
+                for (route of this.routes) {
+
+                    // Match Method
+                    if (request.method !== route.method && route.method !== '*')
+                        continue;
+
+                    // Match Response format
+                    if (!request.accepts(route.options.accept))
+                        continue;
+
+                    const isMatching = matchRoute(route, request);
+                    if (!isMatching)
+                        continue;
+
+                    await this.resolvedRoute(route, response, timeStart);
+                    if (response.wasProvided)
+                        return resolve(response);
+                }
+
+                reject( new NotFound() );
+
+            } catch (error) {
+
+                if (this.app.env.profile === 'dev') {
+                    console.log('API batch error:', request.method, request.path, error);
+                    const errOrigin = request.method + ' ' + request.path;
+                    if (error.details === undefined)
+                        error.details = { origin: errOrigin }
+                    else
+                        error.details.origin = errOrigin;
+                }
+
+                this.printTakenTime(timeStart);
+                reject( error );
             }
-
-            throw new NotFound();
-
-        } catch (error) {
-
-            if (this.app.env.profile === 'dev') {
-                console.log('API batch error:', request.method, request.path, error);
-                const errOrigin = request.method + ' ' + request.path;
-                if (error.details === undefined)
-                    error.details = { origin: errOrigin }
-                else
-                    error.details.origin = errOrigin;
-            }
-
-            this.printTakenTime(logId, timeStart);
-            throw error;
-        }
-    }
+        });
+    });
 
     private async resolvedRoute( 
         route: TRoute, 
         response: ServerResponse<this>,
-        logId: string,
         timeStart: number
     ) {
 
@@ -549,14 +579,14 @@ export default class ServerRouter
             return;
 
         const timeEndResolving = Date.now();
-        this.printTakenTime(logId, timeStart, timeEndResolving);
+        this.printTakenTime(timeStart, timeEndResolving);
     }
 
-    private printTakenTime = (logId: string, timeStart: number, timeEndResolving?: number) => {
+    private printTakenTime = (timeStart: number, timeEndResolving?: number) => {
 
         if (this.app.env.name === 'server') return;
 
-        console.log(logId + ' ' + Math.round(Date.now() - timeStart) + 'ms' + 
+        console.log( Math.round(Date.now() - timeStart) + 'ms' + 
             (timeEndResolving === undefined ? '' : ' | Routing: ' + Math.round(timeEndResolving - timeStart))
         );
     }
