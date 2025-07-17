@@ -178,16 +178,22 @@ export default (initProps: Props) => {
                             <Button key={choice.value} 
                                 size="s"
                                 suffix={isSelected ? <i src="check" /> : null}
-                                onClick={() => onChange( multiple 
-                                    ? (isSelected 
-                                        ? current.filter(c => c.value !== choice.value)
-                                        : [...(current || []), choice]
+                                onClick={() => {
+                                    onChange( multiple 
+                                        ? (isSelected 
+                                            ? current.filter(c => c.value !== choice.value)
+                                            : [...(current || []), choice]
+                                        )
+                                        : ((isSelected && !required) 
+                                            ? null 
+                                            : choice
+                                        )
                                     )
-                                    : ((isSelected && !required) 
-                                        ? null 
-                                        : choice
-                                    )
-                                )}>
+
+                                    if (!multiple)
+                                        setOpened(false);
+                                    
+                                }}>
                                     {choice.label}
                             </Button>
                         )
