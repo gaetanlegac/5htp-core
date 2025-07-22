@@ -41,7 +41,7 @@ export type TConfig = {
     jwt: {
         // 2048 bits
         key: string,
-        expiration: string,
+        expiration: number,
     },
 }
 
@@ -173,7 +173,9 @@ export default abstract class AuthService<
 
         this.config.debug && console.info(LogPrefix, `Generated JWT token for session:` + token);
 
-        request.res.cookie('authorization', token);
+        request.res.cookie('authorization', token, {
+            maxAge: this.config.jwt.expiration,
+        });
 
         return token;
     }
