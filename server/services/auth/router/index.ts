@@ -66,7 +66,7 @@ export default class AuthenticationRouterService<
             if (route.options.auth !== undefined) {
 
                 // Basic auth check
-                this.users.check(request, 'User', route.options.auth);
+                this.users.check(request, route.options.auth);
 
                 // Redirect to logged page
                 if (route.options.auth === false && request.user && route.options.redirectLogged)
