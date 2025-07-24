@@ -20,9 +20,16 @@ export type TJsonError = {
 } & TErrorDetails
 
 type TErrorDetails = {
+
     // Allow to identify the error catched (ex: displaying custop content, running custom actions, ...)
     id?: string,
     data?: {},
+
+    cta?: {
+        label: string,
+        link: string,
+    },
+
     // For debugging
     stack?: string,
     origin?: string,
