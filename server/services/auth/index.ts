@@ -189,9 +189,9 @@ export default abstract class AuthService<
         request.res.clearCookie('authorization');
     }
 
-    public check( request: TRequest, entity: string, role: TUserRole): TUser;
-    public check( request: TRequest, entity: string, role: false): null;
-    public check( request: TRequest, entity: string, role: TUserRole | false = 'USER'): TUser | null {
+    public check( request: TRequest, role: TUserRole): TUser;
+    public check( request: TRequest, role: false): null;
+    public check( request: TRequest, role: TUserRole | false = 'USER'): TUser | null {
 
         const user = request.user;
 
@@ -211,11 +211,6 @@ export default abstract class AuthService<
 
             this.config.debug && console.warn(LogPrefix, "Refusé pour anonyme (" + request.ip + ")");
             throw new AuthRequired('Please login to continue');
-
-        } else if (user.type !== entity) {
-
-            this.config.debug && console.warn(LogPrefix, `User type mismatch: ${user.type} (user) vs ${entity} (expected) (${request.ip})`);
-            throw new AuthRequired("Your account type doesn't have access to the requested content.");
             
         // Insufficient permissions
         } else if (!user.roles.includes(role)) {

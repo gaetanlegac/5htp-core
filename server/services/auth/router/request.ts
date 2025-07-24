@@ -45,9 +45,9 @@ export default class UsersRequestService<
     }
 
     // TODO: return user type according to entity
-    public check( entity: string, role: TUserRole, motivation?: string): TUser;
-    public check( entity: string, role: false, motivation?: string): null;
-    public check( entity: string, role: TUserRole | boolean = 'USER', motivation?: string): TUser | null {
-        return this.users.check( this.request, entity, role, motivation );
+    public check(role: TUserRole, motivation?: string): TUser;
+    public check(role: false, motivation?: string): null;
+    public check(role: TUserRole | boolean = 'USER', motivation?: string): TUser | null {
+        return this.users.check( this.request, role, motivation );
     }
 }
