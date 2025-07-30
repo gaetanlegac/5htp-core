@@ -42,7 +42,7 @@ export type StartedServicesIndex = {
 
 export type TServiceArgs<TService extends AnyService> = [
     parent: AnyService | 'self',
-    getConfig: (instance: TService) => {},
+    getConfig: null | undefined | ((instance: TService) => {}),
     app: TService['app'] | 'self'
 ]
 
