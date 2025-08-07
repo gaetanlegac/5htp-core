@@ -14,7 +14,7 @@
 import type express from 'express';
 import type { Request, Response, NextFunction } from 'express';
 import { v4 as uuid } from 'uuid';
-import zod from 'zod';
+import zod, { ZodError } from 'zod';
 export { default as schema } from 'zod';
 import type { GlobImportedWithMetas } from 'babel-plugin-glob-import';
 
@@ -23,7 +23,7 @@ import type { Application } from '@server/app';
 import Service, { AnyService, TServiceArgs } from '@server/app/service';
 import context from '@server/context';
 import type DisksManager from '@server/services/disks';
-import { CoreError, NotFound, toJson as errorToJson } from '@common/errors';
+import { CoreError, InputError, NotFound, toJson as errorToJson } from '@common/errors';
 import BaseRouter, {
     TRoute, TErrorRoute, TRouteModule,
     TRouteOptions, defaultOptions,
@@ -615,7 +615,12 @@ export default class ServerRouter
         request.res.json(responseData);
     }
 
-    private async handleError( e: CoreError, request: ServerRequest<ServerRouter> ) {
+    private async handleError( e: Error |CoreError | ZodError, request: ServerRequest<ServerRouter> ) {
+
+        if (e instanceof ZodError)
+            e = new InputError( 
+                e.errors.map(e => e.path.join('.') + ': ' + e.message).join(', ') 
+            );
 
         const code = 'http' in e ? e.http : 500;
 
