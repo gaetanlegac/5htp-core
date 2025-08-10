@@ -637,7 +637,9 @@ export default class ServerRouter
 
             // Don't exose technical errors to users
             if (this.app.env.profile === 'prod')
-                e.message = "We encountered an internal error, and our team has just been notified. Sorry for the inconvenience.";
+                e = new Error(
+                    "We encountered an internal error, and our team has just been notified. Sorry for the inconvenience."
+                );
 
         } else {
 
