@@ -236,9 +236,19 @@ export default ({
             if (disabled)
                 return false;
 
+            // Custom event
+            if (props.onClick !== undefined) {
+
+                const returned = props.onClick(e);
+                if (async && returned?.then) {
+                    setLoading(true);
+                    returned.finally(() => setLoading(false));
+                }
+            }
+
             // Link
             let nativeEvent: boolean = false;
-            if ('link' in props) {
+            if (('link' in props) && !e.defaultPrevented) {
 
                 // Nouvelle fenetre = event par defaut
                 if (props.target === '_blank') {
@@ -254,16 +264,6 @@ export default ({
                 } else {
 
                     history?.push(props.link);
-                }
-            }
-
-            // Custom event
-            if (props.onClick !== undefined) {
-
-                const returned = props.onClick(e);
-                if (async && returned?.then) {
-                    setLoading(true);
-                    returned.finally(() => setLoading(false));
                 }
             }
 
