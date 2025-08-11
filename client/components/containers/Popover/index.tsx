@@ -20,13 +20,16 @@ export type Props = JSX.HTMLAttributes<HTMLDivElement> & {
     id?: string,
 
     // Display
+    mode: 'hide' | 'remove',
     content?: ComponentChild | JSX.Element
     state?: [boolean, StateUpdater<boolean>],
     width?: number | string,
     disable?: boolean
+    
     // Position
     frame?: HTMLElement,
     side?: TSide,
+
     // Tag
     children: JSX.Element | [JSX.Element],
     tag?: string,
@@ -45,7 +48,7 @@ export default (props: Props) => {
     let {
         id,
 
-        content, state, width, disable,
+        mode = 'remove', content, state, width, disable,
 
         frame, side = 'bottom',
 
@@ -108,7 +111,7 @@ export default (props: Props) => {
     const Tag = tag || 'div';
 
     let renderedContent: ComponentChild;
-    if (active) {
+    if (active || mode === 'hide') {
         //content = typeof content === 'function' ? React.createElement(content) : content;
         renderedContent = React.cloneElement( 
             content, 
@@ -124,13 +127,24 @@ export default (props: Props) => {
 
                 style: {
                     ...(content.props.style || {}),
+
+                    ...(!active && mode === 'hide' ? {
+                        display: 'none'
+                    } : {}),
+
+                    // Positionning
                     ...(position ? {
                         top: position.css.top,
                         left: position.css.left,
                         right: position.css.right,
                         bottom: position.css.bottom,
-                    } : {}),
-                    ...(width !== undefined ? { width: typeof width === 'number' ? width + 'rem' : width } : {})
+                    } :  {}),
+
+                    ...(width !== undefined ? { 
+                        width: typeof width === 'number' 
+                            ? width + 'rem' 
+                            : width 
+                    } : {})
                 }
             }
         )
@@ -157,6 +171,7 @@ export default (props: Props) => {
                 onClick: (e) => {
                     show(isShown => !isShown);
                     e.stopPropagation();
+                    e.preventDefault();
                     return false;
                 }
             })}
