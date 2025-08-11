@@ -189,13 +189,30 @@ export default abstract class AuthService<
         request.res.clearCookie('authorization');
     }
 
-    public check( request: TRequest, role: TUserRole): TUser;
-    public check( request: TRequest, role: false): null;
-    public check( request: TRequest, role: TUserRole | false = 'USER'): TUser | null {
+    public check( 
+        request: TRequest, 
+        role: TUserRole, 
+        motivation?: string, 
+        dataForDebug?: { [key: string]: any }
+    ): TUser;
+
+    public check( 
+        request: TRequest, 
+        role: false, 
+        motivation?: string, 
+        dataForDebug?: { [key: string]: any }
+    ): null;
+
+    public check( 
+        request: TRequest, 
+        role: TUserRole | false = 'USER', 
+        motivation?: string, 
+        dataForDebug?: { [key: string]: any }
+    ): TUser | null {
 
         const user = request.user;
 
-        this.config.debug && console.warn(LogPrefix, `Check auth, role = ${role}. Current user =`, user?.name);
+        this.config.debug && console.warn(LogPrefix, `Check auth, role = ${role}. Current user =`, user?.name, motivation);
 
         if (user === undefined) {
 
@@ -210,7 +227,7 @@ export default abstract class AuthService<
         } else if (user === null) {
 
             this.config.debug && console.warn(LogPrefix, "Refusé pour anonyme (" + request.ip + ")");
-            throw new AuthRequired('Please login to continue');
+            throw new AuthRequired('Please login to continue', motivation, dataForDebug);
             
         // Insufficient permissions
         } else if (!user.roles.includes(role)) {

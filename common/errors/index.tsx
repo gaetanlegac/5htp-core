@@ -161,6 +161,21 @@ export class AuthRequired extends CoreError {
     public http = 401;
     public title = "Authentication Required";
     public static msgDefaut = "Please Login to Continue.";
+
+    public constructor( 
+        message: string, 
+        public motivation?: string,
+        details?: TErrorDetails
+    ) {
+        super(message, details);
+    }
+
+    public json(): TJsonError & { motivation?: string } {
+        return {
+            ...super.json(),
+            motivation: this.motivation,
+        }
+    }
 }
 
 export class UpgradeRequired extends CoreError {
