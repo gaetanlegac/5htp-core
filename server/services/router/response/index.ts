@@ -111,17 +111,6 @@ export default class ServerResponse<
         // Create response context for controllers
         const context = await this.createContext(route);
 
-        // Static rendering
-        const chunkId = route.options["id"];
-        if (route.options.static && 
-            chunkId !== undefined 
-            && 
-            this.router.cache[ chunkId ] !== undefined
-        ) {
-            await this.html( this.router.cache[ chunkId ] );
-            return;
-        }
-
         // Run controller
         const content = await this.route.controller( context );
         if (content === undefined)
@@ -139,10 +128,6 @@ export default class ServerResponse<
         // Return JSON
         else
             await this.json(content);
-
-        // Cache
-        if (route.options.static)
-            this.router.cache[ chunkId ] = this.data;
     }
 
     private updateCanonicalUrl( route: TAnyRoute ) {

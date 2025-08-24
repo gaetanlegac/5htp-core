@@ -98,7 +98,10 @@ export type TRouteOptions = {
     redirectLogged?: string, // Redirect to this route if auth: false and user is logged
 
     // Rendering
-    static?: boolean,
+    static?: { 
+        refresh?: string, 
+        urls: string[] 
+    },
     canonicalParams?: string[], // For SEO + unique ID for static cache
     layout?: false | string, // The nale of the layout
 

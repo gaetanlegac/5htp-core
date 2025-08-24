@@ -11,6 +11,8 @@
 
 // Node
 // Npm
+import got from 'got';
+import hInterval from 'human-interval';
 import type express from 'express';
 import type { Request, Response, NextFunction } from 'express';
 import { v4 as uuid } from 'uuid';
@@ -137,7 +139,13 @@ export default class ServerRouter
     public ssrRoutes: TSsrUnresolvedRoute[] = [];
 
     // Cache (ex: for static pages)
-    public cache: {[pageId: string]: string} = {}
+    public cache: {
+        [pageId: string]: {
+            rendered: any,
+            expire: number | undefined,
+            options: TRouteOptions["static"]
+        }
+    } = {}
 
     /*----------------------------------
     - SERVICE
@@ -157,6 +165,11 @@ export default class ServerRouter
 
     public async ready() {
 
+        // Every hours
+        setInterval(() => {
+            this.refreshStaticPages();
+        }, 1000 * 60 * 60);
+
         // Detect router services
         for (const serviceName in this.config.plugins) {
             this.app.register( this.config.plugins[serviceName] )
@@ -171,7 +184,6 @@ export default class ServerRouter
 
         // Start HTTP server
         await this.http.start();
-
 
         // override
         const originalLog = console.log;
@@ -208,6 +220,65 @@ export default class ServerRouter
     /*----------------------------------
     - ACTIONS
     ----------------------------------*/
+
+    private async renderStatic( 
+        path: string, 
+        options: TRouteOptions["static"],
+        rendered?: any
+    ) {
+
+        // Wildcard: tell that the newly rendered pages should be cached
+        if (path === '*')
+            return;
+
+        if (!rendered) {
+
+            const fullUrl = this.url(path, {}, true);
+            console.log('[router] renderStatic', fullUrl);
+
+            const response = await got( fullUrl, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'text/html'
+                },
+                throwHttpErrors: false,
+            });
+
+            if (response.statusCode !== 200) {
+                console.error('renderStatic', response.statusCode, response.body);
+                return;
+            }
+
+            rendered = response.body;
+        }
+
+        this.cache[path] = {
+            rendered: rendered,
+            options: options,
+            expire: typeof options === 'object' 
+                ? Date.now() + (hInterval(options.refresh) || 3600) 
+                : undefined
+        };
+        
+    }
+
+    private refreshStaticPages() {
+
+        console.log('[router] refreshStaticPages');
+        
+        for (const pageId in this.cache) {
+            const page = this.cache[pageId];
+            if (page.expire && page.expire < Date.now()) {
+
+                this.renderStatic(page.path, page.options);
+
+            }
+        }
+    }
+
+
+
+
 
     private registerRoutes(defModules: GlobImportedWithMetas<TRouteModule>) {
         for (const routeModule of defModules) {
@@ -256,6 +327,14 @@ export default class ServerRouter
         }
 
         this.routes.push(route);
+
+        // Add to static pages
+        // Should be a GET oage that don't take any parameter
+        if (options.static) {
+            for (const url of options.static.urls) {
+                this.renderStatic(url, options.static);
+            }
+        }
 
         return this;
 
@@ -419,7 +498,13 @@ export default class ServerRouter
             "Cache-Control",
             "no-store, no-cache, must-revalidate, proxy-revalidate"
         );
-        res.setHeader("Pragma", "no-cache");
+
+        // Static pages
+        if (this.cache[req.path]) {
+            console.log('[router] Get static page from cache', req.path);
+            res.send( this.cache[req.path].rendered );
+            return;
+        }
 
         // Create request
         let requestId = uuid();
@@ -577,6 +662,12 @@ export default class ServerRouter
         await response.runController(route);
         if (!response.wasProvided)
             return;
+
+        // Set in cache
+        if (route.options.static && route.options.static.urls.includes('*')) {
+            console.log('[router] Set in cache', response.request.path);
+            this.renderStatic(response.request.path, route.options.static, response.data);
+        }
 
         const timeEndResolving = Date.now();
         this.printTakenTime(timeStart, timeEndResolving);
