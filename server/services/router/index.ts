@@ -221,7 +221,7 @@ export default class ServerRouter
     - ACTIONS
     ----------------------------------*/
 
-    private async renderStatic( 
+    public async renderStatic( 
         path: string, 
         options: TRouteOptions["static"],
         rendered?: any
