@@ -228,7 +228,7 @@ export default class ServerRouter
     ) {
 
         // Wildcard: tell that the newly rendered pages should be cached
-        if (path === '*')
+        if (path === '*' || !path)
             return;
 
         if (!rendered) {
@@ -268,7 +268,7 @@ export default class ServerRouter
         
         for (const pageId in this.cache) {
             const page = this.cache[pageId];
-            if (page.expire && page.expire < Date.now()) {
+            if (page.path && page.expire && page.expire < Date.now()) {
 
                 this.renderStatic(page.path, page.options);
 
@@ -664,7 +664,11 @@ export default class ServerRouter
             return;
 
         // Set in cache
-        if (route.options.static && route.options.static.urls.includes('*')) {
+        if (
+            response.request.path
+            && route.options.static 
+            && route.options.static.urls.includes('*')
+        ) {
             console.log('[router] Set in cache', response.request.path);
             this.renderStatic(response.request.path, route.options.static, response.data);
         }
