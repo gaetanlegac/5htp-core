@@ -5,6 +5,8 @@
 // Node
 import { serialize } from 'v8';
 import { formatWithOptions } from 'util';
+import md5 from 'md5';
+import dayjs from 'dayjs';
 import Youch from 'youch';
 import forTerminal from 'youch-terminal';
 
@@ -147,6 +149,12 @@ export default class Console {
     public logger!: Logger<ILogObj>;
     // Buffers
     public logs: TJsonLog[] = [];
+    private reported: { 
+        [hash: string]: {
+            times: number,
+            last: Date,
+        } 
+    } = {};
 
     /*----------------------------------
     - LIFECYCLE
@@ -282,35 +290,12 @@ export default class Console {
     // We don't prevent duplicates because we want to receive all variants of the same error
     public async createBugReport( error: TCatchedError, request?: ServerRequest ) {
 
-        /*const youchRes = new Youch(error, {});
-        const jsonResponse = await youchRes.toJSON()
-        console.log( forTerminal(jsonResponse, {
-            // Defaults to false
-            displayShortPath: false,
-
-            // Defaults to single whitspace
-            prefix: ' ',
-
-            // Defaults to false
-            hideErrorTitle: false,
-
-            // Defaults to false
-            hideMessage: false,
-
-            // Defaults to false
-            displayMainFrameOnly: false,
-
-            // Defaults to 3
-            framesMaxLimit: 3,
-        }) );*/
-
         const application = this.container.application;
         if (application === undefined) 
             return console.error(LogPrefix, "Can't send bug report because the application is not instanciated");
 
         // Get context
         const now = new Date();
-        const hash = uuid();
         const { channelType, channelId } = this.getChannel();
 
         // On envoi l'email avant l'insertion dans bla bdd
@@ -353,10 +338,35 @@ export default class Console {
                 : undefined
         }
 
+        // Genertae unique error hash
+        const hash = md5( stacktraces.join('\n') );
+
+        // Don't send the same error twice in a row (avoid email spamming)
+        const lastReport = this.reported[hash];
+        let isDuplicate = false;
+        if (lastReport === undefined) {
+
+            this.reported[hash] = {
+                times: 0,
+                last: new Date()
+            }
+
+        // If error older than 1 day
+        } else if (dayjs(now).diff( dayjs(lastReport.last), 'day' ) > 1) {
+
+            lastReport.times++;
+            lastReport.last = now;
+
+        } else {
+
+            isDuplicate = true;
+        }
+
         const bugReport: ServerBug = {
 
             // Context
             hash: hash,
+            isDuplicate,
             date: now,
             channelType, 
             channelId,

@@ -245,7 +245,7 @@ export default class ServerRouter
             });
 
             if (response.statusCode !== 200) {
-                console.error('renderStatic', response.statusCode, response.body);
+                console.error("[router] renderStatic: page returned code", response.statusCode, fullUrl);
                 return;
             }
 

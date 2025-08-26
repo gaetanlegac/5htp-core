@@ -43,6 +43,7 @@ export type ServerBug = {
 
     // Context
     hash: string,
+    isDuplicate: boolean,
     date: Date, // Timestamp
     channelType?: string, 
     channelId?: string,

@@ -171,7 +171,7 @@ export default abstract class Email<TConfig extends Config>
             
         });
 
-        console.info(LogPrefix, `Sending ${emailsToSend.length} emails via transporter`, emailsToSend[0].subject);
+        console.info(LogPrefix, `Sending ${emailsToSend.length} emails:`, emailsToSend[0].subject);
 
         // Pas d'envoi d'email quand local
         if (this.app.env.name === 'local' && this.config.simulateWhenLocal === true) {
