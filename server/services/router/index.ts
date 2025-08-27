@@ -266,11 +266,11 @@ export default class ServerRouter
 
         console.log('[router] refreshStaticPages');
         
-        for (const pageId in this.cache) {
-            const page = this.cache[pageId];
-            if (page.path && page.expire && page.expire < Date.now()) {
+        for (const pageUrl in this.cache) {
+            const page = this.cache[pageUrl];
+            if (page.expire && page.expire < Date.now()) {
 
-                this.renderStatic(page.path, page.options);
+                this.renderStatic(pageUrl, page.options);
 
             }
         }
