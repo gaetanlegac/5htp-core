@@ -118,16 +118,36 @@ export default class ApiClient implements ApiClientService {
             // For async calls: api.post(...).then((data) => ...)
             then: (callback: (data: any) => void) => this.fetchAsync<TData>(...args)
                 .then(callback)
-                .catch( e => this.app.handleError(e)),
+                .catch( e => {
+                    this.app.handleError(e);
+
+                    // Don't run what is next
+                    return {
+                        then: () => {},
+                        catch: () => {},
+                        finally: (callback: () => void) => {
+                            callback();
+                        },
+                    }
+                }),
 
             // Default error behavior only if not handled before by the app
-            catch: (callback: (data: any) => void) => this.fetchAsync<TData>(...args)
+            catch: (callback: (data: any) => false | void) => this.fetchAsync<TData>(...args)
                 .catch((e) => {
-                    try {
-                        callback(e);
-                    } catch (error) {
-                        this.app.handleError(e)
+
+                    const shouldThrow = callback(e);
+                    if (shouldThrow) 
+                        this.app.handleError(e);
+
+                    // Don't run what is next
+                    return {
+                        then: () => {},
+                        catch: () => {},
+                        finally: (callback: () => void) => {
+                            callback();
+                        },
                     }
+
                 }),
 
             finally: (callback: () => void) => this.fetchAsync<TData>(...args)

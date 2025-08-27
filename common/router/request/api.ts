@@ -18,6 +18,8 @@ export type TFetcher<TData extends any = unknown> = {
 
     // For async calls: api.post(...).then((data) => ...)
     then: (callback: (data: TData) => void) => Promise<TData>,
+    catch: (callback: (data: any) => false | void) => Promise<TData>,
+    finally: (callback: () => void) => Promise<TData>,
     run: () => Promise<TData>,
     
     method: HttpMethod,
