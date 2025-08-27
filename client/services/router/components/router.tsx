@@ -151,8 +151,8 @@ export default ({ service: clientRouter, loaderComponent }: TProps) => {
                 //  But when we call setLayout, the style of the previous layout are still oaded and applied
                 //  Find a way to unload the  previous layout / page resources before to load the new one
                 console.log(LogPrefix, `Changing layout. Before:`, curLayout, 'New layout:', newLayout);
-                window.location.replace( request ? request.url : window.location.href );
-                return page; // Don't spread since it's an instance
+                /*window.location.replace( request ? request.url : window.location.href );
+                return page; // Don't spread since it's an instance*/
 
                 context.app.setLayout(newLayout);
             }
