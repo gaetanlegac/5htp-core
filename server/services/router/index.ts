@@ -233,7 +233,7 @@ export default class ServerRouter
 
         if (!rendered) {
 
-            const fullUrl = this.url(path, {}, true);
+            const fullUrl = this.url(path + '#bypassCache', {}, true);
             console.log('[router] renderStatic', fullUrl);
 
             const response = await got( fullUrl, {
@@ -499,15 +499,12 @@ export default class ServerRouter
             "no-store, no-cache, must-revalidate, proxy-revalidate"
         );
 
-        // Static pages
-        if (this.cache[req.path]) {
-            console.log('[router] Get static page from cache', req.path);
-            res.send( this.cache[req.path].rendered );
-            return;
-        }
-
         // Create request
         let requestId = uuid();
+        const cachedPage = req.url.endsWith('#bypassCache') 
+            ? undefined 
+            : this.cache[req.path];
+
         const request = new ServerRequest(
             requestId,
 
@@ -533,13 +530,25 @@ export default class ServerRouter
                 return await this.resolveApiBatch(request.data.fetchers, request);
 
             } else {
-                response = await this.resolve(request);
+                response = await this.resolve(
+                    request, 
+                    // If cached page, we only run routes with priority >= 10
+                    cachedPage ? true : false
+                );
             }
         } catch (e) {
             response = await this.handleError(e, request);
         }
 
         if (!res.headersSent) {
+
+            // Static pages
+            if (cachedPage) {
+                console.log('[router] Get static page from cache', req.path);
+                res.send( cachedPage.rendered );
+                return;
+            } 
+
             // Status
             res.status(response.statusCode);
             // Headers
@@ -572,7 +581,10 @@ export default class ServerRouter
         return contextServices;
     }
 
-    public resolve = (request: ServerRequest<this>) => new Promise<ServerResponse<this>>((resolve, reject) => {
+    public resolve = (
+        request: ServerRequest<this>, 
+        isStatic?: boolean
+    ) => new Promise<ServerResponse<this>>((resolve, reject) => {
 
         // Create request context so we can access request context across all the request-triggered libs
         context.run({ 
@@ -612,6 +624,9 @@ export default class ServerRouter
 
                 // Classic routes
                 for (route of this.routes) {
+
+                    if (isStatic && !route.options.whenStatic)
+                        continue;
 
                     // Match Method
                     if (request.method !== route.method && route.method !== '*')

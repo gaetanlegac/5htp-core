@@ -102,6 +102,7 @@ export type TRouteOptions = {
         refresh?: string, 
         urls: string[] 
     },
+    whenStatic?: boolean, // If true, the route is only executed even if the page is cached
     canonicalParams?: string[], // For SEO + unique ID for static cache
     layout?: false | string, // The nale of the layout
 
