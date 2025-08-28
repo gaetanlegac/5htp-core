@@ -222,24 +222,23 @@ export default class ServerRouter
     ----------------------------------*/
 
     public async renderStatic( 
-        path: string, 
+        url: string, 
         options: TRouteOptions["static"],
         rendered?: any
     ) {
 
         // Wildcard: tell that the newly rendered pages should be cached
-        if (path === '*' || !path)
+        if (url === '*' || !url)
             return;
 
         if (!rendered) {
 
-            const fullUrl = this.url(path + '#bypassCache', {}, true);
-            console.log('[router] renderStatic', fullUrl);
-
+            const fullUrl = this.url(url, {}, true);
             const response = await got( fullUrl, {
                 method: 'GET',
                 headers: {
-                    'Accept': 'text/html'
+                    'Accept': 'text/html',
+                    'bypasscache': '1'
                 },
                 throwHttpErrors: false,
             });
@@ -252,7 +251,7 @@ export default class ServerRouter
             rendered = response.body;
         }
 
-        this.cache[path] = {
+        this.cache[url] = {
             rendered: rendered,
             options: options,
             expire: typeof options === 'object' 
@@ -501,7 +500,7 @@ export default class ServerRouter
 
         // Create request
         let requestId = uuid();
-        const cachedPage = req.url.endsWith('#bypassCache') 
+        const cachedPage = req.headers['bypasscache']
             ? undefined 
             : this.cache[req.path];
 
