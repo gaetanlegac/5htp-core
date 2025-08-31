@@ -12,16 +12,12 @@ import Button, { Props as BtnProps } from '@client/components/Button';
 import { InputWrapper } from '../utils';
 import useContext from '@/client/context';
 
-// specific
-import FileToUpload from './FileToUpload';
-
 // Ressources
 import './index.less';
 
 /*----------------------------------
 - OUTILS
 ----------------------------------*/
-export { default as FileToUpload } from './FileToUpload';
 
 export const createImagePreview = (file: Blob) => new Promise((resolve, reject) => {
 
@@ -44,15 +40,6 @@ export const createImagePreview = (file: Blob) => new Promise((resolve, reject) 
     reader.readAsDataURL(file);
 });
 
-// Instanciate FileToUpload from browser side File
-const normalizeFile = (file: File) => new FileToUpload({
-    name: file.name,
-    type: file.type,
-    size: file.size,
-    data: file,
-    //original: file
-})
-
 /*----------------------------------
 - TYPES
 ----------------------------------*/
@@ -61,7 +48,7 @@ export type Props = {
 
     // Input
     title: string,
-    value?: string | FileToUpload, // string = already registered 
+    value?: string | File, // string = already registered 
 
     // Display
     emptyText?: ComponentChild,
@@ -70,7 +57,7 @@ export type Props = {
     button?: boolean | BtnProps,
 
     // Actions
-    onChange: (file: FileToUpload | undefined) => void
+    onChange: (file: File | undefined) => void
     remove?: () => Promise<void>,
 }
 
@@ -115,9 +102,7 @@ export default (props: Props) => {
         const selectedfile = fileSelectEvent.target.files[0] as File;
         if (selectedfile) {
 
-            const fileToUpload = normalizeFile(selectedfile);
-
-            onChange(fileToUpload);
+            onChange(selectedfile);
         }
     }
 
@@ -125,7 +110,7 @@ export default (props: Props) => {
 
         // Image = decode & display preview
         if (file !== undefined && typeof file === 'object' && file.type.startsWith('image/'))
-            createImagePreview(file.data).then(setPreviewUrl);
+            createImagePreview(file).then(setPreviewUrl);
         else 
             setPreviewUrl(undefined);
 

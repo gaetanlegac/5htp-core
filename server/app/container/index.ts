@@ -4,6 +4,7 @@
 
 // Set timezone
 process.env.TZ = 'UTC';
+import 'source-map-support/register';
 
 // Npm
 import path from 'path';

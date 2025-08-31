@@ -3,7 +3,7 @@
 ----------------------------------*/
 
 // Npm
-import zod from 'zod';
+import type zod from 'zod';
 
 // types
 import type {

@@ -15,7 +15,6 @@ import ApiClientService, {
 // Specific
 import type { default as Router, Request } from '..';
 import { toMultipart } from './multipart';
-import FileToUpload from '@client/components/File/FileToUpload';
 
 /*----------------------------------
 - TYPES
@@ -226,7 +225,7 @@ export default class ApiClient implements ApiClientService {
 
             // If file included in data, need to use multipart
             // TODO: deep check
-            const hasFile = Object.values(data).some((value) => value instanceof FileToUpload);
+            const hasFile = Object.values(data).some((value) => value instanceof File);
             if (hasFile) {
                 // GET request = Can't send files
                 if (method === "GET")

@@ -7,7 +7,7 @@ import {
     default as Router, RequestService, Request as ServerRequest
 } from '@server/services/router';
 
-import Schema, { TSchemaFields, TValidatedData } from '@common/validation/schema';
+import Schema, { TSchemaFields, TValidatedData } from '@server/services/router/request/validation/schema';
 
 // Specific
 import ServerSchemaValidator from '.';

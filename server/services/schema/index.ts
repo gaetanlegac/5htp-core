@@ -6,10 +6,8 @@
 import type { Application } from '@server/app';
 
 // Specific
-import { SchemaValidators, TFileValidator } from '@common/validation/validators';
-import Validator, { TValidatorOptions } from '@common/validation/validator';
-
-import type FileToUpload from '@client/components/File/FileToUpload';
+import { SchemaValidators, TFileValidator } from '@server/services/router/request/validation/validators';
+import Validator, { TValidatorOptions } from '@server/services/router/request/validation/validator';
 
 /*----------------------------------
 - TYPES

@@ -83,25 +83,3 @@ type TServiceRef = {
 type TServiceSubservices = {
     [key: string]: TServiceSetup | TServiceRef
 }
-
-declare module '@cli/app' {
-    type App = {
-
-        env: TEnvConfig;
-
-        use: (referenceName: string) => TServiceRef;
-
-        setup: (...args: [
-            // { user: app.setup('Core/User') }
-            servicePath: string,
-            serviceConfig?: {}
-        ] | [
-            // app.setup('User', 'Core/User')
-            serviceName: string, 
-            servicePath: string,
-            serviceConfig?: {}
-        ]) => TServiceSetup;
-    }
-    const app: App;
-    export = app;
-}

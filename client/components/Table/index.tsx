@@ -32,8 +32,7 @@ export type Props<TRow> = {
     empty?: ComponentChild | false,
 
     // Interactions
-    sort?: TSortOptions,
-    onSort?: (columnId: string | null, order: TSortOptions["order"]) => void,
+    sortState?: [TSortOptions, React.SetStateAction<TSortOptions>],
     onCellClick?: (row: TRow) => void,
 
     selection?: [TRow[], React.SetStateAction<TRow[]>],
@@ -57,7 +56,7 @@ type TSortOptions = {
 - COMPOSANTS
 ----------------------------------*/
 export default function Liste<TRow extends TDonneeInconnue>({
-    stickyHeader, onSort, sort: sorted,
+    stickyHeader, sortState,
     data: rows, setData, empty,
     onCellClick,
     selection: selectionState, maxSelection,
@@ -83,6 +82,23 @@ export default function Liste<TRow extends TDonneeInconnue>({
                 </>}
             </div>
         );
+
+    const sortBy = (columnId: string | null, defaultOrder: 'asc' | 'desc') => {
+
+        if (!sortState) return;
+
+        const [sort, setSort] = sortState;
+
+        if (columnId === sort.id) {
+            setSort({
+                id: columnId,
+                order: defaultOrder === 'asc' ? 'desc' : 'asc'
+            });
+        } else {
+            setSort({ columnId, order: defaultOrder });
+        }
+
+    }
 
     /*----------------------------------
     - RENDU COLONNES / LIGNES
@@ -141,15 +157,15 @@ export default function Liste<TRow extends TDonneeInconnue>({
                 if (iDonnee === 0) {
 
                     const headerProps = { className: '', ...cellProps };
-                    const isCurrentlySorted = sort && sorted && sorted.id === sort.id;
-                    const isSortable = sort && onSort;
-                    if (isSortable) {
+                    const isCurrentlySorted = sort && sort.id === sort.id;
+                    const isSortable = sort;
+                    if (isSortable && sortState[1]) {
                         headerProps.className += ' clickable';
                         headerProps.onClick = () => {
                             if (isCurrentlySorted)
-                                onSort(null, sort.order);
+                                sortBy(null, sort.order);
                             else
-                                onSort(sort.id, sort.order);
+                                sortBy(sort.id, sort.order);
                         }
                     }
                     

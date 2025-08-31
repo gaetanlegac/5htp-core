@@ -6,7 +6,6 @@
 import mime from 'mime-types';
 
 // Core
-import FileToUpload from '@client/components/File/FileToUpload';
 import { InputError } from '@common/errors';
 
 /*----------------------------------
@@ -82,7 +81,11 @@ export const traiterMultipart = (...canaux: any[]) => {
                     && 
                     donnee.data instanceof Buffer
                 ){
-                    donnee = normalizeFile(donnee);
+                    donnee = new File(donnee.data, donnee.name, { 
+                        type: donnee.mimetype,
+                        lastModified: Date.now(),
+                        //size: donnee.size,
+                    });
                 }
                 
                 brancheA[ cle ] = donnee;
@@ -91,24 +94,4 @@ export const traiterMultipart = (...canaux: any[]) => {
     }
 
     return sortie;
-}
-
-const normalizeFile = (file: UploadedFile) => {
-
-    const ext = mime.extension(file.mimetype);
-
-    if (ext === false)
-        throw new InputError(`We couldn't determine the type of the CV file you sent. Please encure it's not corrupted and try again.`);
-
-    return new FileToUpload({
-
-        name: file.name,
-        type: file.mimetype,
-        size: file.size,
-    
-        data: file.data,
-    
-        md5: file.md5,
-        ext: ext
-    })
 }

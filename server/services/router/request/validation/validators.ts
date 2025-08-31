@@ -13,7 +13,6 @@ import normalizeUrl, { Options as NormalizeUrlOptions } from 'normalize-url';
 
 // Core
 import { InputError } from '@common/errors';
-import FileToUpload from '@client/components/File/FileToUpload';
 
 // Speciific
 import Schema, { TSchemaFields } from './schema'
@@ -23,7 +22,7 @@ import Validator, { TValidatorOptions, EXCLUDE_VALUE, TValidatorDefinition } fro
 - TYPES
 ----------------------------------*/
 
-export type TFileValidator = TValidatorOptions<FileToUpload> & {
+export type TFileValidator = TValidatorOptions<File> & {
     type?: string[], // Raccourci, ou liste de mimetype
     taille?: number,
     disk?: string, // Disk to upload files to
@@ -447,14 +446,14 @@ export class SchemaValidators {
     ----------------------------------*/
     public file = ({ type, taille, ...opts }: TFileValidator & {
 
-    } = {}) => new Validator<FileToUpload>('file', (val, options, path) => {
+    } = {}) => new Validator<File>('file', (val, options, path) => {
 
         // Chaine = url ancien fichier = exclusion de la valeur pour conserver l'ancien fichier
         // NOTE: Si la valeur est présente mais undefined, alors on supprimera le fichier
         if (typeof val === 'string')
             return EXCLUDE_VALUE;
 
-        if (!(val instanceof FileToUpload))
+        if (!(val instanceof File))
             throw new InputError(`Must be a File (${typeof val} received)`);
 
         // MIME

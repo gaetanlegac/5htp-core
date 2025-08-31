@@ -10,7 +10,6 @@ import Bowser from "bowser";
 
 // Core
 import BaseRequest from '@common/router/request';
-import type FileToUpload from '@client/components/File/FileToUpload';
 
 // Specific
 import type { 
@@ -40,7 +39,7 @@ const localeFilter = (input: any) => {
     return lang.toUpperCase();
 }
 
-export type UploadedFile = With<FileToUpload, 'md5'|'ext'>
+export type UploadedFile = File
 
 /*----------------------------------
 - CONTEXTE

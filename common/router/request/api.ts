@@ -4,8 +4,6 @@
 
 import type { HttpMethod } from '@server/services/router';
 
-import type { FileToUpload } from '@client/components/File';
-
 /*----------------------------------
 - TYPES
 ----------------------------------*/
@@ -44,7 +42,7 @@ export type TApiFetchOptions = {
 
 export type TPostData = TPostDataWithFile
 
-export type TPostDataWithFile = { [key: string]: PrimitiveValue | FileToUpload }
+export type TPostDataWithFile = { [key: string]: PrimitiveValue }
 
 export type TPostDataWithoutFile = { [key: string]: PrimitiveValue }
 

@@ -4,7 +4,6 @@
 
 // Core
 import { TPostData } from '@common/router/request/api';
-import { FileToUpload } from '@client/components/File';
 
 /*----------------------------------
 - TYPES
@@ -74,10 +73,6 @@ function convertRecursively(
                     propName = parentKey + '[]';
                 }
             }
-
-            // Exract the file object from value
-            if (typeof value === 'object' && value instanceof FileToUpload)
-                value = value.data;
 
             if (isArray(value) || isJsonObject(value)) {
 
