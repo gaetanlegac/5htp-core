@@ -39,8 +39,9 @@ export default class DocumentRenderer<TRouter extends Router> {
                     <meta name="viewport" content="width=device-width,minimum-scale=1,initial-scale=1" />
 
                     {/* CSS */}
-                    <link rel="stylesheet" type="text/css" href="/public/icons.css" />
                     <link rel="preload" href="/public/client.css" as="style" />
+                    <link rel="preload" as="font" href={"/public/icons.woff2?v=" + BUILD_ID} type="font/woff2" />
+                    <link rel="stylesheet" type="text/css" href="/public/icons.css" />
                     <link rel="stylesheet" type="text/css" href="/public/client.css" />
                     <ColorSchemeScript />
 
@@ -120,6 +121,7 @@ export default class DocumentRenderer<TRouter extends Router> {
 
     private styles( page: Page ) {
         return <>
+            <link rel="preload" as="font" href={"/public/icons.woff2?v=" + BUILD_ID} type="font/woff2" />
             <link rel="stylesheet" type="text/css" href={"/public/icons.css?" + BUILD_ID} />
             <link rel="preload" href="/public/client.css" as="style" />
             <link rel="stylesheet" type="text/css" href="/public/client.css" />
