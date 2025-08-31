@@ -9,7 +9,7 @@ import type { TServiceMetas } from './container';
 import type { TControllerDefinition, TRoute } from '../../services/router';
 import { Anomaly } from "@common/errors";
 
-export { default as schema } from 'zod';
+export { schema } from '../../services/router/request/validation/zod';
 
 /*----------------------------------
 - TYPES: OPTIONS
