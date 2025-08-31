@@ -724,11 +724,11 @@ export default class ServerRouter
         request.res.json(responseData);
     }
 
-    private async handleError( e: Error |CoreError | ZodError, request: ServerRequest<ServerRouter> ) {
+    private async handleError( e: Error | CoreError | ZodError, request: ServerRequest<ServerRouter> ) {
 
         if (e instanceof ZodError)
             e = new InputError( 
-                e.errors.map(e => e.path.join('.') + ': ' + e.message).join(', ') 
+                e.issues.map((e) => e.path.join('.') + ': ' + e.message).join(', ') 
             );
 
         const code = 'http' in e ? e.http : 500;

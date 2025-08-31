@@ -1,7 +1,7 @@
 {
 	"name": "5htp-core",
 	"description": "Convenient TypeScript framework designed for Performance and Productivity.",
-	"version": "0.6.1-5",
+	"version": "0.6.1-6",
 	"author": "Gaetan Le Gac (https://github.com/gaetanlegac)",
 	"repository": "git://github.com/gaetanlegac/5htp-core.git",
 	"license": "MIT",
@@ -88,7 +88,7 @@
 		"yargs-parser": "^21.1.1",
 		"youch": "^3.3.3",
 		"youch-terminal": "^2.2.3",
-		"zod": "^3.24.2"
+		"zod": "^4.1.5"
 	},
 	"devDependencies": {
 		"@types/cookie": "^0.4.1",
