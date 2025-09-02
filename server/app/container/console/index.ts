@@ -339,7 +339,7 @@ export default class Console {
         }
 
         // Genertae unique error hash
-        const hash = md5( stacktraces.join('\n') );
+        const hash = md5( stacktraces[0] );
 
         // Don't send the same error twice in a row (avoid email spamming)
         const lastReport = this.reported[hash];
