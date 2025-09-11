@@ -44,6 +44,8 @@ export default class Facet<
         const { withStats, ...subset } = this.subset(...args);
 
         const results = await this.delegate.findMany(subset);
+        if (results.length === 0)
+            return [];
 
         // Load stats
         const stats = withStats 
@@ -60,12 +62,14 @@ export default class Facet<
         const { withStats, ...subset } = this.subset(...args);
 
         const result = await this.delegate.findFirst(subset);
+        if (!result)
+            return null;
 
         const stats = withStats 
             ? await this.fetchStats( withStats, [result] )
             : [];
 
-        return result ? this.transformResult(result, stats, withStats) : null;
+        return this.transformResult(result, stats, withStats);
     }
 
     private async fetchStats(
