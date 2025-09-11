@@ -81,11 +81,16 @@ export const traiterMultipart = (...canaux: any[]) => {
                     && 
                     donnee.data instanceof Buffer
                 ){
+                    const md5 = donnee.md5;
+                    const data = donnee.data;
                     donnee = new File(donnee.data, donnee.name, { 
                         type: donnee.mimetype,
                         lastModified: Date.now(),
                         //size: donnee.size,
                     });
+
+                    donnee.md5 = md5;
+                    donnee.data = data;
                 }
                 
                 brancheA[ cle ] = donnee;
