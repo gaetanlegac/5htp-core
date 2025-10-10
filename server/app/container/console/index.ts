@@ -301,45 +301,10 @@ export default class Console {
         // On envoi l'email avant l'insertion dans bla bdd
         // Car cette denrière a plus de chances de provoquer une erreur
         //const logs = this.logs.filter(e => e.channel.channelId === channelId).slice(-100);
-        const stacktraces: string[] = [];
-        const context: object[] = [];
-
-        let currentError: TCatchedError | undefined = error;
-        let title: string | undefined;
-        while (currentError !== undefined) {
-
-            if (title === undefined)
-                title = currentError.message;
-
-            // Stacktrace
-            this.logger.error(LogPrefix, `Sending bug report for the following error:`, currentError);
-            stacktraces.push(currentError.stack || currentError.message);
-
-            // Context
-            if (('dataForDebugging' in currentError) && currentError.dataForDebugging !== undefined) {
-                console.error(LogPrefix, `More data about the error:`, currentError.dataForDebugging);
-                context.push(currentError.dataForDebugging || {});
-            }
-
-            // Print the error so it's accessible via logs
-            if (currentError instanceof SqlError)  {
-                let printedQuery: string;
-                try {
-                    printedQuery = this.printSql( currentError.query );
-                } catch (error) {
-                    printedQuery = 'Failed to print query:' + (error || 'unknown error');
-                }
-                console.error(`Error caused by this query:`, printedQuery);
-            }
-
-            // Go deeper
-            currentError = 'originalError' in currentError 
-                ? currentError.originalError
-                : undefined
-        }
+        const inspection = this.getDetailledError(error);
 
         // Genertae unique error hash
-        const hash = md5( stacktraces[0] );
+        const hash = md5( inspection.stacktraces[0] );
 
         // Don't send the same error twice in a row (avoid email spamming)
         const lastReport = this.reported[hash];
@@ -390,12 +355,56 @@ export default class Console {
             } : {}),
 
             // Error
-            title,
-            stacktraces,
-            context
+            title: inspection.title,
+            stacktraces: inspection.stacktraces,
+            context: inspection.context
         }
 
         await application.runHook('bug', bugReport);
+
+        return bugReport;
+    }
+
+    public getDetailledError( error: TCatchedError ) {
+
+        const stacktraces: string[] = [];
+        const context: object[] = [];
+
+        let currentError: TCatchedError | undefined = error;
+        let title: string | undefined;
+        while (currentError !== undefined) {
+
+            if (title === undefined)
+                title = currentError.message;
+
+            // Stacktrace
+            this.logger.error(LogPrefix, `Sending bug report for the following error:`, currentError);
+            stacktraces.push(currentError.stack || currentError.message);
+
+            // Context
+            if (('dataForDebugging' in currentError) && currentError.dataForDebugging !== undefined) {
+                console.error(LogPrefix, `More data about the error:`, currentError.dataForDebugging);
+                context.push(currentError.dataForDebugging || {});
+            }
+
+            // Print the error so it's accessible via logs
+            if (currentError instanceof SqlError)  {
+                let printedQuery: string;
+                try {
+                    printedQuery = this.printSql( currentError.query );
+                } catch (error) {
+                    printedQuery = 'Failed to print query:' + (error || 'unknown error');
+                }
+                console.error(`Error caused by this query:`, printedQuery);
+            }
+
+            // Go deeper
+            currentError = 'originalError' in currentError 
+                ? currentError.originalError
+                : undefined
+        }
+
+        return { title, stacktraces, context };
     }
 
     public getChannel() {
@@ -416,11 +425,7 @@ export default class Console {
 <b>User</b>: ${report.user ? (report.user.name + ' (' + report.user.email + ')') : 'Unknown'}<br />
 <b>IP</b>: ${report.ip}<br />
 
-${report.stacktraces.map((stacktrace, index) => `
-    <hr />
-    <b>Error ${index + 1}</b>:
-    ${this.printHtml(stacktrace)}<br />
-`).join('')}
+${this.stacktracesToHTML(report.stacktraces)}
 
 ${report.context.map((context, index) => `
     <hr />
@@ -438,6 +443,13 @@ ${report.request ? `
 <hr/>
 Logs: ${this.config.enable ? `<br/>` + this.logsToHTML(report.logs) : 'Logs collection is disabled'}<br />
         `
+    }
+
+    public stacktracesToHTML( stacktraces: string[] ): string {
+        return stacktraces.map((stacktrace, index) => `
+            <hr />
+            <b>Stacktrace ${index + 1}</b>: ${this.printHtml(stacktrace)}<br />
+        `).join('');
     }
  
     public logsToHTML( logs: TJsonLog[] ): string {
