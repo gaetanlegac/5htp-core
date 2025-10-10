@@ -144,13 +144,16 @@ export default abstract class Service<
     public use<TService extends AnyService = AnyService>( 
         serviceId: string,
         useOptions: { optional?: boolean } = {}
-    ): TService {
+    ): TService | undefined {
 
         const registeredService = this.app.registered[serviceId];
-        if (registeredService === undefined && useOptions.optional === false)
+        if (registeredService !== undefined) 
+            return this.app[ registeredService.name ];
+
+        if (useOptions.optional === false)
             throw new Error(`Service ${registeredService} not registered.`);
 
-        return this.app[ registeredService.name ];
+        return undefined;
     }
 
     /*----------------------------------
