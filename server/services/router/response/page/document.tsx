@@ -137,8 +137,8 @@ export default class DocumentRenderer<TRouter extends Router> {
 
     private async scripts( response: ServerResponse<TRouter>, page: Page ) {
 
-        const context = safeStringify( response.forSsr(page) );
-
+        const ssrData = response.forSsr(page);
+        const context = safeStringify( ssrData );
         const routesForClient = JSON.stringify( this.router.ssrRoutes );
 
         return <>

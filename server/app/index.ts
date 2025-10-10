@@ -208,8 +208,6 @@ export abstract class Application<
                         ? route.schema.parse( context.request.data )
                         : {};
 
-                    console.log('-----data', data);
-
                     // Run controller
                     return origController.bind( service )(
                         data, 
