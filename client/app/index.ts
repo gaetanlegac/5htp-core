@@ -21,7 +21,7 @@ import type { AnyService } from './service';
 export { default as Service } from './service';
 
 // Resources
-import '@client/assets/css/core.less';
+//import '@client/assets/css/core.less';
 
 /*----------------------------------
 - TYPES
