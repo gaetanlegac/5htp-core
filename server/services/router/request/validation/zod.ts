@@ -1,5 +1,5 @@
 import { InputError } from '@common/errors';
-import zod from 'zod';
+import zod, { _ZodType } from 'zod';
 
 export type TRichTextValidatorOptions = {
     attachements?: boolean
@@ -46,18 +46,51 @@ function validateLexicalNode(node: any, opts: TRichTextValidatorOptions ) {
 export const schema = { 
     ...zod,  
 
-    file: (builder: (file: zod.ZodType<File>) => any) => schema.custom(val => {
+    file: () => {
 
         // Chaine = url ancien fichier = exclusion de la valeur pour conserver l'ancien fichier
         // NOTE: Si la valeur est présente mais undefined, alors on supprimera le fichier
-        if (typeof val === 'string')
-            return true;
+        /*if (typeof val === 'string')
+            return true;*/
 
-        // Default file validation
-        const fileInstance = zod.file();
+        return zod.file();
+    },
 
-        return builder(fileInstance).parse(val);
-    }),
+    int: () => zod.preprocess( val => {
+
+        if (typeof val === "string")
+            return Number.parseInt(val);
+          
+        return val;
+
+    }, zod.int()),
+
+    choice: ( choices: string[] | { value: any, label: string }[] | _ZodType, options: { multiple?: boolean } = {} ) => {
+
+        const normalizeValue = (value: any) => typeof value === 'object' ? value.value : value;
+
+        const valueType: _ZodType = Array.isArray(choices) 
+            ? zod.enum( choices.map(normalizeValue) ) 
+            : zod.string();
+
+        const itemType = zod.union([
+
+            zod.object({ value: valueType, label: zod.string() }),
+
+            valueType
+
+        ]);
+
+        const type = options.multiple ? zod.array( itemType ) : itemType;
+        
+        return type.transform(v => {
+            if (options.multiple) {
+                return v.map(normalizeValue);
+            } else {
+                return normalizeValue(v);
+            }
+        });
+    },
 
     richText: (opts: TRichTextValidatorOptions = {}) => schema.custom(val => {
 
@@ -95,3 +128,5 @@ export const schema = {
         return true;
     })
 }
+
+export type { default as z } from 'zod';

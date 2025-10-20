@@ -8,7 +8,7 @@ import {
     RouterService
 } from '@server/services/router';
 
-import RequestValidator, { TConfig } from '../request';
+import makeRequestValidators from '../request';
 
 /*----------------------------------
 - TYPES
@@ -22,7 +22,7 @@ export default class SchemaRouterService<
     TUser extends {} = {}
 > extends RouterService {
 
-    public requestService( request: ServerRequest ): RequestValidator {
-        return new RequestValidator( request, this.config );
+    public requestService( request: ServerRequest ) {
+        return makeRequestValidators( request, this.config );
     }
 }

@@ -2,15 +2,17 @@
 - DEPENDANCES
 ----------------------------------*/
 
+// Npm
+import zod from 'zod';
+import { SomeType } from 'zod/v4/core';
+ 
 // Core
 import { 
     default as Router, RequestService, Request as ServerRequest
 } from '@server/services/router';
 
-import Schema, { TSchemaFields, TValidatedData } from '@server/services/router/request/validation/schema';
-
-// Specific
-import ServerSchemaValidator from '.';
+// Ap
+import { schema } from '@server/services/router/request/validation/zod';
 
 /*----------------------------------
 - SERVICE CONFIG
@@ -25,38 +27,21 @@ export type TConfig = {
 /*----------------------------------
 - SERVICE
 ----------------------------------*/
-export default class RequestValidator extends ServerSchemaValidator implements RequestService {
+export default(
+    request: ServerRequest<Router>,
+    config: TConfig,
+    router = request.router,
+    app = router.app
+) => ({
 
-    public constructor(
-        public request: ServerRequest<Router>,
-        public config: TConfig,
-        public router = request.router,
-        public app = router.app
-    ) {
+    ...schema,
 
-        super(app);
-
-    }
-
-    public validate<TSchemaFieldsA extends TSchemaFields>( 
-        fields: TSchemaFieldsA | Schema<TSchemaFieldsA> 
-    ): TValidatedData<TSchemaFieldsA> {
+    validate( fields: zod.ZodSchema | { [key: string]: zod.ZodSchema } ) {
 
         this.config.debug && console.log(LogPrefix, "Validate request data:", this.request.data);
 
-        const schema = fields instanceof Schema ? fields : new Schema(fields);
+        const schema = typeof fields === 'object' ? zod.object(fields) : fields;
 
-        // Les InputError seront propagées vers le middleware dédié à la gestion des erreurs
-        const values = schema.validate( this.request.data, {
-            debug: this.config.debug,
-            validateDeps: false,
-            validators: this
-        }, []);
-
-        // For logging
-        this.request.validatedData = values;
-
-        return values;
-    }
-
-}
+        return schema.parse(this.request.data);
+    },
+})

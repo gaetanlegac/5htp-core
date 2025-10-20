@@ -13,8 +13,6 @@ import {
 
 // Core libs
 import { InputBaseProps, useMantineInput } from './utils';
-import { default as Validator } from '../../server/services/router/request/validation/validator';
-import type { SchemaValidators } from '@server/services/router/request/validation/validators';
 
 /*----------------------------------
 - TYPES

@@ -2,6 +2,9 @@
 - DEPENDANCES
 ----------------------------------*/
 
+// Npm
+import zod from 'zod';
+
 // Specific
 import type { Application } from "..";
 import type { Command } from "../commands"; 
@@ -10,6 +13,7 @@ import type { TControllerDefinition, TRoute } from '../../services/router';
 import { Anomaly } from "@common/errors";
 
 export { schema } from '../../services/router/request/validation/zod';
+export type { z } from '../../services/router/request/validation/zod';
 
 /*----------------------------------
 - TYPES: OPTIONS
@@ -52,7 +56,30 @@ export type TServiceArgs<TService extends AnyService> = [
 
 const LogPrefix = '[service]';
 
-export function Route(options: Omit<TControllerDefinition, 'controller'> = {}) {
+type TDecoratorArgs = (
+    [path: string] |
+    [path: string, schema: zod.ZodSchema] |
+    [path: string, schema: zod.ZodSchema, options?: Omit<TControllerDefinition, 'controller'|'schema'|'path'>] |
+    [options: Omit<TControllerDefinition, 'controller'>]
+)
+
+export function Route( ...args: TDecoratorArgs ) {
+
+    let path: string | undefined;
+    let schema: zod.ZodSchema | undefined;
+    let options: Omit<TControllerDefinition, 'controller'|'schema'|'path'> = {};
+
+    if (typeof args[0] === 'object') {
+        const { path: path_, schema: schema_, ...options_ } = args[0];
+        path = path_;
+        schema = schema_;
+        options = options_;
+    } else {
+        path = args[0];
+        schema = args[1];
+        options = args[2] || {};
+    }
+
     return function (
         target: any,
         propertyKey: string,
@@ -61,8 +88,8 @@ export function Route(options: Omit<TControllerDefinition, 'controller'> = {}) {
         // Store the original method
         const originalMethod = descriptor.value;
 
-        if (options.path === undefined)
-            options.path = target.constructor.name + '/' + propertyKey;
+        if (path === undefined)
+            path = target.constructor.name + '/' + propertyKey;
 
         // Ensure the class has a static property to collect routes
         if (!target.__routes) {
@@ -72,9 +99,9 @@ export function Route(options: Omit<TControllerDefinition, 'controller'> = {}) {
         // Create route object
         const route: TRoute = {
             method: 'POST',
-            path: '/api/' + options.path,
+            path: '/api/' + path,
             controller: originalMethod,
-            schema: options.schema,
+            schema: schema,
             options: {
                 priority: options.priority || 0
             }
