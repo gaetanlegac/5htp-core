@@ -8,7 +8,7 @@ import { SomeType } from 'zod/v4/core';
  
 // Core
 import { 
-    default as Router, RequestService, Request as ServerRequest
+    default as Router, TServerRouter, Request as ServerRequest
 } from '@server/services/router';
 
 // Ap
@@ -28,7 +28,7 @@ export type TConfig = {
 - SERVICE
 ----------------------------------*/
 export default(
-    request: ServerRequest<Router>,
+    request: ServerRequest< TServerRouter >,
     config: TConfig,
     router = request.router,
     app = router.app
@@ -38,10 +38,10 @@ export default(
 
     validate( fields: zod.ZodSchema | { [key: string]: zod.ZodSchema } ) {
 
-        this.config.debug && console.log(LogPrefix, "Validate request data:", this.request.data);
+        config.debug && console.log(LogPrefix, "Validate request data:", request.data);
 
         const schema = typeof fields === 'object' ? zod.object(fields) : fields;
 
-        return schema.parse(this.request.data);
+        return schema.parse(request.data);
     },
 })
