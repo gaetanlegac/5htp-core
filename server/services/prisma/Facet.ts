@@ -1,6 +1,34 @@
 import type { Prisma, PrismaClient } from '@models/types';
 import * as runtime from '@/var/prisma/runtime/library.js';
 
+/*export type TDelegate<R> = {
+    findMany(args?: any): Promise<R[]>
+    findFirst(args?: any): Promise<R | null>
+}*/
+
+/*
+
+*/
+
+
+export type TDelegate<R> = PrismaClient[string];
+
+/*export type TExtractPayload<D extends TDelegate<never>> =
+  D extends { [K in symbol]: { types: { payload: infer P } } } ? P : never;
+
+export type TExtractPayload2<D> =
+  D extends { [K: symbol]: { types: Prisma.TypeMap<infer E>['model'][infer M] } }
+    ? Prisma.TypeMap<E>['model'][M & keyof Prisma.TypeMap<E>['model']]['payload']
+    : never;*/
+
+export type Transform<S extends TSubset, R, RT> = (
+    row: runtime.Types.Result.GetResult<
+        Prisma.$ProspectContactLeadPayload,
+        ReturnType<S>,
+        'findMany'
+    >[number]
+) => RT
+
 export type TWithStats = {
     $table: string,
     $key: string
@@ -13,12 +41,10 @@ export type TSubset = (...a: any[]) => Prisma.ProspectContactLeadFindFirstArgs &
 }
 
 export default class Facet<
-    D extends {
-        findMany(args?: any): Promise<any>
-        findFirst(args?: any): Promise<any>
-    },
+    D extends TDelegate<R>,
     S extends TSubset,
-    R
+    R, // Result type
+    RT // Transformed result type
 > {
     constructor(
 
@@ -28,18 +54,12 @@ export default class Facet<
         private readonly subset: S,
 
         /* the **ONLY** line that changed ↓↓↓ */
-        private readonly transform?: (
-            row: runtime.Types.Result.GetResult<
-                Prisma.$ProspectContactLeadPayload,
-                ReturnType<S>,
-                'findMany'
-            >[number]
-        ) => R,
+        private readonly transform?: Transform<S, R, RT>,
     ) { }
 
     public async findMany(
         ...args: Parameters<S>
-    ): Promise<R[]> {
+    ): Promise<RT[]> {
 
         const { withStats, ...subset } = this.subset(...args);
 
@@ -57,7 +77,7 @@ export default class Facet<
 
     public async findFirst(
         ...args: Parameters<S>
-    ): Promise<R | null> {
+    ): Promise<RT | null> {
 
         const { withStats, ...subset } = this.subset(...args);
 

@@ -10,7 +10,7 @@ import type { Application } from '@server/app';
 import Service from '@server/app/service';
 
 // Specific
-import Facet, { TSubset } from './Facet';
+import Facet, { TDelegate, TSubset, Transform } from './Facet';
 
 /*----------------------------------
 - TYPES
@@ -52,13 +52,11 @@ export default class ModelsManager extends Service<Config, Hooks, Application> {
     }
 
     public Facet<
-        D extends {
-            findMany(args?: any): Promise<any>
-            findFirst(args?: any): Promise<any>
-        },
+        D extends TDelegate<R>,
         S extends TSubset,
-        R
-    >(...args: [D, S, R]) {
+        R,
+        RT
+    >(...args: [D, S, Transform<S, R, RT>]) {
 
         return new Facet(
             this.client,
