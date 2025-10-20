@@ -219,6 +219,17 @@ export default abstract class Service<
             ) 
         ).then(() => {
             //this.config.debug && console.info(`[hook] Hooks ${name} executed with success.`);
+        }).catch(e => {
+            if (name === 'error') {
+
+                // In error hook = avoid infinite loop
+                console.error("Error hook", e);
+
+            } else {
+
+                // Let the error hook handle it
+                throw e;
+            }
         })
     }
 
