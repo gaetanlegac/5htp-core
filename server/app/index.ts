@@ -105,6 +105,10 @@ export abstract class Application<
         this.on('error', (e, request) => this.container.handleBug(e, "An error occured in the application", request));
         
         process.on('unhandledRejection', (error: any, promise: any) => {
+
+            // Log so we know it's coming from unhandledRejection
+            console.error("unhandledRejection", error);
+
             // We don't log the error here because it's the role of the app to decidehiw to log errors
             this.runHook('error', error);
         });
