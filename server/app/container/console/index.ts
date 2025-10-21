@@ -197,9 +197,14 @@ export default class Console {
                     logErrors: string[], 
                     settings: ISettings<ILogObj>
                 ) => {
-                    const logErrorsStr = (logErrors.length > 0 && logArgs.length > 0 ? "\n" : "") + logErrors.join("\n");
-                    settings.prettyInspectOptions.colors = settings.stylePrettyLogs;
-                    origLog(logMetaMarkup + formatWithOptions(settings.prettyInspectOptions, ...logArgs) + logErrorsStr);
+                    try {
+                        const logErrorsStr = (logErrors.length > 0 && logArgs.length > 0 ? "\n" : "") + logErrors.join("\n");
+                        settings.prettyInspectOptions = settings.prettyInspectOptions || {};
+                        settings.prettyInspectOptions.colors = settings.stylePrettyLogs;
+                        origLog(logMetaMarkup + formatWithOptions(settings.prettyInspectOptions, ...logArgs) + logErrorsStr);
+                    } catch (error) {
+                        origLog("Error formatting log", error);
+                    }
                 },
             }
         }); 
