@@ -46,7 +46,7 @@ export type StartedServicesIndex = {
 
 export type TServiceArgs<TService extends AnyService> = [
     parent: AnyService | 'self',
-    getConfig: null | undefined | ((instance: TService) => {}),
+    config: null | undefined | TService['config'],
     app: TService['app'] | 'self'
 ]
 
@@ -122,7 +122,7 @@ export default abstract class Service<
     TConfig extends {}, 
     THooks extends THooksList,
     TApplication extends Application,
-    TParent extends AnyService | Application = Application
+    TParent extends AnyService
 > {
 
     public started?: Promise<void>;
@@ -136,18 +136,17 @@ export default abstract class Service<
     public app: TApplication;
     public config: TConfig = {} as TConfig;
 
-    public constructor(...[parent, getConfig, app]: TServiceArgs<AnyService>) {
+    public constructor(...[parent, config, app]: TServiceArgs<AnyService>) {
 
         this.parent = parent;
         if (this.parent === 'self') 
-            this.parent = this;
+            this.parent = this as unknown as TParent;
 
         this.app = app === 'self'
             ? this as unknown as TApplication
             : app
 
-        if (typeof getConfig === 'function')
-            this.config = getConfig(this);
+        this.config = config || {};
         
     }
 

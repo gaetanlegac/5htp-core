@@ -11,7 +11,6 @@ import type { TToolbarDisplay } from './ToolbarPlugin';
 
 // Special componets
 import type TEditor from './Editor';
-import './style.less';
 
 /*----------------------------------
 - TYPES

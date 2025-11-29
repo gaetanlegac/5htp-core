@@ -12,7 +12,7 @@ import express from 'express';
 
 // Core
 import { Application } from '@server/app';
-import type ServerRouter from '@server/services/router';
+import type { RouterService, default as ServerRouter, TServerRouter } from '@server/services/router';
 import ServerRequest from '@server/services/router/request';
 import { TRoute, TAnyRoute, TDomainsList } from '@common/router';
 import { NotFound, Forbidden, Anomaly } from '@common/errors';
@@ -38,10 +38,10 @@ export type TBasicSSrData = {
     domains: TDomainsList
 }
 
-export type TRouterContext<TRouter extends ServerRouter = ServerRouter> = (
+export type TRouterContext<TRouter extends TServerRouter> = (
     // Request context
     {
-        app: Application,
+        app: TRouter["app"],
         context: TRouterContext<TRouter>, // = this
         request: ServerRequest<TRouter>,
         api: ServerRequest<TRouter>["api"],
@@ -52,14 +52,19 @@ export type TRouterContext<TRouter extends ServerRouter = ServerRouter> = (
 
         Router: TRouter,
     }
-    //& TRouterContextServices<TRouter>
+    & TRouterContextServices<TRouter>
 )
 
-export type TRouterContextServices<TRouter extends ServerRouter> = (
+export type TRouterContextServices< 
+    TRouter extends TServerRouter,
+    TPlugins = TRouter["config"]["plugins"]
+> = (
     // Custom context via servuces
     // For each roiuter service, return the request service (returned by roiuterService.requestService() )
     {
-        [serviceName in keyof TRouter["services"]]: ReturnType< TRouter["services"][serviceName]["requestService"] >
+        [serviceName in keyof TPlugins]: TPlugins[serviceName] extends RouterService 
+            ? ReturnType<TPlugins[serviceName]["requestService"]> 
+            : TPlugins[serviceName]
     }
 )
 
@@ -212,7 +217,7 @@ export default class ServerResponse<
         return this;
     }
 
-    public async render( page: Page, context: TRouterContext, additionnalData: {} ) {
+    public async render( page: Page, context: TRouterContext<TRouter>, additionnalData: {} ) {
 
         // Set page in context for the client side
         context.page = page;

@@ -11,7 +11,10 @@ import type { default as Router } from '.';
 import type ServerRequest from './request';
 import type RequestService from './request/service';
 
-export type TRouterServiceArgs = TServiceArgs<RouterService>;
+export type TRouterServiceArgs = [
+    getConfig: TServiceArgs<RouterService>[1],
+    app: Application,
+];
 
 /*----------------------------------
 - SERVICE
@@ -20,10 +23,10 @@ export default abstract class RouterService<
     TConfig extends {} = {}
 > extends Service<TConfig, {}, Application> {
 
-    public constructor( ...args: TRouterServiceArgs) {
-        super(...args);
+    public constructor( ...[config, app]: TRouterServiceArgs) {
+        super(app, config, app);
     }
 
-    public abstract requestService( request: ServerRequest<Router> ): RequestService | null;
+    public abstract requestService( request: ServerRequest<RouterService> ): RequestService | {} | null;
 
 }

@@ -34,10 +34,10 @@ export type Services = {
 - SERVICE
 ----------------------------------*/
 export default class DisksManager<
-    MountpointList extends Services = {},
-    TConfig extends Config = Config,
-    TApplication extends Application = Application
-> extends Service<TConfig, Hooks, TApplication> {
+    MountpointList extends Services,
+    TConfig extends Config,
+    TApplication extends Application
+> extends Service<TConfig, Hooks, TApplication, TApplication> {
 
     public default!: Driver;
 
@@ -45,14 +45,21 @@ export default class DisksManager<
     - LIFECYCLE
     ----------------------------------*/
 
-    public constructor( ...args: TServiceArgs<DisksManager>) {
+    public constructor( ...args: TServiceArgs<DisksManager<MountpointList, TConfig, TApplication>>) {
 
         super(...args);
 
         const drivers = this.config.drivers;
+
+        console.log('drivers', args);
         
         if (Object.keys( drivers ).length === 0)
             throw new Error("At least one disk driver should be mounted.");
+
+        // Bind current instance of the service as parent
+        /*for (const driverId in drivers) {
+            drivers[driverId].parent = this;
+        }*/
 
         const defaultDisk = drivers[ this.config.default ];
         if (defaultDisk === undefined)

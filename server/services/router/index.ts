@@ -55,7 +55,7 @@ export type { default as Request, UploadedFile } from "./request";
 export type { default as Response, TRouterContext } from "./response";
 export type { TRoute, TAnyRoute } from '@common/router';
 
-export type TApiRegisterArgs<TRouter extends ServerRouter> = ([
+export type TApiRegisterArgs<TRouter extends TServerRouter> = ([
     path: string,
     controller: TServerController<TRouter>
 ] | [
@@ -64,7 +64,7 @@ export type TApiRegisterArgs<TRouter extends ServerRouter> = ([
     controller: TServerController<TRouter>
 ])
 
-export type TServerController<TRouter extends ServerRouter> = (context: TRouterContext<TRouter>) => any;
+export type TServerController<TRouter extends TServerRouter> = (context: TRouterContext<TRouter>) => any;
 
 export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'OPTIONS'
 export type TRouteHttpMethod = HttpMethod | '*';
@@ -83,8 +83,7 @@ export type HttpHeaders = { [cle: string]: string }
 const LogPrefix = '[router]';
 
 export type Config<
-    TServiceList extends TRouterServicesList = TRouterServicesList,
-    TAdditionnalSsrData extends {} = {}
+    TServices extends TRouterServicesList
 > = {
 
     debug: boolean,
@@ -96,18 +95,16 @@ export type Config<
     http: HttpServiceConfig,
 
     context: (
-        request: ServerRequest<ServerRouter>, 
+        request: ServerRequest<TServerRouter>, 
         app: Application
-    ) => TAdditionnalSsrData,
+    ) => {},
 
-    plugins: {
-        [routerServiceId: string]: RouterService
-    }
+    plugins: TServices
 }
 
 // Set it as a function, so when we instanciate the services, we can callthis.router to pass the router instance in roiuter services
 type TRouterServicesList = {
-    [serviceName: string]: RouterService<ServerRouter>
+    [serviceName: string]: RouterService
 }
 
 export type Hooks = {
@@ -117,14 +114,20 @@ export type Hooks = {
 export type TControllerDefinition = {
     path?: string,
     schema?: zod.ZodSchema,
-    controller: TServerController<ServerRouter>,
+    controller: TServerController<TServerRouter>,
 }
+
+export type TServerRouter = ServerRouter<Application, TRouterServicesList, Config<TRouterServicesList>>;
 
 /*----------------------------------
 - CLASSE
 ----------------------------------*/
-export default class ServerRouter 
-    extends Service<Config, Hooks, Application> implements BaseRouter {
+export default class ServerRouter<
+    TApplication extends Application,
+    TServices extends TRouterServicesList,
+    TConfig extends Config<TServices>,
+>
+    extends Service<TConfig, Hooks, TApplication, TApplication> implements BaseRouter {
 
     public disks = this.use<DisksManager>('Core/Disks', { optional: true });
     
@@ -151,7 +154,7 @@ export default class ServerRouter
     - SERVICE
     ----------------------------------*/
 
-    public constructor( ...args: TServiceArgs<ServerRouter>) {
+    public constructor( ...args: TServiceArgs< ServerRouter<TApplication, TServices, TConfig> >) {
 
         super(...args);
 
@@ -172,7 +175,9 @@ export default class ServerRouter
 
         // Detect router services
         for (const serviceName in this.config.plugins) {
-            this.app.register( this.config.plugins[serviceName] )
+            const service = this.config.plugins[serviceName];
+            service.parent = this;
+            this.app.register( service )
         }
 
          // Use require to avoid circular references
@@ -370,10 +375,10 @@ export default class ServerRouter
             req: Request,
             res: Response,
             next: NextFunction,
-            requestContext: TRouterContext
+            requestContext: TRouterContext<this>
         ) => void
     ) {
-        return (context: TRouterContext) => new Promise((resolve) => {
+        return (context: TRouterContext<this>) => new Promise((resolve) => {
             
             context.request.res.on('finish', function() {
                 //console.log('the response has been sent', request.res.statusCode);

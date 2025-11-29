@@ -58,6 +58,10 @@ export default abstract class FsDriver<
     TBucketName = keyof Config["buckets"]
 > extends Service<Config, {}, Application> {
 
+    public constructor( config: Config, app: Application ) {
+        super(app, config, app);
+    }
+
     public abstract mount(): Promise<void>;
 
     public abstract getFileUrl(

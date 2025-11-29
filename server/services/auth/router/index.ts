@@ -7,8 +7,10 @@
 // Core
 import { 
     default as Router, Request as ServerRequest, Response as ServerResponse, TAnyRoute,
-    RouterService, TRouterServiceArgs
+    RouterService
 } from '@server/services/router';
+
+import type { TRouterServiceArgs } from '@server/services/router/service';
 
 // Specific
 import type { default as UsersService, TUserRole } from '..';
