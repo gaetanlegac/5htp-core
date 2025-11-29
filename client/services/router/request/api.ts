@@ -50,17 +50,8 @@ export default class ApiClient implements ApiClientService {
         throw new Error("api.fetch shouldn't be called here.");
     }
 
-    public get = <TData extends unknown = unknown>(path: string, data?: TPostData, opts?: TApiFetchOptions) => 
-        this.createFetcher<TData>('GET', path, data, opts);
-
     public post = <TData extends unknown = unknown>(path: string, data?: TPostData, opts?: TApiFetchOptions) => 
         this.createFetcher<TData>('POST', path, data, opts);
-
-    public put = <TData extends unknown = unknown>(path: string, data?: TPostData, opts?: TApiFetchOptions) => 
-        this.createFetcher<TData>('PUT', path, data, opts);
-
-    public delete = <TData extends unknown = unknown>(path: string, data?: TPostData, opts?: TApiFetchOptions) => 
-        this.createFetcher<TData>('DELETE', path, data, opts);
 
     public set( newData: TObjetDonnees ) {
 

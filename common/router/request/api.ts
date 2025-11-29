@@ -63,14 +63,6 @@ export default abstract class ApiClient {
     - TOP LEVEL
     ----------------------------------*/
 
-    public abstract get<TData extends unknown = unknown>(path: string, data?: TObjetDonnees, opts?: TApiFetchOptions): TFetcher<TData>;
-
-    public abstract post<TData extends unknown = unknown>(path: string, data?: TObjetDonnees, opts?: TApiFetchOptions): TFetcher<TData>;
-
-    public abstract put<TData extends unknown = unknown>(path: string, data?: TObjetDonnees, opts?: TApiFetchOptions): TFetcher<TData>;
-
-    public abstract delete<TData extends unknown = unknown>(path: string, data?: TObjetDonnees, opts?: TApiFetchOptions): TFetcher<TData>;
-
     public abstract set( newData: TObjetDonnees );
 
     public abstract reload( ids?: string | string[], params?: TObjetDonnees );
