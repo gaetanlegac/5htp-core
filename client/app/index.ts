@@ -22,7 +22,7 @@ export { default as Service } from './service';
 
 // Resources
 //import '@client/assets/css/core.less';
-import '@mantine/core/styles.css';
+//import '@mantine/core/styles.css';
 
 /*----------------------------------
 - TYPES
