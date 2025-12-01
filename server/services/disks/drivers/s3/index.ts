@@ -52,7 +52,7 @@ export default class S3Driver<
 
     public constructor( config: TConfig, app: Application ) {
 
-        super(app, config, app);
+        super(config, app);
 
         AWS.config.update({
             accessKeyId: this.config.accessKeyId,

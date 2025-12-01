@@ -56,7 +56,7 @@ export type TReadFileOptions = {
 export default abstract class FsDriver<
     Config extends TDrivercnfig = TDrivercnfig,
     TBucketName = keyof Config["buckets"]
-> extends Service<Config, {}, Application> {
+> extends Service<Config, {}, Application, Application> {
 
     public constructor( config: Config, app: Application ) {
         super(app, config, app);
