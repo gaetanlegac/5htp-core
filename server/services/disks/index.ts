@@ -50,8 +50,6 @@ export default class DisksManager<
         super(...args);
 
         const drivers = this.config.drivers;
-
-        console.log('drivers', args);
         
         if (Object.keys( drivers ).length === 0)
             throw new Error("At least one disk driver should be mounted.");
