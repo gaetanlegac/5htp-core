@@ -150,7 +150,9 @@ export abstract class Application<
         console.log('----------------------------------');
         console.log('- SERVICES');
         console.log('----------------------------------');
-        await this.ready();
+        const startingServices = await this.ready();
+        await Promise.all(startingServices);
+        console.log('All services are ready');
         await this.runHook('ready');
 
         const startedTime = (Date.now() - startTime) / 1000;
@@ -179,11 +181,13 @@ export abstract class Application<
 
     public register( service: AnyService ) {
 
-        service.ready();
+        return service.ready();
 
     }
 
     protected async ready() {
+
+        const startingServices: Promise<any>[] = [];
 
         // Print services
         const processService = async (propKey: string, service: AnyService, level: number = 0) => {
@@ -193,7 +197,8 @@ export abstract class Application<
 
             // Services start shouldn't block app boot
             // use await ServiceName.started to make services depends on each other
-            this.starting = service.ready();
+            service.starting = service.ready();
+            startingServices.push(service.starting);
             service.status = 'running';
             console.log('-' + '-'.repeat(level * 1), propKey + ': ' + service.constructor.name);
 
@@ -253,6 +258,8 @@ export abstract class Application<
             // Services start shouldn't block app boot
             processService(serviceId, service);
         }
+
+        return startingServices;
     }
 
 }

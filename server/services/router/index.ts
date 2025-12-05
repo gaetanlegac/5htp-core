@@ -168,11 +168,6 @@ export default class ServerRouter<
 
     public async ready() {
 
-        // Every hours
-        setInterval(() => {
-            this.refreshStaticPages();
-        }, 1000 * 60 * 60);
-
         // Detect router services
         for (const serviceName in this.config.plugins) {
             const service = this.config.plugins[serviceName];
@@ -216,6 +211,12 @@ export default class ServerRouter<
             );
         };
 
+
+        // When all the services are ready, initialize static routes
+        this.app.on('ready', () => {
+            this.initStaticRoutes();
+        });
+
     }
 
     public async shutdown() {
@@ -237,6 +238,8 @@ export default class ServerRouter<
             return;
 
         if (!rendered) {
+
+            console.log('[router] renderStatic: url', url);
 
             const fullUrl = this.url(url, {}, true);
             const response = await got( fullUrl, {
@@ -266,6 +269,26 @@ export default class ServerRouter<
         
     }
 
+    private initStaticRoutes() {
+
+        for (const route of this.routes) {
+
+            if (!route.options.static)
+                continue;
+
+            // Add to static pages
+            // Should be a GET oage that don't take any parameter
+            for (const url of route.options.static.urls) {
+                this.renderStatic(url, route.options.static);
+            }
+        }
+
+        // Every hours, refresh static pages
+        setInterval(() => {
+            this.refreshStaticPages();
+        }, 1000 * 60 * 60);
+    }
+
     private refreshStaticPages() {
 
         console.log('[router] refreshStaticPages');
@@ -275,14 +298,9 @@ export default class ServerRouter<
             if (page.expire && page.expire < Date.now()) {
 
                 this.renderStatic(pageUrl, page.options);
-
             }
         }
     }
-
-
-
-
 
     private registerRoutes(defModules: GlobImportedWithMetas<TRouteModule>) {
         for (const routeModule of defModules) {
@@ -331,14 +349,6 @@ export default class ServerRouter<
         }
 
         this.routes.push(route);
-
-        // Add to static pages
-        // Should be a GET oage that don't take any parameter
-        if (options.static) {
-            for (const url of options.static.urls) {
-                this.renderStatic(url, options.static);
-            }
-        }
 
         return this;
 
