@@ -313,11 +313,11 @@ export default class ServerResponse<
         return this.end();
     }
 
-    public redirect(url: string, code: number = 302) {
+    public redirect(url: string, code: number = 302, absolute: boolean = false) {
 
         debug && console.log("[routeur][response] Redirect", url);
         this.statusCode = code;
-        this.headers['Location'] = this.router.url( url );
+        this.headers['Location'] = this.router.url( url, {}, absolute );
         return this.end();
     }
 
