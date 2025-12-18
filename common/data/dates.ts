@@ -134,6 +134,9 @@ const units: {[name: string]: TUnit} = {
 
 export function ago(date: Date | string, { min, max }: { min?: string, max?: string } = {}): string {
 
+    if (!date)
+        return '-';
+
     if (typeof date === 'string')
         date = new Date(date);
 
