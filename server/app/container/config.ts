@@ -12,7 +12,8 @@ import fs from 'fs-extra';
 import yaml from 'yaml';
 
 // Types
-import type { Config as TConsoleConfig } from './console';
+import type { TDomainsList } from '@common/router';
+import type { TLogProfile } from './console';
 
 /*----------------------------------
 - TYPES
@@ -29,12 +30,50 @@ declare global {
     }
 }
 
+/*
+    name: server
+    profile: prod
+
+    router:
+        port: 80
+        domains:
+            current: 'https://recruiters.becrosspath.com'
+            recruiters: 'https://recruiters.becrosspath.com'
+            landing: 'https://becrosspath.com'
+            employers: 'https://employers.becrosspath.com'
+            candidates: 'https://candidates.becrosspath.com'
+            csm: 'https://csm.becrosspath.com'
+
+    database:
+        name: 'aws'
+        databases: [railway]
+        host: 'mysql-z7vp.railway.internal'
+        port: 3306
+        login: root
+        password: "GMnVsczoyYkyzwvVqDkMUOAIjVsumEev"
+
+    console:
+        enable: false
+        debug: false
+        bufferLimit: 10000
+        level: 'log'
+*/
+
 export type TEnvName = TEnvConfig["name"];
 export type TEnvConfig = {
     name: 'local' | 'server',
-    profile: 'dev' | 'prod',
-    version: string,
-    console: TConsoleConfig
+    profile: 'dev' | 'testing' | 'prod',
+    
+    router: {
+        port: number,
+        domains: TDomainsList
+    },
+    console: {
+        enable: boolean,
+        debug: boolean,
+        bufferLimit: number,
+        level: TLogProfile,
+    },
 }
 
 type AppIdentityConfig = {

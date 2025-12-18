@@ -36,7 +36,6 @@ type ConnectionConfig = {
 
 export type DatabaseServiceConfig = {
     debug: boolean,
-    connections: ConnectionConfig[],
     connectionsLimit: number
 }
 
@@ -65,6 +64,9 @@ export type TQueryResult = TSelectQueryResult;
 
 // TODO: specifiy return type of every mysql query type
 type TSelectQueryResult = any;
+
+const DATABASE_URL = process.env.DATABASE_URL;
+if (!DATABASE_URL) throw new Error("Missing env var: DATABASE_URL");
 
 /*----------------------------------
 - SERVICES
@@ -99,14 +101,12 @@ export default class DatabaseManager {
 
         // Try to connect to one of the databases
         const connectionErrors: string[] = []
-        for (const connectionConfig of this.config.connections){
-            try {
-                await this.connect(connectionConfig)
-                break;
-            } catch (error) {
-                this.config.debug && console.warn(LogPrefix, `Failed to connect to ${connectionConfig.name}: ` + error);
-                connectionErrors.push(connectionConfig.name + ': ' + error);
-            }
+
+        try {
+            await this.connect()
+        } catch (error) {
+            this.config.debug && console.warn(LogPrefix, `Failed to connect to database: ` + error);
+            connectionErrors.push('database: ' + error);
         }
 
         // Coudnt connect to any database
@@ -127,17 +127,31 @@ export default class DatabaseManager {
     /*----------------------------------
     - INIT
     ----------------------------------*/
-    public async connect(config: ConnectionConfig) {
+    public async connect() {
 
-        this.config.debug && console.info(LogPrefix, `Trying to connect to ${config.name} ...`);
+
+        const u = new URL(DATABASE_URL as string);
+        const connectionConfig = {
+            name: u.hostname,
+            databases: [u.pathname.replace(/^\//, "")],
+            host: u.hostname,
+            port: u.port ? Number(u.port) : 3306,
+            login: decodeURIComponent(u.username),
+            password: decodeURIComponent(u.password),
+        }
+
+        console.log('connectionConfig', connectionConfig);
+        
+
+        this.config.debug && console.info(LogPrefix, `Trying to connect to database...`, connectionConfig);
         this.connection = mysql.createPool({
 
             // Identification
-            host: config.host,
-            port: config.port,
-            user: config.login,
-            password: config.password,
-            database: config.databases[0],
+            host: connectionConfig.host,
+            port: connectionConfig.port,
+            user: connectionConfig.login,
+            password: connectionConfig.password,
+            database: connectionConfig.databases[0],
 
             // Pool
             waitForConnections: true,
@@ -164,10 +178,10 @@ export default class DatabaseManager {
             }
         })
 
-        this.tables = await this.metas.load( config.databases );
-        this.connectionConfig = config; // Memorise configuration if connection succeed
+        this.tables = await this.metas.load(connectionConfig.databases);
+        this.connectionConfig = connectionConfig; // Memorise configuration if connection succeed
         this.status = 'connected';
-        this.config.debug && console.info(LogPrefix, `Successfully connected to ${config.name}.`);
+        this.config.debug && console.info(LogPrefix, `Successfully connected to database.`);
     }
 
     private typeCast( field: mysql.Field, next: Function ) {

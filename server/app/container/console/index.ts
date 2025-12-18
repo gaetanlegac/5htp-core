@@ -27,7 +27,7 @@ import { SqlError } from '@server/services/database/debug';
 - SERVICE CONFIG
 ----------------------------------*/
 
-type TLogProfile = 'silly' | 'info' | 'warn' | 'error'
+export type TLogProfile = 'silly' | 'info' | 'warn' | 'error'
 
 export type Config = {
     debug?: boolean,
