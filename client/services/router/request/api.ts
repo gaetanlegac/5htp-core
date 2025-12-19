@@ -102,51 +102,34 @@ export default class ApiClient implements ApiClientService {
     ----------------------------------*/
     public createFetcher<TData extends unknown = unknown>(...args: TFetcherArgs): TFetcher<TData> {
         const [method, path, data, options] = args;
-        return {
+
+        // Lazily create (and cache) the underlying promise so the fetcher behaves like a real promise instance.
+        let promise: Promise<TData> | undefined;
+
+        const fetcher = {
             method, path, data, options,
+        } as TFetcher<TData>;
 
-            // For async calls: api.post(...).then((data) => ...)
-            then: (callback: (data: any) => void) => this.fetchAsync<TData>(...args)
-                .then(callback)
-                .catch( e => {
-                    this.app.handleError(e);
+        const getPromise = () => {
+            if (!promise)
+                promise = this.fetchAsync<TData>(fetcher.method, fetcher.path, fetcher.data, fetcher.options);
 
-                    // Don't run what is next
-                    return {
-                        then: () => {},
-                        catch: () => {},
-                        finally: (callback: () => void) => {
-                            callback();
-                        },
-                    }
-                }),
-
-            // Default error behavior only if not handled before by the app
-            catch: (callback: (data: any) => false | void) => this.fetchAsync<TData>(...args)
-                .catch((e) => {
-
-                    const shouldThrow = callback(e);
-                    if (shouldThrow) 
-                        this.app.handleError(e);
-
-                    // Don't run what is next
-                    return {
-                        then: () => {},
-                        catch: () => {},
-                        finally: (callback: () => void) => {
-                            callback();
-                        },
-                    }
-
-                }),
-
-            finally: (callback: () => void) => this.fetchAsync<TData>(...args)
-                .finally(callback)
-                .catch( e => this.app.handleError(e)),
-
-            run: () => this.fetchAsync<TData>(...args)
-                .catch( e => this.app.handleError(e)),
+            return promise;
         };
+
+        // For async calls: api.post(...).then((data) => ...)
+        fetcher.then = (onfulfilled?: any, onrejected?: any) =>
+            getPromise().then(onfulfilled, onrejected) as any;
+
+        fetcher.catch = (onrejected?: any) =>
+            getPromise().catch(onrejected) as any;
+
+        fetcher.finally = (onfinally?: any) =>
+            getPromise().finally(onfinally) as any;
+
+        fetcher.run = () => getPromise();
+
+        return fetcher;
     }
 
     public async fetchAsync<TData extends unknown = unknown>(...[
