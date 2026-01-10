@@ -18,6 +18,7 @@ import type {
 } from '..';
 import ApiClient from './api';
 import ServerResponse from '../response';
+import type { TAnyRouter } from '..';
 
 /*----------------------------------
 - TYPES
@@ -45,7 +46,7 @@ export type UploadedFile = File
 - CONTEXTE
 ----------------------------------*/
 export default class ServerRequest<
-    TRouter extends Router = Router
+    TRouter extends TAnyRouter = TAnyRouter
 > extends BaseRequest {
 
     /*----------------------------------

@@ -63,11 +63,29 @@ declare type PrimitiveValue = string | number | boolean;
 - COPY FROM CLI/APP/INDEX.TS
 ----------------------------------*/
 
-type TEnvConfig = {
+/*type TEnvConfig = {
     name: 'local' | 'server',
-    profile: 'dev' | 'prod',
-    version: string,
-}
+    profile: 'dev' | 'testing' | 'prod',
+    
+    router: {
+        port: number,
+        domains: TDomainsList
+    },
+    database: {
+        name: string,
+        databases: string[],
+        host: string,
+        port: number,
+        login: string,
+        password: string,
+    },
+    console: {
+        enable: boolean,
+        debug: boolean,
+        bufferLimit: number,
+        level: TLogProfile,
+    },
+}*/
 
 type TServiceSetup = {
     id: string,

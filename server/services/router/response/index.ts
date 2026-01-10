@@ -12,7 +12,7 @@ import express from 'express';
 
 // Core
 import { Application } from '@server/app';
-import type { RouterService, default as ServerRouter, TServerRouter } from '@server/services/router';
+import type { AnyRouterService, default as ServerRouter, TServerRouter, TAnyRouter } from '@server/services/router';
 import ServerRequest from '@server/services/router/request';
 import { TRoute, TAnyRoute, TDomainsList } from '@common/router';
 import { NotFound, Forbidden, Anomaly } from '@common/errors';
@@ -48,11 +48,11 @@ export type TRouterContext<TRouter extends TServerRouter> = (
         response: ServerResponse<TRouter>,
         route: TRoute,
         page?: Page,
-        user: TBasicUser,
 
         Router: TRouter,
     }
     & TRouterContextServices<TRouter>
+    //& TRouterRequestContext<TRouter>
 )
 
 export type TRouterContextServices< 
@@ -62,25 +62,29 @@ export type TRouterContextServices<
     // Custom context via servuces
     // For each roiuter service, return the request service (returned by roiuterService.requestService() )
     {
-        [serviceName in keyof TPlugins]: TPlugins[serviceName] extends RouterService 
+        [serviceName in keyof TPlugins]: TPlugins[serviceName] extends AnyRouterService 
             ? ReturnType<TPlugins[serviceName]["requestService"]> 
             : TPlugins[serviceName]
     }
 )
+
+export type TRouterRequestContext< 
+    TRouter extends TServerRouter
+> = ReturnType<TRouter["config"]["context"]>
 
 
 /*----------------------------------
 - CLASSE
 ----------------------------------*/
 export default class ServerResponse<
-    TRouter extends ServerRouter,
-    TRequestContext = TRouterContext<ServerRouter>,
+    TRouter extends TAnyRouter,
+    TRequestContext = TRouterContext<TAnyRouter>,
     TData extends TResponseData = TResponseData
 > extends BaseResponse<TData, ServerRequest<TRouter>> {
 
     // Services
     public app: Application;
-    public router: ServerRouter;
+    public router: TRouter;
 
     // Response metadata
     public statusCode: number = 200;

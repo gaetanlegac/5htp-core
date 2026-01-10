@@ -94,7 +94,7 @@ type TOptions = {
 - FONCTIONS
 ----------------------------------*/
 export default abstract class Email<TConfig extends Config> 
-    extends Service<TConfig, Hooks, Application> {
+    extends Service<TConfig, Hooks, Application, Application> {
 
     /*----------------------------------
     - ACTIONS

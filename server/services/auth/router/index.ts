@@ -7,13 +7,15 @@
 // Core
 import { 
     default as Router, Request as ServerRequest, Response as ServerResponse, TAnyRoute,
-    RouterService
+    RouterService, TAnyRouter
 } from '@server/services/router';
+
+import type { Application } from '@server/app';
 
 import type { TRouterServiceArgs } from '@server/services/router/service';
 
 // Specific
-import type { default as UsersService, TUserRole } from '..';
+import type { default as UsersService, TUserRole, TBasicUser } from '..';
 import UsersRequestService from './request';
 
 /*----------------------------------
@@ -31,18 +33,20 @@ const LogPrefix = '[router][auth]';
 - SERVICE
 ----------------------------------*/
 export default class AuthenticationRouterService<
-    TUser extends {} = {},
-    TRequest extends ServerRequest<Router> = ServerRequest<Router>,
-> extends RouterService {
+    TApplication extends Application = Application,
+    TUser extends TBasicUser = TApplication["app"]["userType"],
+    TRouter extends TAnyRouter = TAnyRouter,
+    TRequest extends ServerRequest<TRouter> = ServerRequest<TRouter>,
+> extends RouterService<{}, TRouter> {
 
     /*----------------------------------
     - LIFECYCLE
     ----------------------------------*/
 
-    public users: UsersService;
+    public users: UsersService<TUser, Application>;
 
-    public constructor(...args: TRouterServiceArgs) {
-        super(...args);
+    public constructor( getConfig: TRouterServiceArgs[0], app: TApplication ) {
+        super( getConfig, app );
 
         this.users = this.config.users;
     }
@@ -62,7 +66,7 @@ export default class AuthenticationRouterService<
         this.parent.on('resolved', async (
             route: TAnyRoute, 
             request: TRequest, 
-            response: ServerResponse<Router>
+            response: ServerResponse<TRouter>
         ) => {
 
             if (route.options.auth !== undefined) {
@@ -85,7 +89,7 @@ export default class AuthenticationRouterService<
     - ROUTER SERVICE LIFECYCLE
     ----------------------------------*/
 
-    public requestService( request: TRequest ): UsersRequestService<TUser> {
+    public requestService( request: TRequest ): UsersRequestService<TRouter, TUser> {
         return new UsersRequestService( request, this );
     }   
 }

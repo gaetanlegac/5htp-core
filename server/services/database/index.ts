@@ -91,7 +91,7 @@ const emptyOkPacket = {
 
 // TODO: build callable instance sithut instanciating the service
 
-export default class SQL extends Service<Config, Hooks, Application> {
+export default class SQL extends Service<Config, Hooks, Application, Application> {
 
     public database: Database;
 

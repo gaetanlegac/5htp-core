@@ -10,9 +10,12 @@ import Service, { TRegisteredServicesIndex, TServiceArgs } from '@server/app/ser
 import type { default as Router } from '.';
 import type ServerRequest from './request';
 import type RequestService from './request/service';
+import type { TAnyRouter } from '.';
+
+export type AnyRouterService = RouterService<any, TAnyRouter>;
 
 export type TRouterServiceArgs = [
-    getConfig: TServiceArgs<RouterService>[1],
+    getConfig: TServiceArgs<AnyRouterService>[1],
     app: Application,
 ];
 
@@ -20,13 +23,14 @@ export type TRouterServiceArgs = [
 - SERVICE
 ----------------------------------*/
 export default abstract class RouterService<
-    TConfig extends {} = {}
-> extends Service<TConfig, {}, Application> {
+    TConfig extends {},
+    TRouter extends TAnyRouter
+> extends Service<TConfig, {}, Application, TRouter> {
 
     public constructor( ...[config, app]: TRouterServiceArgs) {
         super(app, config, app);
     }
 
-    public abstract requestService( request: ServerRequest<RouterService> ): RequestService | {} | null;
+    public abstract requestService( request: ServerRequest<TRouter> ): RequestService | {} | null;
 
 }

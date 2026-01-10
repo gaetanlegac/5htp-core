@@ -10,6 +10,7 @@ import type http from 'http';
 // Core
 import { Application } from '@server/app';
 import Service from '@server/app/service';
+import type { TAnyRouter } from '@server/services/router';
 import { 
     default as Router, Request as ServerRequest,
 } from '@server/services/router';
@@ -51,15 +52,16 @@ export type THooks = {
 
 export type TBasicUser = {
     type: string,
-    name: string,
+    name: string | null,
     email: string,
     roles: string[]
 }
 
-export type TBasicJwtSession = {
-    accountType: string,
-    apiKey?: string
-}
+export type TBasicJwtSession = (
+    { apiKey: string }
+    |
+    { email: string }
+)
 
 /*----------------------------------
 - SERVICE
@@ -68,8 +70,8 @@ export default abstract class AuthService<
     TUser extends TBasicUser,
     TApplication extends Application,
     TJwtSession extends TBasicJwtSession = TBasicJwtSession,
-    TRequest extends ServerRequest<Router> = ServerRequest<Router>,
-> extends Service<TConfig, THooks, TApplication> {
+    TRequest extends ServerRequest<TAnyRouter> = ServerRequest<TAnyRouter>,
+> extends Service<TConfig, THooks, TApplication, TApplication> {
 
     //public abstract login( ...args: any[] ): Promise<{ user: TUser, token: string }>;
     public abstract decodeSession( jwt: TJwtSession, req: THttpRequest ): Promise<TUser | null>;
@@ -226,13 +228,13 @@ export default abstract class AuthService<
         // Not connected
         } else if (user === null) {
 
-            this.config.debug && console.warn(LogPrefix, "Refusé pour anonyme (" + request.ip + ")");
+            console.warn(LogPrefix, "Refusé pour anonyme (" + request.ip + ")");
             throw new AuthRequired('Please login to continue', motivation, dataForDebug);
             
         // Insufficient permissions
         } else if (!user.roles.includes(role)) {
 
-            this.config.debug && console.warn(LogPrefix, "Refusé: " + role + " pour " + user.name + " (" + (user.roles || 'role inconnu') + ")");
+            console.warn(LogPrefix, "Refusé: " + role + " pour " + user.name + " (" + (user.roles || 'role inconnu') + ")");
 
             throw new Forbidden("You do not have sufficient permissions to access this resource.");
 

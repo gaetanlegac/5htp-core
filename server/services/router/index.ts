@@ -38,7 +38,7 @@ import type { TFrontRenderer } from '@common/router/response/page';
 import type { TSsrUnresolvedRoute, TRegisterPageArgs } from '@client/services/router';
 
 // Specific
-import RouterService from './service';
+import { AnyRouterService } from './service';
 import ServerRequest from "./request";
 import ServerResponse, { TRouterContext, TRouterContextServices } from './response';
 import Page from './response/page';
@@ -49,7 +49,7 @@ import DocumentRenderer from './response/page/document';
 - TYPES
 ----------------------------------*/
 
-export { default as RouterService } from './service';
+export { type AnyRouterService, default as RouterService } from './service';
 export { default as RequestService } from './request/service';
 export type { default as Request, UploadedFile } from "./request";
 export type { default as Response, TRouterContext } from "./response";
@@ -80,6 +80,8 @@ export type HttpHeaders = { [cle: string]: string }
 - SERVICE CONFIG
 ----------------------------------*/
 
+export type TAnyRouter = ServerRouter<Application, TRouterServicesList, Config<TRouterServicesList>>;
+
 const LogPrefix = '[router]';
 
 export type Config<
@@ -104,7 +106,7 @@ export type Config<
 
 // Set it as a function, so when we instanciate the services, we can callthis.router to pass the router instance in roiuter services
 type TRouterServicesList = {
-    [serviceName: string]: RouterService
+    [serviceName: string]: AnyRouterService
 }
 
 export type Hooks = {

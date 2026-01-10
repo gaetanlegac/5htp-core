@@ -16,7 +16,7 @@ import Service, { AnyService } from '@server/app/service';
 import { viaHttpCode } from '@common/errors';
 
 // Local
-import type RouterService from '../router';
+import type { TAnyRouter } from '../router';
 import type DisksManager from '../disks';
 import type FsDriver from '../disks/driver';
 
@@ -29,7 +29,7 @@ export type Config = {
     disk?: string,
 
     disks: DisksManager,
-    router?: RouterService
+    router?: TAnyRouter
 }
 
 export type Hooks = {
@@ -58,7 +58,7 @@ const LogPrefix = `[services][fetch]`
 - SERVICE
 -  Tools that helps to consume external resources (including apis, ..)
 -----------------------------------*/
-export default class FetchService extends Service<Config, Hooks, Application> {
+export default class FetchService extends Service<Config, Hooks, Application, Application> {
 
     private disk?: FsDriver;
 

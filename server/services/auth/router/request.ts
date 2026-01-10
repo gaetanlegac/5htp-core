@@ -6,7 +6,7 @@
 import jwt from 'jsonwebtoken';
 
 // Core
-import type { default as Router, Request as ServerRequest } from '@server/services/router';
+import type { default as Router, Request as ServerRequest, TAnyRouter } from '@server/services/router';
 import RequestService from '@server/services/router/request/service';
 import { InputError, AuthRequired, Forbidden } from '@common/errors';
 
@@ -25,11 +25,12 @@ import type { TBasicUser } from '@server/services/auth';
 - MODULE
 ----------------------------------*/
 export default class UsersRequestService<
+    TRouter extends TAnyRouter,
     TUser extends TBasicUser
 > extends RequestService {
 
     public constructor( 
-        request: ServerRequest<Router>,
+        request: ServerRequest<TRouter>,
         public auth: AuthenticationRouterService,
         public users = auth.users,
     ) {
